@@ -14,10 +14,10 @@
   </template>
   
   <script>
-  import TitleAnimation from '@/components/TitleAnimation.vue';
-  import BoxAnimation from '@/components/BoxAnimation.vue';
-  import RedBox from '@/components/RedBox.vue';
-  import CardTurn from './components/CardTurn.vue';
+  import TitleAnimation from '~/components/Lab/TitleAnimation.vue';
+  import BoxAnimation from '~/components/Animation/Lab/BoxAnimation.vue';
+  import RedBox from '~/components/Lab/RedBox.vue';
+  import CardTurn from './components/Animation/Lab/CardTurn.vue';
   
   export default {
     components: {

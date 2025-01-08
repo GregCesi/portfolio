@@ -15,8 +15,7 @@ export default {
         },
       },
       colors: {
-        primary: '#9D7967',
-        secondary: '#64748b'
+        primary: 'blue',
       },
       animation: {
         slideIn: 'slideIn 1.5s ease-out forwards',

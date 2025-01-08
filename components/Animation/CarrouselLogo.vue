@@ -18,7 +18,7 @@
 import { ref, onMounted } from 'vue';
 import { useNuxtApp } from '#app';
 
-import ColorModeButton from '@/components/ColorModeButton.vue';
+import ColorModeButton from '~/components/Option/ColorModeButton.vue';
 const colorMode = useColorMode()
 
 const logos = [
