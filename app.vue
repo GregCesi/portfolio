@@ -1,5 +1,4 @@
 <template class="flex flex-col gap-16">
-<div class="dark:bg-primary-900">
   <!-- Menu -->
   <section class="flex justify-between p-4 bg-custom_white font-bold shadow-xl">
     <div>Grégoire MARCHAND</div>
@@ -85,7 +84,6 @@
     <AccordionFAQ></AccordionFAQ>
   </section>
 
-</div>
 </template>
 
 <script setup lang="ts">
