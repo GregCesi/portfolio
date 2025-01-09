@@ -116,7 +116,7 @@ const contactMe = () => {
 // Fonction pour ouvrir un fichier PDF
 const openCV = () => {
   console.log("oh")
-  const pdfUrl = "/files/CV - Grégoire MARCHAND.pdf"; // Chemin relatif ou absolu vers votre fichier PDF
+  const pdfUrl = "/files/CV_gm.pdf"; // Chemin relatif ou absolu vers votre fichier PDF
   window.open(pdfUrl, "_blank"); // Ouvre le fichier PDF dans un nouvel onglet
 };
 </script>
