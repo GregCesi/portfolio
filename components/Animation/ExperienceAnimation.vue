@@ -81,7 +81,7 @@ const experiencesList = ref([
   {
     title: "Modernisation d'un site vitrine",
     logo_company: "images/logo_company/Catra.jpeg",
-    date: "Depuis novembre 2025",
+    date: "Depuis novembre 2024",
     description:
       'Création d’un site vitrine moderne pour CATRA, un revendeur et prestataire de services pour Renault Trucks. L’objectif principal était de remplacer leur ancien site par une version plus actuelle et responsive, tout en permettant à l’équipe de CATRA de gérer facilement le contenu.',
     logos: [
