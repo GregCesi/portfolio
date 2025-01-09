@@ -1,6 +1,6 @@
 <template>
     
-    <UDivider size="lg"><h2 class="text-4xl font-bold text-center py-8">Des services selon vos besoins</h2></UDivider>
+    <UDivider size="lg"><h2 class="text-2xl lg:text-4xl font-bold text-center py-8">Des services selon vos besoins</h2></UDivider>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:max-w-[80%] xl:max-w-[75%] gap-8 p-4 mx-auto">
       
       <div class="flex flex-col gap-4 p-4 rounded-lg " :class="colorMode.value === 'dark' ? 'bg-primary-950' : 'bg-primary-100'">

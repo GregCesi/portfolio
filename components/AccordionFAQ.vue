@@ -28,22 +28,23 @@
     }]
 
     const accordionUI = {
+        wrapper: 'w-full flex flex-col gap-2',
+        item: {
+            base: "shadow-sm", // Style de base des items
+            padding: "px-6 py-4 md:mr-20", // Padding adapté pour les écrans moyens et plus
+            color: "text-gray-700 dark:text-gray-200", // Couleur du texte
+            size: "text-base",
+        },
+        default: {
+            class: "text-sm sm:text-base md:text-lg font-bold whitespace-normal text-left", // Gestion des labels longs
+            truncate: false, // Empêche la troncature automatique
+        },
+        transition: {
+            enterActiveClass: "transition ease-in duration-300", // Animation d'entrée
+            leaveActiveClass: "transition ease-out duration-300", // Animation de sortie
+        },
+    };
 
-    wrapper: 'w-full flex flex-col gap-2',
-    item: {
-        base: " shadow-sm", // Style de base des items
-        padding: "px-6 py-4 mr-20", // Ajout de padding
-        color: "text-gray-700 dark:text-gray-200", // Couleur du texte
-        size: "text-base"
-    },
-    default: {
-        class: "text-lg font-bold", // Taille et style du label
-    },
-    transition: {
-        enterActiveClass: "transition ease-in duration-300", // Animation d'entrée
-        leaveActiveClass: "transition ease-out duration-300", // Animation de sortie
-    },
-};
     
 </script>
 

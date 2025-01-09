@@ -23,9 +23,9 @@
       <!-- Partie droite-->
       <div class="mx-auto xl:basis-1/3 rounded-lg flex flex-col gap-8 p-8" :class="colorMode.value === 'dark' ? 'bg-primary-950' : 'bg-primary-100'" >
         <div class="flex gap-4 items-center">
-          <img class="w-24 h-24 rounded-full object-cover" src="/Users/gregoiremarchand/Desktop/Code/portfolio/public/images/PDP.jpg"/>
+          <img class="w-20 h-20 lg:w-24 lg:h-24 rounded-full object-cover" src="/Users/gregoiremarchand/Desktop/Code/portfolio/public/images/PDP.jpg"/>
           <div>
-            <h2 class="font-bold text-3xl">Grégoire MARCHAND</h2>
+            <h2 class="font-bold text-lg lg:text-3xl">Grégoire MARCHAND</h2>
             <p>Développeur full-stack</p>
           </div>
         </div>
@@ -44,14 +44,14 @@
 
   <!-- Mes experiences -->
   <section class="container mx-auto py-8">
-    <UDivider size="lg"><h2 class="text-4xl font-bold text-center py-8">Mes experiences</h2></UDivider>
+    <UDivider size="lg"><h2 class="text-2xl lg:text-4xl font-bold text-center py-8">Mes experiences</h2></UDivider>
     <ExperienceAnimation></ExperienceAnimation>
   </section>
 
   <!-- FAQ -->
   <section class="container mx-auto py-8">
-    <UDivider size="lg"><h2 class="text-4xl font-bold text-center py-8">FAQ</h2></UDivider>
-    <AccordionFAQ></AccordionFAQ>
+    <UDivider size="lg"><h2 class="text-2xl lg:text-4xl font-bold text-center py-8">FAQ</h2></UDivider>
+    <AccordionFAQ class="p-4"></AccordionFAQ>
   </section>
 
   <!-- Footer -->

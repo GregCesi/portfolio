@@ -1,5 +1,5 @@
 <template>
-    <div class="relative overflow-hidden w-full h-24 bg-primary-100 " :class="colorMode.value === 'dark' ? 'bg-primary-950' : 'bg-primary-100'">
+    <div class="relative overflow-hidden w-full h-12 lg:h-24 bg-primary-100 " :class="colorMode.value === 'dark' ? 'bg-primary-950' : 'bg-primary-100'">
       <!-- Conteneur des logos -->
       <div class="logos flex" ref="logosContainer">
         <img
@@ -7,7 +7,7 @@
           :key="'logo-' + index"
           :src="logo"
           alt="Logo"
-          class="w-24 h-24 object-contain mx-4"
+          class="w-12 h-12 lg:w-24 lg:h-24 object-contain mx-4"
         />
       </div>
     </div>
@@ -18,7 +18,6 @@
 import { ref, onMounted } from 'vue';
 import { useNuxtApp } from '#app';
 
-import ColorModeButton from '~/components/Option/ColorModeButton.vue';
 const colorMode = useColorMode()
 
 const logos = [
