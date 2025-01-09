@@ -1,18 +1,20 @@
 <template>
-    <div class="relative overflow-hidden w-full h-12 lg:h-24 bg-primary-100 " :class="colorMode.value === 'dark' ? 'bg-primary-950' : 'bg-primary-100'">
-      <!-- Conteneur des logos -->
-      <div class="logos flex" ref="logosContainer">
-        <img
-          v-for="(logo, index) in logos"
-          :key="'logo-' + index"
-          :src="logo"
-          alt="Logo"
-          class="w-12 h-12 lg:w-24 lg:h-24 object-contain mx-4"
-        />
-      </div>
+  <div
+    class="relative overflow-hidden w-full h-12 sm:h-24 bg-primary-100"
+    :class="colorMode.value === 'dark' ? 'bg-primary-950' : 'bg-primary-100'"
+  >
+    <!-- Conteneur des logos -->
+    <div ref="logosContainer" class="logos flex">
+      <img
+        v-for="(logo, index) in logos"
+        :key="'logo-' + index"
+        :src="logo"
+        alt="Logo"
+        class="w-12 h-12 sm:w-24 sm:h-24 object-contain mx-4"
+      >
     </div>
-  </template>
-  
+  </div>
+</template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
@@ -21,10 +23,10 @@ import { useNuxtApp } from '#app';
 const colorMode = useColorMode()
 
 const logos = [
-    'images/logo_techno/vuejs.png',
-    'images/logo_techno/tailwind.png',
-    'images/logo_techno/typescript.png',
-    'images/logo_techno/wordpress.png',
+  "images/logo_techno/vuejs.png",
+  "images/logo_techno/tailwind.png",
+  "images/logo_techno/typescript.png",
+  "images/logo_techno/wordpress.png",
 ]; // Liste des logos
 
 const logosContainer = ref(null);
@@ -48,7 +50,7 @@ onMounted(() => {
     repeat: -1, // Boucle infinie
     ease: 'linear', // Défilement fluide
   });
-});
+})
 </script>
 
 <style scoped>

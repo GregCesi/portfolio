@@ -4,7 +4,7 @@ export default {
     './components/**/*.{vue,js,ts}',
     './layouts/**/*.vue',
     './pages/**/*.vue',
-    './app.vue'
+    './app.vue',
   ],
   theme: {
     extend: {
@@ -21,10 +21,10 @@ export default {
         slideIn: 'slideIn 1.5s ease-out forwards',
       },
       boxShadow: {
-        'sides': '-4px 0 8px -2px rgba(0, 0, 0, 0.1), 4px 0 8px -2px rgba(0, 0, 0, 0.1)',
+        sides:
+          '-4px 0 8px -2px rgba(0, 0, 0, 0.1), 4px 0 8px -2px rgba(0, 0, 0, 0.1)',
       },
     },
   },
   plugins: [],
 }
-
