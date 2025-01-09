@@ -34,7 +34,7 @@
             ><UIcon class="text-xl" name="i-heroicons-envelope-solid" ></UIcon>Me
             contacter</UButton
           >
-          <UButton size="xl" color="primary" variant="soft" @click="openCV" :disabled=true
+          <UButton size="xl" color="primary" variant="soft" @click="openCV" 
             ><UIcon class="text-xl" name="i-heroicons-document-text-solid"/>Mon
             CV</UButton
           >
