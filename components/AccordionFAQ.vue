@@ -1,6 +1,6 @@
 <template>
   <UAccordion
-    :items="items"
+    :items="content"
     multiple
     variant="soft"
     size="xl"
@@ -9,9 +9,9 @@
 </template>
 
 <script setup lang="ts">
-const items = [
+const content = [
   {
-    label: "Quel est ton niveau d'étude",
+    label: "Quel est ton niveau d'étude ?",
     icon: 'i-heroicons-information-circle',
     content:
       'Je suis diplômé ingénieur en informatique du CESI. Ce parcours m’a non seulement donné des compétences techniques solides, mais aussi une méthodologie et une démarche structurée pour mener à bien vos projets, quelle que soit leur complexité.',

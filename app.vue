@@ -30,12 +30,12 @@
           donner envie d’en savoir plus et, qui sait, de collaborer ensemble !
         </p>
         <div class="flex gap-4 place-self-end py-4">
-          <UButton size="xl" color="primary" variant="soft"
-            ><UIcon class="text-xl" name="i-heroicons-envelope-solid" />Me
+          <UButton size="xl" color="primary" variant="soft" @click="contactMe"
+            ><UIcon class="text-xl" name="i-heroicons-envelope-solid" ></UIcon>Me
             contacter</UButton
           >
-          <UButton size="xl" color="primary" variant="soft"
-            ><UIcon class="text-xl" name="i-heroicons-document-text-solid" />Mon
+          <UButton size="xl" color="primary" variant="soft" @click="openCV" :disabled=true
+            ><UIcon class="text-xl" name="i-heroicons-document-text-solid"/>Mon
             CV</UButton
           >
         </div>
@@ -51,7 +51,7 @@
         <div class="flex gap-4 items-center">
           <img
             class="w-20 h-20 lg:w-24 lg:h-24 rounded-full object-cover"
-            src="/Users/gregoiremarchand/Desktop/Code/portfolio/public/images/PDP.jpg"
+            src="/images/PDP.jpg"
           />
           <div>
             <h2 class="font-bold text-lg lg:text-3xl">Grégoire MARCHAND</h2>
@@ -104,4 +104,19 @@ import Footer from './components/Footer.vue';
 
 import { useColorMode } from '#imports';
 const colorMode = useColorMode();
+
+// Fonction pour ouvrir le client de messagerie avec une adresse e-mail préremplie
+const contactMe = () => {
+  console.log("eh")
+  const email = "gmarchand.pro1@gmail.com"; // Remplacez par votre adresse e-mail
+  const mailtoLink = `mailto:${email}`;
+  window.location.href = mailtoLink; // Redirige l'utilisateur vers le client de messagerie
+}
+
+// Fonction pour ouvrir un fichier PDF
+const openCV = () => {
+  console.log("oh")
+  const pdfUrl = "/files/CV - Grégoire MARCHAND.pdf"; // Chemin relatif ou absolu vers votre fichier PDF
+  window.open(pdfUrl, "_blank"); // Ouvre le fichier PDF dans un nouvel onglet
+};
 </script>
