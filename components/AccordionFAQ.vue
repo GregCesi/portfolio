@@ -8,7 +8,7 @@
   />
 </template>
 
-<script setup lang="ts">
+<script setup>
 const content = [
   {
     label: "Quel est ton niveau d'étude ?",

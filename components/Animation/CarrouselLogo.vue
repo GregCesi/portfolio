@@ -24,9 +24,12 @@ const colorMode = useColorMode()
 
 const logos = [
   "images/logo_techno/vuejs.png",
+  "images/logo_techno/nuxt.png",
   "images/logo_techno/tailwind.png",
   "images/logo_techno/typescript.png",
   "images/logo_techno/wordpress.png",
+  "images/logo_techno/springboot.png",
+
 ]; // Liste des logos
 
 const logosContainer = ref(null);
@@ -46,7 +49,7 @@ onMounted(() => {
   // Animation GSAP pour le défilement infini
   $gsap.to(container, {
     x: `-${container.scrollWidth / 2}px`, // Fait défiler la moitié des éléments (une boucle complète)
-    duration: 10, // Durée de l'animation
+    duration: 7, // Durée de l'animation
     repeat: -1, // Boucle infinie
     ease: 'linear', // Défilement fluide
   });

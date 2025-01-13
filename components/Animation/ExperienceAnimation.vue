@@ -8,7 +8,7 @@
 
     <!-- Liste des expériences -->
     <div
-      class="experience-wrapper relative flex flex-col gap-16 place-self-center px-4 sm:py-32 pt-6"
+      class="experience-wrapper overflow-hidden relative flex flex-col gap-16 place-self-center px-4 sm:py-32 pt-6"
     >
       <div
         v-for="(experience, index) in experiencesList"
