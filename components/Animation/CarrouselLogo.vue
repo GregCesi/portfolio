@@ -4,13 +4,13 @@
     :class="colorMode.value === 'dark' ? 'bg-primary-950' : 'bg-primary-100'"
   >
     <!-- Conteneur des logos -->
-    <div ref="logosContainer" class="logos flex">
+    <div ref="logosContainer" class="logos flex gap-4">
       <img
         v-for="(logo, index) in logos"
         :key="'logo-' + index"
         :src="logo"
         alt="Logo"
-        class="w-12 h-12 sm:w-24 sm:h-24 object-contain mx-4"
+        class="w-12 h-12 sm:w-24 sm:h-24 object-contain"
       >
     </div>
   </div>

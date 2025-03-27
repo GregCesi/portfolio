@@ -43,7 +43,7 @@
 
       <!-- Partie droite-->
       <div
-        class="mx-auto lg:basis-1/3 rounded-lg flex flex-col gap-8 p-8"
+        class="container mx-auto lg:basis-1/3 rounded-lg flex flex-col gap-8 p-8"
         :class="
           colorMode.value === 'dark' ? 'bg-primary-950' : 'bg-primary-100'
         "
@@ -58,7 +58,7 @@
             <p>Développeur full-stack</p>
           </div>
         </div>
-        <div class="flex m-auto">
+        <div class="flex mx-auto ">
           <CarrouselLogo />
         </div>
       </div>
