@@ -72,4 +72,17 @@ yarn preview
 bun run preview
 ```
 
+## 🛠️ Résolution du problème `Access Denied` (EACCES)
+
+Si vous avez des erreurs du type `EACCES: permission denied`, exécutez les commandes suivantes depuis la racine du projet :
+
+```bash
+cd ~/Code/dossierparfait
+sudo chown -R $(whoami) .
+rm -rf node_modules package-lock.json .nuxt
+npm install
+npm run dev
+
+
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+```
