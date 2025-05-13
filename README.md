@@ -77,7 +77,7 @@ bun run preview
 Si vous avez des erreurs du type `EACCES: permission denied`, exécutez les commandes suivantes depuis la racine du projet :
 
 ```bash
-cd ~/Code/dossierparfait
+cd ~/Code/portfolio
 sudo chown -R $(whoami) .
 rm -rf node_modules package-lock.json .nuxt
 npm install
