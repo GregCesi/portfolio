@@ -30,7 +30,7 @@ import { onMounted, ref } from 'vue';
 // - `onMounted` : Fonction de Vue qui exécute le code une fois que le composant est monté dans le DOM.
 // - `ref` : Permet de créer une référence réactive pour manipuler directement des éléments HTML.
 
-import { useNuxtApp } from '#app'
+import { useNuxtApp } from '#app';
 
 const line = ref(null);
 // - Création d'une référence pour accéder à la ligne animée dans le DOM.
@@ -69,7 +69,7 @@ onMounted(() => {
     // - L'animation change la hauteur de la ligne.
     //   Elle commence à 0 et s'étend progressivement pour atteindre 100% de la hauteur de son parent.
   });
-});
+})
 </script>
 
 <style scoped>

@@ -3,7 +3,11 @@ export default defineNuxtConfig({
     head: {
       title: 'Portfolio Grégoire Marchand',
       meta: [
-        { name: 'description', content: 'Portfolio developpeur full-stack web mobile application site vitrine informatique informaticien' },
+        {
+          name: 'description',
+          content:
+            'Portfolio developpeur full-stack web mobile application site vitrine informatique informaticien',
+        },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       ],
       link: [

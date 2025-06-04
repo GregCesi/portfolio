@@ -31,11 +31,11 @@
         </p>
         <div class="flex gap-4 place-self-end py-4">
           <UButton size="xl" color="primary" variant="soft" @click="contactMe"
-            ><UIcon class="text-xl" name="i-heroicons-envelope-solid" ></UIcon>Me
+            ><UIcon class="text-xl" name="i-heroicons-envelope-solid" />Me
             contacter</UButton
           >
-          <UButton size="xl" color="primary" variant="soft" @click="openCV" 
-            ><UIcon class="text-xl" name="i-heroicons-document-text-solid"/>Mon
+          <UButton size="xl" color="primary" variant="soft" @click="openCV"
+            ><UIcon class="text-xl" name="i-heroicons-document-text-solid" />Mon
             CV</UButton
           >
         </div>
@@ -58,7 +58,7 @@
             <p>Développeur full-stack</p>
           </div>
         </div>
-        <div class="flex mx-auto ">
+        <div class="flex mx-auto">
           <CarrouselLogo />
         </div>
       </div>
@@ -107,15 +107,15 @@ const colorMode = useColorMode();
 
 // Fonction pour ouvrir le client de messagerie avec une adresse e-mail préremplie
 const contactMe = () => {
-  console.log("eh")
+  console.log("eh");
   const email = "gmarchand.pro1@gmail.com"; // Remplacez par votre adresse e-mail
   const mailtoLink = `mailto:${email}`;
   window.location.href = mailtoLink; // Redirige l'utilisateur vers le client de messagerie
-}
+};
 
 // Fonction pour ouvrir un fichier PDF
 const openCV = () => {
-  console.log("oh")
+  console.log("oh");
   const pdfUrl = "/files/CV_gm.pdf"; // Chemin relatif ou absolu vers votre fichier PDF
   window.open(pdfUrl, "_blank"); // Ouvre le fichier PDF dans un nouvel onglet
 };

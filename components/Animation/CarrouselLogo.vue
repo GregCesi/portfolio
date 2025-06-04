@@ -29,7 +29,6 @@ const logos = [
   "images/logo_techno/typescript.png",
   "images/logo_techno/wordpress.png",
   "images/logo_techno/springboot.png",
-
 ]; // Liste des logos
 
 const logosContainer = ref(null);
