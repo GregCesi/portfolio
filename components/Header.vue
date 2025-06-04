@@ -1,22 +1,36 @@
 <template>
   <header
-    class="fixed top-0 left-0 w-full z-50 dark:bg-primary-950 flex text-xl justify-between px-8 py-4 bg-white font-bold shadow-2xl"
+    class=" fixed top-0 left-0 right-0 mt-8 mx-64 p-4 rounded-full border-4 border-white light-shadow" 
   >
-    <div>Grégoire MARCHAND</div>
-    <div class="flex gap-2 items-center">
-      <UButton color="gray" variant="ghost" aria-label="Theme">
-        <a href="https://github.com/GregCesi" class="">
-          <i class="fa-brands fa-github text-xl" />
-        </a>
-      </UButton>
-      <ColorModeButton />
+  <div class="flex items-center justify-between px-4 text-white">
+    <div class=" font-bold ">
+      <div class="text-3xl light-shadow-text">Grégoire MARCHAND</div>
+      <div class="text-xl pl-4 light-shadow-text">Développeur Full-Stack</div>
     </div>
+    <div>
+      <nav>
+        <ul class="flex gap-12 text-white text-2xl font-bold pr-8">
+          <li class="light-shadow-text"><a href="#">Projets</a></li>
+          <li class="light-shadow-text"><a href="#">Lab</a></li>
+        </ul> 
+      </nav>
+    </div>
+  </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { useColorMode } from "#imports";
 
-import ColorModeButton from "~/components/Option/ColorModeButton.vue";
-const colorMode = useColorMode()
 </script>
+
+<style scoped>
+.light-shadow {
+  /* offset-x | offset-y | blur-radius | spread-radius | color */
+  box-shadow: 0px 0px 30px 0px rgba(255, 255, 255, 0.7);
+}
+
+.light-shadow-text {
+  /* décalage-X | décalage-Y | blur-radius | couleur */
+  text-shadow: 0px 0px 15px rgba(255, 255, 255, 0.7);
+}
+</style>
