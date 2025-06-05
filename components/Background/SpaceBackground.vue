@@ -13,6 +13,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
+import { useNuxtApp } from '#app'
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 
@@ -183,8 +184,15 @@ function animate(timestamp: number) {
   animationFrameId = requestAnimationFrame(animate);
 }
 
+const { $emitter } = useNuxtApp()
+const accelerate = () => { config.warpSpeed = 10 }
+const normalize = () => { config.warpSpeed = 1 }
+
 onMounted(() => {
   if (!canvas.value) return;
+
+  $emitter.on('accelerate-stars', accelerate)
+  $emitter.on('normalize-stars', normalize)
   
   // Initialisation du contexte
   const context = canvas.value.getContext("2d");
@@ -205,7 +213,9 @@ onUnmounted(() => {
     cancelAnimationFrame(animationFrameId);
   }
   window.removeEventListener("resize", handleResize);
-  document.addEventListener('visibilitychange', handleVisibilityChange);
+  $emitter.off('accelerate-stars', accelerate);
+  $emitter.off('normalize-stars', normalize);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
 });
 
 function handleVisibilityChange() {
