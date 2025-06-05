@@ -4,7 +4,7 @@
             <h2 class="text-white light-shadow-text text-2xl lg:text-4xl font-bold text-center mb-4">
                 Découvrez mes projets
             </h2>
-            <ProjectorScreen image="/images/ProjectScreenCatra.png" />
+            <ProjectorScreen :images="['/images/ProjectScreenCatra.png', '/images/ProjectScreenPARC.png']" />
         </div>
     </section>
 </template>
