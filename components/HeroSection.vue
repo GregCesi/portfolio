@@ -25,21 +25,19 @@
                 </div>
                 
             </div>
-            <div class="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 md:gap-8 w-full max-w-2xl">
-                <UButton 
-                    class="w-full sm:w-auto flex-1 rounded-full bg-white light-shadow text-base sm:text-lg md:text-xl text-black justify-center font-bold px-6 py-3 sm:py-4" 
-                    size="xl" 
-                    variant="soft"
+            <div class="flex flex-col sm:flex-row justify-between gap-4 sm:gap-6 md:gap-20 w-full max-w-3xl">
+                <button 
+                    class="w-full sm:w-auto flex-1 rounded-full bg-white light-shadow text-base sm:text-lg md:text-xl text-black justify-center font-bold px-6 py-3 sm:py-4 hover:scale-105 transition-transform" 
+
                 >
                     Discutons de votre projet
-                </UButton>
-                <UButton 
-                    class="w-full sm:w-auto flex-1 rounded-full border-2 sm:border-4 border-white light-shadow text-base sm:text-lg md:text-xl text-white justify-center bg-transparent px-6 py-3 sm:py-4" 
-                    size="xl" 
-                    variant="soft"
+                </button>
+                <button 
+                    class="w-full sm:w-auto flex-1 rounded-full border-2 sm:border-4 border-white light-shadow text-base sm:text-lg md:text-xl text-white justify-center bg-transparent px-6 py-3 sm:py-4 hover:scale-105 transition-transform" 
+
                 >
                     Comment je vous accompagne ?
-                </UButton>
+                </button>
             </div>
         </div>
     </section>
