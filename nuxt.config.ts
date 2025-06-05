@@ -20,6 +20,6 @@ export default defineNuxtConfig({
   colorMode: {
     preference: 'light',
   },
-  plugins: ['~/plugins/gsap.client.js'],
+  plugins: ['~/plugins/gsap.client.js', '~/plugins/emitter.client.ts'],
   ssr: false, // Désactive le SSR pour un mode SPA
 });
