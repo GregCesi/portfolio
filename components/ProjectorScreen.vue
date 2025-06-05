@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col items-center justify-center">
     <!-- Conteneur relatif : image + overlay de scan-lines -->
-    <div class="relative w-1/3 aspect-video overflow-hidden">
+    <div class="relative w-1/2 aspect-video overflow-hidden">
       <img
         class="w-full h-full object-cover"
         :src="image"
@@ -12,7 +12,7 @@
 
     <!-- Votre projecteur SVG, inchangé -->
     <img
-      class="w-1/5 -mt-10"
+      class="w-1/4 -mt-10"
       src="@/public/images/ScreenProjector/screenProjector.svg"
       alt="Projecteur"
     >

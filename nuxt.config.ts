@@ -17,9 +17,9 @@ export default defineNuxtConfig({
   },
   modules: ['@nuxt/ui', '@nuxt/eslint'],
   compatibilityDate: '2025-01-06',
-  colorMode: {
-    preference: 'light',
-  },
+  css: [
+    '~/assets/css/main.css'
+  ],
   plugins: ['~/plugins/gsap.client.js', '~/plugins/emitter.client.ts'],
   ssr: false, // Désactive le SSR pour un mode SPA
 });

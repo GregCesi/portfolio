@@ -1,8 +1,8 @@
 <template>
-    <section class="container mx-auto flex flex-col items-center justify-center z-0 px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24"> 
+    <section class="container mx-auto flex flex-col items-center justify-center z-0 px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24 lg:mt-12"> 
         <div class="flex flex-col gap-8 sm:gap-12 md:gap-16 lg:gap-20 items-center w-full">
             <div class="flex flex-col gap-3 sm:gap-4 text-white light-shadow-text text-center max-w-4xl w-full">
-                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight lg:mb-8">
                     Booster votre activité avec des solutions sur-mesure
                 </h1>
                 <div class="text-base sm:text-xl md:text-2xl space-y-1 sm:space-y-2 hidden sm:block">
@@ -27,7 +27,7 @@
             </div>
             <div class="flex flex-col sm:flex-row justify-between gap-4 sm:gap-6 md:gap-20 w-full max-w-3xl">
                 <button 
-                    class="w-full sm:w-auto flex-1 rounded-full bg-white light-shadow text-base sm:text-lg md:text-xl text-black justify-center font-bold px-6 py-3 sm:py-4 hover:scale-105 transition-transform" 
+                    class="w-full sm:w-auto flex-1 rounded-full bg-white light-shadow light-shadow-text-black text-base sm:text-lg md:text-xl text-black justify-center font-bold px-6 py-3 sm:py-4 hover:scale-105 transition-transform" 
 
                 >
                     Discutons de votre projet
@@ -44,13 +44,5 @@
 </template>
 
 <style scoped>
-.light-shadow {
-  /* offset-x | offset-y | blur-radius | spread-radius | color */
-  box-shadow: 0px 0px 30px 0px rgba(255, 255, 255, 0.7);
-}
 
-.light-shadow-text {
-  /* décalage-X | décalage-Y | blur-radius | couleur */
-  text-shadow: 0px 0px 15px rgba(255, 255, 255, 0.7);
-}
 </style>
