@@ -1,6 +1,13 @@
 <template>
   <div class="fixed inset-0 -z-10">
-    <canvas ref="canvas" class="w-full h-full" />
+  <canvas 
+    ref="canvas" 
+    class="w-full h-full"
+    :style="{
+      'transform': 'translateZ(0)', // Active l'accélération matérielle
+      'will-change': 'transform' // Prévient le navigateur des changements
+    }"
+  />
   </div>
 </template>
 
@@ -32,6 +39,9 @@ const config = {
   warpSpeed: 1,
   warpFactor: 0
 };
+
+let resizeTimeout: number | null = null;
+const RESIZE_DELAY = 100; // Délai en ms
 
 // Variables d'état
 const width = ref(0);
@@ -77,10 +87,31 @@ function initStars() {
 // Gestion du redimensionnement
 function handleResize() {
   if (!canvas.value) return;
-  width.value = canvas.value.width = window.innerWidth;
-  height.value = canvas.value.height = window.innerHeight;
-  centerX.value = width.value / 2;
-  centerY.value = height.value / 2;
+  
+  // Annuler le redimensionnement précédent s'il n'est pas encore exécuté
+  if (resizeTimeout) {
+    window.cancelAnimationFrame(resizeTimeout);
+  }
+
+  // Utiliser requestAnimationFrame pour regrouper les mises à jour
+  resizeTimeout = window.requestAnimationFrame(() => {
+    const newWidth = window.innerWidth;
+    const newHeight = window.innerHeight;
+    
+    // Ne mettre à jour que si la taille a réellement changé
+    if (newWidth !== width.value || newHeight !== height.value) {
+      width.value = canvas.value!.width = newWidth;
+      height.value = canvas.value!.height = newHeight;
+      centerX.value = newWidth / 2;
+      centerY.value = newHeight / 2;
+      
+      // Redessiner immédiatement après le redimensionnement
+      if (ctx) {
+        ctx.fillStyle = "rgba(0, 0, 0, 1)"; // Fond noir plein pour éviter le clignotement
+        ctx.fillRect(0, 0, newWidth, newHeight);
+      }
+    }
+  });
 }
 
 // Mise à jour des étoiles
@@ -109,7 +140,7 @@ function drawStars() {
   if (!ctx) return;
   
   // Effet de traînée
-  ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
   ctx.fillRect(0, 0, width.value, height.value);
 
   // Trier les étoiles par profondeur
@@ -174,7 +205,19 @@ onUnmounted(() => {
     cancelAnimationFrame(animationFrameId);
   }
   window.removeEventListener("resize", handleResize);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 });
+
+function handleVisibilityChange() {
+  if (document.hidden) {
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+    }
+  } else {
+    lastTime = performance.now();
+    animationFrameId = requestAnimationFrame(animate);
+  }
+}  
 </script>
 
 <style scoped>
