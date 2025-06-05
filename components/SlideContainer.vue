@@ -28,6 +28,8 @@ const current = ref(0)
 const slides = ref<HTMLElement[]>([])
 let isAnimating = false
 let wheelDelta = 0
+let touchStartY = 0
+let touchDelta = 0
 
 const { $gsap, $emitter } = useNuxtApp()
 
@@ -69,6 +71,24 @@ function onWheel(e: WheelEvent) {
   }
 }
 
+function onTouchStart(e: TouchEvent) {
+  touchStartY = e.touches[0].clientY
+}
+
+function onTouchMove(e: TouchEvent) {
+  e.preventDefault()
+  touchDelta = touchStartY - e.touches[0].clientY
+  if (Math.abs(touchDelta) >= props.scrollThreshold) {
+    const dir = touchDelta > 0 ? 1 : -1
+    goTo(current.value + dir)
+    touchStartY = e.touches[0].clientY
+  }
+}
+
+function onTouchEnd() {
+  touchDelta = 0
+}
+
 onMounted(() => {
   if (!wrapper.value) return
   // Initialisation des slides
@@ -80,11 +100,21 @@ onMounted(() => {
   }
   // Ajout des écouteurs
   window.addEventListener('wheel', onWheel, { passive: false })
+  if (container.value) {
+    container.value.addEventListener('touchstart', onTouchStart, { passive: false })
+    container.value.addEventListener('touchmove', onTouchMove, { passive: false })
+    container.value.addEventListener('touchend', onTouchEnd)
+  }
 })
 
 onBeforeUnmount(() => {
   // Nettoyage des écouteurs
   window.removeEventListener('wheel', onWheel)
+  if (container.value) {
+    container.value.removeEventListener('touchstart', onTouchStart)
+    container.value.removeEventListener('touchmove', onTouchMove)
+    container.value.removeEventListener('touchend', onTouchEnd)
+  }
 })
 </script>
 
