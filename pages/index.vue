@@ -1,6 +1,6 @@
 <template>
     <Header />
-    <div class="h-56"></div>
+    <div class="h-24 sm:h-56"></div>
     <HeroSection />
     <!-- <div class="container mx-auto flex justify-center">
           <ProjectorScreen image="/images/ProjectScreenCatra.png"/>
