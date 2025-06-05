@@ -1,5 +1,5 @@
 <template>
-    <section class="container mx-auto flex flex-col items-center justify-center"> 
+    <section class="container mx-auto flex flex-col items-center justify-center z-0"> 
         <div class="flex flex-col gap-20 items-center">
             <div class="flex flex-col gap-4 text-white light-shadow-text text-center max-w-3xl">
 
