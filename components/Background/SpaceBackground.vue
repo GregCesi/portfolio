@@ -118,7 +118,9 @@ function handleResize() {
 // Mise à jour des étoiles
 function updateStars(deltaTime: number) {
   time += deltaTime * 0.001;
-  config.warpFactor = 0.5 + 0.5 * Math.sin(time * 0.5);
+  if (config.warpSpeed === 1) {
+    config.warpFactor = 0.5 + 0.5 * Math.sin(time * 0.5);
+  }  
   
   const updatedStars = [...stars.value];
   for (let i = 0; i < updatedStars.length; i++) {
@@ -189,6 +191,7 @@ let normalizeTimeout: ReturnType<typeof setTimeout> | null = null
 const accelerate = (duration?: number) => {
   if (normalizeTimeout) clearTimeout(normalizeTimeout)
   config.warpSpeed = 10
+  config.warpFactor = 1
   normalizeTimeout = setTimeout(() => {
     config.warpSpeed = 1
   }, (duration ?? 0.8) * 1000)

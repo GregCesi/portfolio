@@ -117,7 +117,3 @@ onBeforeUnmount(() => {
   }
 })
 </script>
-
-<style scoped>
-/* Vos styles existants */
-</style>
