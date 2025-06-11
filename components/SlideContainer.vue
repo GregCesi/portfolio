@@ -116,4 +116,8 @@ onBeforeUnmount(() => {
     container.value.removeEventListener('touchend', onTouchEnd)
   }
 })
+
+defineExpose({
+  goTo,
+})
 </script>

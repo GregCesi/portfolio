@@ -1,29 +1,42 @@
 <template>
+  <div>
     <Header />
-  <SlideContainer>
-    <section class="slide flex items-center justify-center">
-      <HeroSection />
-    </section>
-    <section class="slide flex items-center justify-center">
-      <ProjectSection />
-    </section>
-    <section class="slide flex items-center justify-center">
-      <Services />
-    </section>
-    <section class="slide flex items-center justify-center">
-      <Footer class="w-full" />
-    </section>
-  </SlideContainer>
+    <SlideContainer ref="slideContainer">
+      <section class="slide flex items-center justify-center">
+        <HeroSection />
+      </section>
+      <section class="slide flex items-center justify-center">
+        <AboutMeSection />
+      </section>
+      <section class="slide flex items-center justify-center">
+        <Services />
+      </section>
+      <section class="slide flex items-center justify-center">
+        <Footer class="w-full" />
+      </section>
+    </SlideContainer>
+    <SlideMenu 
+      :labels="['START', 'À PROPOS DE MOI', 'SERVICES', 'ROADMAP', 'SOLUTIONS']" 
+      :container="slideContainer"
+      class="max-sm:hidden"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import type { ComponentPublicInstance } from 'vue'
+
 import Header from '~/components/Header.vue'
 import HeroSection from '~/components/HeroSection.vue'
-
 import ProjectSection from '~/components/ProjectSection.vue'
+import AboutMeSection from '~/components/AboutMeSection.vue'
 import Services from '~/components/Services.vue'
 import Footer from '~/components/Footer.vue'
 import SlideContainer from '~/components/SlideContainer.vue'
+import SlideMenu from '~/components/SlideMenu.vue'
+
+const slideContainer = ref<ComponentPublicInstance | null>(null)
 </script>
 
 <style scoped>
