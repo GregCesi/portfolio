@@ -52,7 +52,8 @@ const centerY = ref(0);
 const stars = ref<Star[]>([]);
 let lastTime = 0;
 let time = 0;
-let animationFrameId: number;
+let animationFrameId: number | null = null;
+let isAnimating = false;
 let ctx: CanvasRenderingContext2D | null = null;
 
 // Fonction pour choisir une couleur aléatoire
@@ -184,6 +185,23 @@ function animate(timestamp: number) {
   updateStars(deltaTime);
   drawStars();
   animationFrameId = requestAnimationFrame(animate);
+   isAnimating = true;
+}
+
+function startAnimation() {
+  if (!isAnimating) {
+    lastTime = performance.now();
+    animationFrameId = requestAnimationFrame(animate);
+    isAnimating = true;
+  }
+}
+
+function stopAnimation() {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+  isAnimating = false;
 }
 
 const { $emitter } = useNuxtApp()
@@ -209,30 +227,28 @@ onMounted(() => {
   
   // Configuration initiale
   handleResize();
-  initStars();
-  
+
+  if (stars.value.length === 0) {
+    initStars();
+  }  
+
   // Démarrer l'animation
   window.addEventListener("resize", handleResize);
-  animationFrameId = requestAnimationFrame(animate);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  startAnimation();
 });
 
 onUnmounted(() => {
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId);
-  }
   window.removeEventListener("resize", handleResize);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
   $emitter.off('accelerate-stars', accelerate);
-  document.addEventListener('visibilitychange', handleVisibilityChange);
 });
 
 function handleVisibilityChange() {
   if (document.hidden) {
-    if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId);
-    }
+    stopAnimation();
   } else {
-    lastTime = performance.now();
-    animationFrameId = requestAnimationFrame(animate);
+    startAnimation();
   }
 }  
 </script>

@@ -53,6 +53,8 @@ const init = async () => {
     camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
     // On recule la caméra pour voir la scène
     camera.position.z = 3
+    // On ajoute la caméra à la scène afin de pouvoir lui attacher la lumière
+    scene.add(camera)
 
     // Initialisation du moteur de rendu WebGL
     renderer = new THREE.WebGLRenderer({ 
@@ -73,15 +75,17 @@ const init = async () => {
     const ambientLight = new THREE.AmbientLight(0x404040)  // Couleur gris clair
     scene.add(ambientLight)
     
-    // Lumière directionnelle : simule une source de lumière directionnelle comme le soleil
+    // Lumière directionnelle : doit rester fixe par rapport à la vue de l'utilisateur
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1)  // Couleur blanche, intensité 1
-    directionalLight.position.set(1, 1, 1).normalize()  // Position de la lumière
-    scene.add(directionalLight)
+    // Position relative à la caméra (angle en haut à droite de l'écran)
+    directionalLight.position.set(1, 1, 1).normalize()
+    // On attache la lumière à la caméra pour qu'elle suive ses mouvements
+    camera.add(directionalLight)
 
     // Ajout d'une grille de repère pour mieux visualiser l'espace 3D
     // Paramètres : taille de la grille (10x10), nombre de divisions (10x10)
-    // const gridHelper = new THREE.GridHelper(10, 10)
-    // scene.add(gridHelper)
+        // const gridHelper = new THREE.GridHelper(10, 10)
+        // scene.add(gridHelper)
 
     // Création d'une sphère
     // Paramètres : rayon, segments horizontaux, segments verticaux
