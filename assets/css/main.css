@@ -16,3 +16,33 @@
   /* décalage-X | décalage-Y | blur-radius | couleur */
   text-shadow: 0px 0px 30px rgba(0, 0, 0, 0.7);
 }
+
+/* Désactive le zoom sur mobile et desktop */
+html, body {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Désactive le zoom au double-tap sur mobile */
+* {
+  touch-action: pan-x pan-y;
+}
+
+/* Désactive le zoom avec la molette de la souris */
+* {
+  -ms-content-zooming: none;
+  -ms-touch-action: pan-x pan-y;
+  touch-action: pan-x pan-y;
+}

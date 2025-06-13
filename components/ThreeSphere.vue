@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-[300px] h-[300px]">
+  <div class="relative w-[500px] h-[500px]">
     <div ref="container" class="w-full h-full" />
     <div v-if="error" class="absolute inset-0 flex items-center justify-center text-red-500">
       {{ error }}
@@ -11,6 +11,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 const container = ref<HTMLElement | null>(null)
 const error = ref<string | null>(null)
@@ -20,6 +21,7 @@ let camera: THREE.PerspectiveCamera
 let renderer: THREE.WebGLRenderer
 let controls: OrbitControls
 let animationFrameId: number
+let planet: THREE.Object3D | null = null
 
 const handleResize = () => {
   if (!container.value || !camera || !renderer) return
@@ -69,6 +71,9 @@ const init = async () => {
     // Configuration des contrôles de la caméra (rotation/zoom/déplacement)
     controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true  // Ajoute de l'inertie aux mouvements
+    controls.enableZoom = false
+    controls.enablePan = false
+
 
     // Ajout des lumières à la scène
     // Lumière ambiante : éclaire uniformément tous les objets
@@ -86,24 +91,22 @@ const init = async () => {
     // Paramètres : taille de la grille (10x10), nombre de divisions (10x10)
         // const gridHelper = new THREE.GridHelper(10, 10)
         // scene.add(gridHelper)
-
-    // Création d'une sphère
-    // Paramètres : rayon, segments horizontaux, segments verticaux
-    // Plus il y a de segments, plus la sphère est lisse (mais plus gourmande en ressources)
-    const geometry = new THREE.SphereGeometry(1, 32, 32)
     
-    // Définition du matériau de la sphère
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x2194ce,  // Couleur bleue
-      metalness: 0.3,   // Niveau de métal (0 à 1)
-      roughness: 0.4    // Rugosité de la surface (0 à 1)
-    })
+    // Chargement du modèle GLB de la planète
+    const loader = new GLTFLoader()
+    loader.load(
+    '/models/Planet-2.glb',
+    (gltf) => {
+      planet = gltf.scene
+      planet.rotation.x = Math.PI / 2
+      scene.add(planet)
+    },
+    undefined,
+    (err) => {
+      console.error('Erreur de chargement du modèle :', err)
+    }
+  ) 
     
-    // Création du maillage en combinant la géométrie et le matériau
-    const sphere = new THREE.Mesh(geometry, material)
-    // Ajout de la sphère à la scène
-    scene.add(sphere)
-
     // Gestion du redimensionnement
     window.addEventListener('resize', handleResize)
 
@@ -114,6 +117,11 @@ const init = async () => {
       
       // Mise à jour des contrôles (nécessaire pour l'inertie)
       controls.update()
+
+      // Rotation continue de la planète lorsqu'elle est chargée
+      if (planet) {
+        planet.rotation.z += 0.005
+      }
       
       // Rendu de la scène avec la caméra
       renderer.render(scene, camera)
@@ -138,6 +146,10 @@ onBeforeUnmount(() => {
   }
   if (renderer) {
     renderer.dispose()
+  }
+  if (planet) {
+    scene.remove(planet)
+    planet = null
   }
   window.removeEventListener('resize', handleResize)
 })
