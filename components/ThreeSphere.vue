@@ -23,6 +23,14 @@ let controls: OrbitControls
 let animationFrameId: number
 let planet: THREE.Object3D | null = null
 
+// Variables pour la rotation de la planète
+let isDragging = false
+let previousMousePosition = { x: 0, y: 0 }
+let onMouseDown: (event: MouseEvent) => void
+let onMouseMove: (event: MouseEvent) => void
+let onMouseUp: () => void
+
+
 const handleResize = () => {
   if (!container.value || !camera || !renderer) return
   const width = container.value.clientWidth
@@ -68,34 +76,80 @@ const init = async () => {
     // On ajoute le canvas du rendu dans le DOM
     container.value.appendChild(renderer.domElement)
 
-    // Configuration des contrôles de la caméra (rotation/zoom/déplacement)
+    // Configuration des contrôles de la caméra
     controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true  // Ajoute de l'inertie aux mouvements
     controls.enableZoom = false
     controls.enablePan = false
+    
+    // Désactiver la rotation de la caméra
+    controls.enableRotate = false
+    
+    // Variables pour la rotation de la planète
+    let isDragging = false
+    let previousMousePosition = { x: 0, y: 0 }
+    
+    // Gestion des événements de souris
+    const onMouseDown = (event: MouseEvent) => {
+      isDragging = true
+      previousMousePosition = {
+        x: event.clientX,
+        y: event.clientY
+      }
+    }
+    
+    const onMouseMove = (event: MouseEvent) => {
+      if (!isDragging || !planet) return
+      
+      const deltaMove = {
+        x: event.clientX - previousMousePosition.x,
+        y: event.clientY - previousMousePosition.y
+      }
+      
+      // Ajuster la rotation de la planète en fonction du mouvement de la souris
+      planet.rotation.y += deltaMove.x * 0.01
+      planet.rotation.x += deltaMove.y * 0.01
+      
+      previousMousePosition = {
+        x: event.clientX,
+        y: event.clientY
+      }
+    }
+    
+    const onMouseUp = () => {
+      isDragging = false
+    }
+
+    // Ajout des écouteurs d'événements
+    container.value.addEventListener('mousedown', onMouseDown)
+    container.value.addEventListener('mousemove', onMouseMove)
+    container.value.addEventListener('mouseup', onMouseUp)
+    container.value.addEventListener('mouseleave', onMouseUp)
 
 
     // Ajout des lumières à la scène
-    // Lumière ambiante : éclaire uniformément tous les objets
-    const ambientLight = new THREE.AmbientLight(0x404040)  // Couleur gris clair
+    // Lumière ambiante : éclaire uniformément tous les objets avec une teinte
+    // légèrement chaude pour renforcer l'ambiance martienne
+    const ambientLight = new THREE.AmbientLight(0x553322, 5)
     scene.add(ambientLight)
     
-    // Lumière directionnelle : doit rester fixe par rapport à la vue de l'utilisateur
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1)  // Couleur blanche, intensité 1
-    // Position relative à la caméra (angle en haut à droite de l'écran)
-    directionalLight.position.set(1, 1, 1).normalize()
+    // Lumière directionnelle simulant le soleil. Elle est attachée à la caméra
+    // pour rester fixe par rapport à la vue de l'utilisateur.
+    const directionalLight = new THREE.DirectionalLight(0xffd2a1, 5)
+    // Position relative à la caméra : principalement sur la droite
+    directionalLight.position.set(2, 1, 0.5).normalize()
     // On attache la lumière à la caméra pour qu'elle suive ses mouvements
-    camera.add(directionalLight)
+    scene.add(directionalLight)
 
     // Ajout d'une grille de repère pour mieux visualiser l'espace 3D
     // Paramètres : taille de la grille (10x10), nombre de divisions (10x10)
-        // const gridHelper = new THREE.GridHelper(10, 10)
+    const gridHelper = new THREE.GridHelper(10, 10)
         // scene.add(gridHelper)
     
     // Chargement du modèle GLB de la planète
     const loader = new GLTFLoader()
     loader.load(
-    '/models/Planet-2.glb',
+    '/models/Planet-1-v4.glb',
     (gltf) => {
       planet = gltf.scene
       planet.rotation.x = Math.PI / 2
@@ -140,17 +194,31 @@ onMounted(() => {
   init()
 })
 
+// N'oubliez pas de nettoyer les écouteurs d'événements dans onBeforeUnmount
 onBeforeUnmount(() => {
+  if (container.value) {
+    container.value.removeEventListener('mousedown', onMouseDown)
+    container.value.removeEventListener('mousemove', onMouseMove)
+    container.value.removeEventListener('mouseup', onMouseUp)
+    container.value.removeEventListener('mouseleave', onMouseUp)
+  }
+  
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId)
   }
+  
   if (renderer) {
     renderer.dispose()
   }
-  if (planet) {
-    scene.remove(planet)
-    planet = null
+  
+  if (controls) {
+    controls.dispose()
   }
+  
+  if (planet && scene) {
+    scene.remove(planet)
+  }
+  
   window.removeEventListener('resize', handleResize)
 })
 </script>

@@ -9,10 +9,10 @@
         <AboutMeSection />
       </section>
       <section class="slide flex items-center justify-center">
-        <Services />
+        <ServicesSection />
       </section>
       <section class="slide flex items-center justify-center">
-        <Footer class="w-full" />
+        
       </section>
       <section class="slide flex items-center justify-center">
         <ThreeSphere />
@@ -35,7 +35,7 @@ import Header from '~/components/Header.vue'
 import HeroSection from '~/components/HeroSection.vue'
 import ProjectSection from '~/components/ProjectSection.vue'
 import AboutMeSection from '~/components/AboutMeSection.vue'
-import Services from '~/components/Services.vue'
+import ServicesSection from '~/components/ServicesSection.vue'
 import Footer from '~/components/Footer.vue'
 import SlideContainer from '~/components/SlideContainer.vue'
 import SlideMenu from '~/components/SlideMenu.vue'
