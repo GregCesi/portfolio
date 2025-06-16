@@ -1,9 +1,12 @@
 <template>
-    <section class="">
-      
+    <section class="relative w-full h-screen overflow-hidden flex items-center justify-center">
+        <OrbitCarousel />
     </section>
 </template>
 
 <script setup lang="ts">
-import ThreeSphere from './ThreeSphere.vue'
+import OrbitCarousel from './OrbitCarousel.vue'
 </script>
+
+<style scoped>
+</style>
