@@ -16,7 +16,7 @@
     <!-- Texte positionné à côté de la planète principale -->
     <div 
       ref="textElement" 
-      class="absolute max-w-2xl space-y-4 text-white"
+      class="absolute flex flex-col max-w-xl space-y-4 text-white"
       :style="{
         left: `${textPosition.x}px`,
         top: `${textPosition.y}px`,
@@ -24,21 +24,20 @@
       }"
     >
       <h2 class="text-3xl font-bold relative">
-        Écoute et sens
+        {{ currentService.title }}
       </h2>
       <img src="/arrow-service.svg" alt="Arrow" class="absolute -left-8 top-8 -translate-x-10 -translate-y-2"/>
       <div class="space-y-4">
-        <p class="font-bold">Être à l'écoute pour construire quelque chose qui a du sens.</p>
-        <p>Avant de penser à la technique, je prends le temps de comprendre votre situation, vos contraintes, vos objectifs : je ne crée pas des sites. Je crée des outils qui font avancer.</p>
-        <p>Cette écoute me permet de proposer des solutions qui anticipent vos besoins futurs.</p>
+        <p class="font-bold">{{ currentService.description_title }}</p>
+        <p v-for="(description, idx) in currentService.description" :key="idx">{{ description }}</p>
       </div>
-      <button class="mt-4 px-6 py-2 rounded-full bg-white text-black">Discutons de votre projet</button>
+      <button class="mt-4 px-6 py-2 rounded-full bg-white text-black place-self-end mr-12">{{ currentService.cta }}</button>
     </div>
 
     <!-- Contrôles -->
     <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4">
-      <button @click="prev" :disabled="isAnimating" class="text-2xl text-white">&#8592;</button>
-      <button @click="next" :disabled="isAnimating" class="text-2xl text-white">&#8594;</button>
+      <button @click="next" :disabled="isAnimating" class="text-2xl text-white">&#8592;</button>
+      <button @click="prev" :disabled="isAnimating" class="text-2xl text-white">&#8594;</button>
     </div>
   </div>
 </template>
@@ -50,30 +49,47 @@ import ThreeSphere from './ThreeSphere.vue'
 
 interface Service {
   title: string
-  description: string
+  description_title: string
+  description: string[]
   cta: string
 }
 
 const services: Service[] = [
   {
-    title: 'Service A',
-    description: 'Description du service A',
-    cta: 'En savoir plus',
+    title: 'Écoute et sens',
+    description_title: 'Être à l’écoute pour construire quelque chose qui a du sens.',
+    description: [ 
+      'Avant de penser à la technique, je prends le temps de comprendre votre situation, vos contraintes, vos objectifs. ', 
+      'Je ne crée pas des sites. Je crée des outils qui font avancer. Cette écoute me permet de proposer des solutions qui anticipent vos besoins futurs.',
+    ],
+    cta: 'Discutons de votre projet',
   },
   {
-    title: 'Service B',
-    description: 'Description du service B',
-    cta: 'En savoir plus',
+    title: 'Interface et expérience',
+    description_title: 'Une image qui inspire et qui convertit.',
+    description: [
+      'Un site pro, clair et crédible, c’est le point de départ de la confiance.', 
+      ' Je structure mes interfaces pour qu’elles donnent envie de passer à l’action : contacter, acheter, s’engager, tout en simplifiant les étapes pour vos visiteurs.'
+    ],
+    cta: 'Discutons de votre projet',
   },
   {
-    title: 'Service C',
-    description: 'Description du service C',
-    cta: 'En savoir plus',
+    title: 'Technologies et structure',
+    description_title: 'Des solutions pensées pour évoluer, pas pour être jetées.',
+    description: [
+      'Grâce à cette compréhension en amont, je choisis des technologies et des structures capables de suivre votre croissance.', 
+      'Votre site ou votre outil peut évoluer, s’adapter, grandir avec vous, sans devoir tout recommencer.'
+    ],
+    cta: 'Discutons de votre projet',
   },
   {
-    title: 'Service D',
-    description: 'Description du service D',
-    cta: 'En savoir plus',
+    title: 'Impact et quotidien',
+    description_title: 'Des solutions qui servent vraiment votre activité.',
+    description: [
+      'Mon objectif n’est pas juste de “livrer un site”, c’est de créer un outil utile, qui vous fait gagner du temps, vous rapproche de vos clients, ou vous simplifie la vie.',
+      'Chaque ligne de code a un impact concret sur votre quotidien.'
+    ],
+    cta: 'Discutons de votre projet',
   },
 ]
 
@@ -98,8 +114,8 @@ function updateTextPosition(planetElement: HTMLElement) {
   
   // Positionner le texte à droite de la planète principale
   textPosition.value = {
-    x: planetRect.right - containerRect.left + 20, // 20px de marge
-    y: planetRect.top - containerRect.top + (planetRect.height / 2)
+    x: planetRect.right - containerRect.left - 80, // 20px de marge
+    y: planetRect.top - containerRect.top + (planetRect.height / 2) - 90
   }
 }
 
@@ -111,7 +127,7 @@ function calculatePositions() {
   
   // Positions de base (en pourcentage de la largeur/hauteur)
    const basePositions = [
-    { x: 0.1, y: 0.25, scale: 1 },    // 10% depuis la gauche, 20% depuis le haut
+    { x: 0.1, y: 0.3, scale: 1.1 },    // 10% depuis la gauche, 20% depuis le haut
     { x: 0.5, y: 0.025, scale: 0.6 },  // 80% depuis la gauche, 10% depuis le haut
     { x: 0.65, y: 0.3, scale: 0.8 },  // etc.
     { x: 0.4, y: 0.55, scale: 0.9 }
