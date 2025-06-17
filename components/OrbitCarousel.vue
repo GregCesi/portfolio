@@ -4,13 +4,7 @@
     <div
       v-for="(planetId, idx) in planets"
       :key="planetId"
-      :ref="el => { 
-        planetRefs[idx] = el as HTMLElement
-        // Mettre à jour la position du texte lorsque la référence de la planète principale change
-        if (idx === 0 && el) {
-          updateTextPosition(el)
-        }
-      }"
+      :ref="el => planetRefs[idx] = el as HTMLElement"
       class="absolute flex items-center justify-center"
     >
       <div class="relative">
@@ -22,7 +16,7 @@
     <!-- Texte positionné à côté de la planète principale -->
     <div 
       ref="textElement" 
-      class="absolute max-w-xl space-y-4 text-white"
+      class="absolute max-w-2xl space-y-4 text-white"
       :style="{
         left: `${textPosition.x}px`,
         top: `${textPosition.y}px`,
@@ -32,7 +26,7 @@
       <h2 class="text-3xl font-bold relative">
         Écoute et sens
       </h2>
-      <img src="/arrow-service.svg" alt="Arrow" class="absolute -left-8 top-8"/>
+      <img src="/arrow-service.svg" alt="Arrow" class="absolute -left-8 top-8 -translate-x-10 -translate-y-2"/>
       <div class="space-y-4">
         <p class="font-bold">Être à l'écoute pour construire quelque chose qui a du sens.</p>
         <p>Avant de penser à la technique, je prends le temps de comprendre votre situation, vos contraintes, vos objectifs : je ne crée pas des sites. Je crée des outils qui font avancer.</p>
@@ -43,8 +37,8 @@
 
     <!-- Contrôles -->
     <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4">
-      <button @click="prev" class="text-2xl text-white">&#8592;</button>
-      <button @click="next" class="text-2xl text-white">&#8594;</button>
+      <button @click="prev" :disabled="isAnimating" class="text-2xl text-white">&#8592;</button>
+      <button @click="next" :disabled="isAnimating" class="text-2xl text-white">&#8594;</button>
     </div>
   </div>
 </template>
@@ -90,6 +84,8 @@ const container = ref<HTMLElement | null>(null)
 const textElement = ref<HTMLElement | null>(null)
 const positions = ref<Array<{x: number, y: number, scale: number}>>([])
 const textPosition = ref({ x: 0, y: 0 })
+const isAnimating = ref(false)
+
 
 // Mettre à jour la position du texte par rapport à la planète principale
 function updateTextPosition(planetElement: HTMLElement) {
@@ -131,17 +127,13 @@ function calculatePositions() {
 // Mettre à jour les positions quand la fenêtre est redimensionnée
 function handleResize() {
   positions.value = calculatePositions()
-  updatePositions()
-  // Mettre à jour la position du texte après le redimensionnement
-  if (planetRefs.value[0]) {
-    updateTextPosition(planetRefs.value[0])
-  }
+  updatePositions(true)
 }
 
 onMounted(() => {
   positions.value = calculatePositions()
   window.addEventListener('resize', handleResize)
-  updatePositions()
+  updatePositions(true)
   
   // Attendre que les éléments soient rendus pour positionner le texte
   nextTick(() => {
@@ -157,7 +149,10 @@ onBeforeUnmount(() => {
 
 const { $gsap } = useNuxtApp()
 
-function updatePositions() {
+function updatePositions(updateText = false) {
+  isAnimating.value = true
+  let completed = 0
+  const total = planetRefs.value.length
   planetRefs.value.forEach((el, i) => {
     if (!el || !positions.value[i]) return
     const pos = positions.value[i]
@@ -166,10 +161,13 @@ function updatePositions() {
       y: pos.y,
       scale: pos.scale,
       duration: 2,
-      onUpdate: () => {
-        // Mettre à jour la position du texte à chaque frame d'animation
-        if (i === 0) {
+      onComplete: () => {
+        completed++
+        if (updateText && i === 0) {
           updateTextPosition(el)
+        }
+        if (completed === total) {
+          isAnimating.value = false
         }
       }
     })
@@ -177,6 +175,7 @@ function updatePositions() {
 }
 
 function next() {
+  if (isAnimating.value) return
   const first = planets.value.shift()
   if (first === undefined) return
   planets.value.push(first)
@@ -184,6 +183,7 @@ function next() {
 }
 
 function prev() {
+  if (isAnimating.value) return
   const last = planets.value.pop()
   if (last === undefined) return
   planets.value.unshift(last)
@@ -195,7 +195,7 @@ const currentService = computed(() => {
 })
 
 onMounted(() => {
-  updatePositions()
+  updatePositions(false)
 })
 </script>
 
