@@ -1,9 +1,16 @@
 <template>
-  <div ref="container" class="relative w-full h-screen overflow-hidden">
+  <div ref="container" class="relative w-full h-screen overflow-hidden max-sm:hidden">
+    <!-- Planètes (sans le texte) -->
     <div
       v-for="(planetId, idx) in planets"
       :key="planetId"
-      :ref="el => planetRefs[idx] = el as HTMLElement"
+      :ref="el => { 
+        planetRefs[idx] = el as HTMLElement
+        // Mettre à jour la position du texte lorsque la référence de la planète principale change
+        if (idx === 0 && el) {
+          updateTextPosition(el)
+        }
+      }"
       class="absolute flex items-center justify-center"
     >
       <div class="relative">
@@ -12,30 +19,38 @@
       </div>
     </div>
 
-    <!-- Texte central -->
-    <!-- <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-      <div class="relative text-center max-w-md space-y-4 text-white">
-        <h2 class="text-3xl font-bold relative inline-block">
-          Écoute et sens
-        </h2>
-        <img src="/arrow-service.svg" alt="Arrow" class="absolute top-0 left-0 -translate-x-[40%]"/>
-        <p class="font-bold">Être à l’écoute pour construire quelque chose qui a du sens.</p>
+    <!-- Texte positionné à côté de la planète principale -->
+    <div 
+      ref="textElement" 
+      class="absolute max-w-xl space-y-4 text-white"
+      :style="{
+        left: `${textPosition.x}px`,
+        top: `${textPosition.y}px`,
+        transform: 'translateY(-50%)'
+      }"
+    >
+      <h2 class="text-3xl font-bold relative">
+        Écoute et sens
+      </h2>
+      <img src="/arrow-service.svg" alt="Arrow" class="absolute -left-8 top-8"/>
+      <div class="space-y-4">
+        <p class="font-bold">Être à l'écoute pour construire quelque chose qui a du sens.</p>
         <p>Avant de penser à la technique, je prends le temps de comprendre votre situation, vos contraintes, vos objectifs : je ne crée pas des sites. Je crée des outils qui font avancer.</p>
         <p>Cette écoute me permet de proposer des solutions qui anticipent vos besoins futurs.</p>
-        <button class="mt-4 px-6 py-2 rounded-full bg-white text-black">Discutons de votre projet</button>
       </div>
-    </div> -->
+      <button class="mt-4 px-6 py-2 rounded-full bg-white text-black">Discutons de votre projet</button>
+    </div>
 
     <!-- Contrôles -->
     <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4">
-      <button @click="next" class="text-2xl text-white">&#8592;</button>
-      <button @click="prev" class="text-2xl text-white">&#8594;</button>
+      <button @click="prev" class="text-2xl text-white">&#8592;</button>
+      <button @click="next" class="text-2xl text-white">&#8594;</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useNuxtApp } from '#app'
 import ThreeSphere from './ThreeSphere.vue'
 
@@ -68,28 +83,95 @@ const services: Service[] = [
   },
 ]
 
-const planets = ref([0, 1, 2, 3])
+// Ajout de 'text' comme une planète
+const planets = ref([0, 1, 2, 3]) // Seulement les planètes normales
 const planetRefs = ref<HTMLElement[]>([])
-const centerSphere = ref<HTMLElement | null>(null)
+const container = ref<HTMLElement | null>(null)
+const textElement = ref<HTMLElement | null>(null)
+const positions = ref<Array<{x: number, y: number, scale: number}>>([])
+const textPosition = ref({ x: 0, y: 0 })
 
-const positions = [
-  { x: 200, y: 200, scale: 1 },
-  { x: 900, y: 0, scale: 0.6 },
-  { x: 1300, y: 250, scale: 0.8 },
-  { x: 700, y: 460, scale: 0.9 },
-]
+// Mettre à jour la position du texte par rapport à la planète principale
+function updateTextPosition(planetElement: HTMLElement) {
+  if (!planetElement || !textElement.value) return
+  
+  const planetRect = planetElement.getBoundingClientRect()
+  const containerRect = container.value?.getBoundingClientRect()
+  
+  if (!containerRect) return
+  
+  // Positionner le texte à droite de la planète principale
+  textPosition.value = {
+    x: planetRect.right - containerRect.left + 20, // 20px de marge
+    y: planetRect.top - containerRect.top + (planetRect.height / 2)
+  }
+}
+
+// Fonction pour calculer les positions en fonction de la largeur de l'écran
+function calculatePositions() {
+  const width = window.innerWidth
+  const height = window.innerHeight
+  const scaleFactor = Math.min(width / 1920, 1)
+  
+  // Positions de base (en pourcentage de la largeur/hauteur)
+   const basePositions = [
+    { x: 0.1, y: 0.25, scale: 1 },    // 10% depuis la gauche, 20% depuis le haut
+    { x: 0.5, y: 0.025, scale: 0.6 },  // 80% depuis la gauche, 10% depuis le haut
+    { x: 0.65, y: 0.3, scale: 0.8 },  // etc.
+    { x: 0.4, y: 0.55, scale: 0.9 }
+  ]
+  
+  return basePositions.map(pos => ({
+    x: pos.x * width,
+    y: pos.y * height,
+    scale: pos.scale * scaleFactor
+  }))
+}
+
+// Mettre à jour les positions quand la fenêtre est redimensionnée
+function handleResize() {
+  positions.value = calculatePositions()
+  updatePositions()
+  // Mettre à jour la position du texte après le redimensionnement
+  if (planetRefs.value[0]) {
+    updateTextPosition(planetRefs.value[0])
+  }
+}
+
+onMounted(() => {
+  positions.value = calculatePositions()
+  window.addEventListener('resize', handleResize)
+  updatePositions()
+  
+  // Attendre que les éléments soient rendus pour positionner le texte
+  nextTick(() => {
+    if (planetRefs.value[0]) {
+      updateTextPosition(planetRefs.value[0])
+    }
+  })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+})
 
 const { $gsap } = useNuxtApp()
 
 function updatePositions() {
   planetRefs.value.forEach((el, i) => {
-    if (!el) return
-    const pos = positions[i]
+    if (!el || !positions.value[i]) return
+    const pos = positions.value[i]
     $gsap.to(el, {
       x: pos.x,
       y: pos.y,
       scale: pos.scale,
       duration: 2,
+      onUpdate: () => {
+        // Mettre à jour la position du texte à chaque frame d'animation
+        if (i === 0) {
+          updateTextPosition(el)
+        }
+      }
     })
   })
 }
@@ -108,7 +190,9 @@ function prev() {
   updatePositions()
 }
 
-const currentService = computed(() => services[planets.value[0]])
+const currentService = computed(() => {
+  return services[planets.value[0]]
+})
 
 onMounted(() => {
   updatePositions()
