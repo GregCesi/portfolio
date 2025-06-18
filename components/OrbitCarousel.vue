@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
 import { useNuxtApp } from '#app'
 import ThreeSphere from './ThreeSphere.vue'
 
@@ -95,6 +95,8 @@ const textElement = ref<HTMLElement | null>(null)
 const positions = ref<Array<{x: number, y: number, scale: number}>>([])
 const textPosition = ref({ x: 0, y: 0 })
 const isAnimating = ref(false)
+
+console.log("planets : ", planets.value)
 
 
 // Mettre à jour la position du texte par rapport à la planète principale
@@ -175,7 +177,7 @@ function updatePositions(updateText = false) {
       x: pos.x,
       y: pos.y,
       scale: pos.scale,
-      duration: 1, // Réduire la durée pour un effet plus rapide
+      duration: 2, // Réduire la durée pour un effet plus rapide
       ease: "power2.inOut",
       onComplete: () => {
         completed++
@@ -190,19 +192,23 @@ function updatePositions(updateText = false) {
   })
 }
 
-function next() {
+async function next() {
   if (isAnimating.value) return
   const first = planets.value.shift()
   if (first === undefined) return
   planets.value = [...planets.value, first] // Crée un nouveau tableau pour déclencher la réactivité
+  console.log("planets : ", planets.value)
+  await nextTick()
   updatePositions() // Met à jour les positions des planètes
 }
 
-function prev() {
+async function prev() {
   if (isAnimating.value) return
   const last = planets.value.pop()
   if (last === undefined) return
   planets.value = [last, ...planets.value] // Crée un nouveau tableau pour déclencher la réactivité
+  console.log("planets : ", planets.value)
+  await nextTick()
   updatePositions() // Met à jour les positions des planètes
 }
 
