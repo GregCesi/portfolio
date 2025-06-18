@@ -13,6 +13,13 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
+const props = defineProps({
+  model: {
+    type: String,
+    default: 'Planet-1', // Modèle par défaut
+    }
+})
+
 const container = ref<HTMLElement | null>(null)
 const error = ref<string | null>(null)
 
@@ -149,7 +156,7 @@ const init = async () => {
     // Chargement du modèle GLB de la planète
     const loader = new GLTFLoader()
     loader.load(
-    '/models/Planet-1-v4.glb',
+    `/models/${props.model}.glb`,
     (gltf) => {
       planet = gltf.scene
       planet.rotation.x = Math.PI / 2

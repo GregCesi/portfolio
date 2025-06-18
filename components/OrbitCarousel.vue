@@ -9,29 +9,28 @@
     >
       <div class="relative">
         <div class="absolute rounded-lg -z-10" />
-        <ThreeSphere class="w-40 h-40" />
+        <ThreeSphere :model="`Planet-${planetId + 1}`" class="w-40 h-40" />
       </div>
     </div>
 
     <!-- Texte positionné à côté de la planète principale -->
     <div 
       ref="textElement" 
-      class="absolute flex flex-col max-w-xl space-y-4 text-white"
+      class="absolute flex flex-col max-w-2xl space-y-8 text-white light-shadow-text"
       :style="{
         left: `${textPosition.x}px`,
         top: `${textPosition.y}px`,
         transform: 'translateY(-50%)'
       }"
     >
-      <h2 class="text-3xl font-bold relative">
+      <h2 class="text-3xl font-bold relative ml-2">
         {{ currentService.title }}
       </h2>
-      <img src="/arrow-service.svg" alt="Arrow" class="absolute -left-8 top-8 -translate-x-10 -translate-y-2"/>
-      <div class="space-y-4">
-        <p class="font-bold">{{ currentService.description_title }}</p>
+      <img src="/arrow-service.svg" alt="Arrow" class="absolute -left-8 top-8 -translate-x-10 -translate-y-4"/>
+      <div class="space-y-4 text-pretty max-w-lg">
         <p v-for="(description, idx) in currentService.description" :key="idx">{{ description }}</p>
       </div>
-      <button class="mt-4 px-6 py-2 rounded-full bg-white text-black place-self-end mr-12">{{ currentService.cta }}</button>
+      <button class="px-6 py-2 rounded-full bg-white text-black font-bold light-shadow-text hover:light-shadow hover:scale-105 transition-transform place-self-end mr-12">{{ currentService.cta }}</button>
     </div>
 
     <!-- Contrôles -->
@@ -49,7 +48,6 @@ import ThreeSphere from './ThreeSphere.vue'
 
 interface Service {
   title: string
-  description_title: string
   description: string[]
   cta: string
 }
@@ -57,25 +55,22 @@ interface Service {
 const services: Service[] = [
   {
     title: 'Écoute et sens',
-    description_title: 'Être à l’écoute pour construire quelque chose qui a du sens.',
     description: [ 
-      'Avant de penser à la technique, je prends le temps de comprendre votre situation, vos contraintes, vos objectifs. ', 
-      'Je ne crée pas des sites. Je crée des outils qui font avancer. Cette écoute me permet de proposer des solutions qui anticipent vos besoins futurs.',
+      'Avant de penser à la technique, je prends le temps de comprendre votre situation, vos contraintes et vos objectifs.', 
+      'Cette écoute me permet de proposer des solutions qui vous font avancer et anticipent vos besoins futurs.',
     ],
     cta: 'Discutons de votre projet',
   },
   {
     title: 'Interface et expérience',
-    description_title: 'Une image qui inspire et qui convertit.',
     description: [
       'Un site pro, clair et crédible, c’est le point de départ de la confiance.', 
-      ' Je structure mes interfaces pour qu’elles donnent envie de passer à l’action : contacter, acheter, s’engager, tout en simplifiant les étapes pour vos visiteurs.'
+      'Je structure mes interfaces pour qu’elles donnent envie de passer à l’action : contacter, acheter, s’engager, tout en simplifiant les étapes pour vos visiteurs.'
     ],
     cta: 'Discutons de votre projet',
   },
   {
     title: 'Technologies et structure',
-    description_title: 'Des solutions pensées pour évoluer, pas pour être jetées.',
     description: [
       'Grâce à cette compréhension en amont, je choisis des technologies et des structures capables de suivre votre croissance.', 
       'Votre site ou votre outil peut évoluer, s’adapter, grandir avec vous, sans devoir tout recommencer.'
@@ -84,10 +79,9 @@ const services: Service[] = [
   },
   {
     title: 'Impact et quotidien',
-    description_title: 'Des solutions qui servent vraiment votre activité.',
     description: [
-      'Mon objectif n’est pas juste de “livrer un site”, c’est de créer un outil utile, qui vous fait gagner du temps, vous rapproche de vos clients, ou vous simplifie la vie.',
-      'Chaque ligne de code a un impact concret sur votre quotidien.'
+      'Mon objectif n’est pas de “livrer une solution", c’est de créer un outil pertinant, qui vous fait gagner du temps, vous rapproche de vos clients, ou simplifie vos processus.',
+      'Chaque ligne de code à un impact concret sur votre quotidien.'
     ],
     cta: 'Discutons de votre projet',
   },
@@ -114,7 +108,7 @@ function updateTextPosition(planetElement: HTMLElement) {
   
   // Positionner le texte à droite de la planète principale
   textPosition.value = {
-    x: planetRect.right - containerRect.left - 80, // 20px de marge
+    x: planetRect.right - containerRect.left - 110, // 20px de marge
     y: planetRect.top - containerRect.top + (planetRect.height / 2) - 90
   }
 }
@@ -169,6 +163,11 @@ function updatePositions(updateText = false) {
   isAnimating.value = true
   let completed = 0
   const total = planetRefs.value.length
+  
+  // Mettre à jour les positions avant l'animation
+  const newPositions = calculatePositions()
+  positions.value = newPositions
+
   planetRefs.value.forEach((el, i) => {
     if (!el || !positions.value[i]) return
     const pos = positions.value[i]
@@ -176,7 +175,8 @@ function updatePositions(updateText = false) {
       x: pos.x,
       y: pos.y,
       scale: pos.scale,
-      duration: 2,
+      duration: 1, // Réduire la durée pour un effet plus rapide
+      ease: "power2.inOut",
       onComplete: () => {
         completed++
         if (updateText && i === 0) {
@@ -194,16 +194,16 @@ function next() {
   if (isAnimating.value) return
   const first = planets.value.shift()
   if (first === undefined) return
-  planets.value.push(first)
-  updatePositions()
+  planets.value = [...planets.value, first] // Crée un nouveau tableau pour déclencher la réactivité
+  updatePositions() // Met à jour les positions des planètes
 }
 
 function prev() {
   if (isAnimating.value) return
   const last = planets.value.pop()
   if (last === undefined) return
-  planets.value.unshift(last)
-  updatePositions()
+  planets.value = [last, ...planets.value] // Crée un nouveau tableau pour déclencher la réactivité
+  updatePositions() // Met à jour les positions des planètes
 }
 
 const currentService = computed(() => {
