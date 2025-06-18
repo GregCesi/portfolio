@@ -23,14 +23,37 @@
         transform: 'translateY(-50%)'
       }"
     >
-      <h2 class="text-3xl font-bold relative ml-2">
+      <h2 ref="titleRef" class="text-3xl font-bold relative ml-2">
         {{ currentService.title }}
       </h2>
-      <img src="/arrow-service.svg" alt="Arrow" class="absolute -left-8 top-8 -translate-x-10 -translate-y-4"/>
-      <div class="space-y-4 text-pretty max-w-lg">
+      <svg
+        ref="arrowSvg"
+        width="571"
+        height="75"
+        viewBox="0 0 571 75"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        class="absolute -left-8 top-8 -translate-x-10 -translate-y-4"
+      >
+        <path
+          ref="arrowPath"
+          d="M67 2H571 M561 2L571 2L566 12L561 2Z"
+          stroke="white"
+          stroke-width="3"
+          fill="none"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+      </svg>
+      <div ref="descRef" class="space-y-4 text-pretty max-w-lg">
         <p v-for="(description, idx) in currentService.description" :key="idx">{{ description }}</p>
       </div>
-      <button class="px-6 py-2 rounded-full bg-white text-black font-bold light-shadow-text hover:light-shadow hover:scale-105 transition-transform place-self-end mr-12">{{ currentService.cta }}</button>
+      <button
+        ref="ctaRef"
+        class="px-6 py-2 rounded-full bg-white text-black font-bold light-shadow-text hover:light-shadow hover:scale-105 transition-transform place-self-end mr-12"
+      >
+        {{ currentService.cta }}
+      </button>    
     </div>
 
     <!-- Contrôles -->
@@ -42,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, nextTick, watch } from 'vue'
 import { useNuxtApp } from '#app'
 import ThreeSphere from './ThreeSphere.vue'
 
@@ -92,12 +115,15 @@ const planets = ref([0, 1, 2, 3]) // Seulement les planètes normales
 const planetRefs = ref<HTMLElement[]>([])
 const container = ref<HTMLElement | null>(null)
 const textElement = ref<HTMLElement | null>(null)
+const titleRef = ref<HTMLElement | null>(null)
+const descRef = ref<HTMLElement | null>(null)
+const ctaRef = ref<HTMLElement | null>(null)
 const positions = ref<Array<{x: number, y: number, scale: number}>>([])
 const textPosition = ref({ x: 0, y: 0 })
 const isAnimating = ref(false)
-
-console.log("planets : ", planets.value)
-
+const arrowSvg = ref<SVGSVGElement | null>(null)
+const arrowPath = ref<SVGPathElement | null>(null)
+let pathLength = 0
 
 // Mettre à jour la position du texte par rapport à la planète principale
 function updateTextPosition(planetElement: HTMLElement) {
@@ -152,6 +178,7 @@ onMounted(() => {
     if (planetRefs.value[0]) {
       updateTextPosition(planetRefs.value[0])
     }
+    animateTextIn()
   })
 })
 
@@ -160,6 +187,65 @@ onBeforeUnmount(() => {
 })
 
 const { $gsap } = useNuxtApp()
+
+function prepareArrow() {
+  if (!arrowPath.value) return false
+  
+  // Calculer la longueur totale du chemin
+  pathLength = arrowPath.value.getTotalLength()
+  
+  // Initialiser le style
+  $gsap.set(arrowPath.value, {
+    strokeDasharray: pathLength,
+    strokeDashoffset: pathLength,
+    opacity: 1,
+    fill: 'none'
+  })
+  
+  return true
+}
+
+function animateTextIn() {
+  if (!prepareArrow() || !arrowPath.value) return
+
+  const tl = $gsap.timeline()
+  
+  // Animation du dessin de la flèche
+  tl.to(arrowPath.value, {
+    strokeDashoffset: 0,
+    duration: 1.2,
+    ease: "power2.inOut"
+  })
+  
+  // Animation du texte
+  tl.to(titleRef.value, { autoAlpha: 1, duration: 0.3 }, '-=0.8')
+    .to(descRef.value, { autoAlpha: 1, duration: 0.3 }, '-=0.2')
+    .to(ctaRef.value, { autoAlpha: 1, duration: 0.3 }, '-=0.1')
+}
+
+function animateTextOut() {
+  return new Promise<void>((resolve) => {
+    if (!arrowPath.value) {
+      resolve()
+      return
+    }
+
+    const tl = $gsap.timeline({ onComplete: resolve })
+    
+    // Animation d'effacement de la flèche (de droite à gauche)
+    tl.to(arrowPath.value, {
+      strokeDashoffset: -pathLength,
+      duration: 0.8,
+      ease: "power2.in"
+    })
+    
+    // Cacher le texte
+    tl.to([ctaRef.value, descRef.value, titleRef.value], {
+      autoAlpha: 0,
+      duration: 0.3
+    }, '<')
+  })
+}
 
 function updatePositions(updateText = false) {
   isAnimating.value = true
@@ -171,13 +257,17 @@ function updatePositions(updateText = false) {
   positions.value = newPositions
 
   planetRefs.value.forEach((el, i) => {
-    if (!el || !positions.value[i]) return
+    if (!el || !positions.value[i]) {
+      completed++
+      return
+    }
+    
     const pos = positions.value[i]
     $gsap.to(el, {
       x: pos.x,
       y: pos.y,
       scale: pos.scale,
-      duration: 2, // Réduire la durée pour un effet plus rapide
+      duration: 1, // Réduit à 1s pour une meilleure réactivité
       ease: "power2.inOut",
       onComplete: () => {
         completed++
@@ -185,7 +275,7 @@ function updatePositions(updateText = false) {
           updateTextPosition(el)
         }
         if (completed === total) {
-          isAnimating.value = false
+          isAnimating.value = false // Important : réinitialiser le flag
         }
       }
     })
@@ -194,22 +284,54 @@ function updatePositions(updateText = false) {
 
 async function next() {
   if (isAnimating.value) return
-  const first = planets.value.shift()
-  if (first === undefined) return
-  planets.value = [...planets.value, first] // Crée un nouveau tableau pour déclencher la réactivité
-  console.log("planets : ", planets.value)
-  await nextTick()
-  updatePositions() // Met à jour les positions des planètes
+  isAnimating.value = true
+  
+  try {
+    // 1. Faire disparaître le texte
+    await animateTextOut()
+    
+    // 2. Mettre à jour les données
+    const first = planets.value.shift()
+    if (first === undefined) return
+    planets.value = [...planets.value, first]
+    
+    // 3. Attendre le rendu
+    await nextTick()
+    
+    // 4. Mettre à jour les positions
+    await new Promise(resolve => {
+      updatePositions(false)
+      // Attendre que l'animation des planètes soit terminée
+      const check = setInterval(() => {
+        if (!isAnimating.value) {
+          clearInterval(check)
+          resolve(true)
+        }
+      }, 100)
+    })
+    
+    // 5. Faire apparaître le nouveau texte
+    console.log("j'arrive ici")
+    animateTextIn()
+  } catch (error) {
+    console.error('Error during animation:', error)
+    isAnimating.value = false
+  }
 }
 
 async function prev() {
   if (isAnimating.value) return
+  isAnimating.value = true
+  await animateTextOut()  // Animation de sortie
   const last = planets.value.pop()
-  if (last === undefined) return
-  planets.value = [last, ...planets.value] // Crée un nouveau tableau pour déclencher la réactivité
-  console.log("planets : ", planets.value)
+  if (last === undefined) {
+    isAnimating.value = false
+    return
+  }
+  planets.value = [last, ...planets.value]
   await nextTick()
-  updatePositions() // Met à jour les positions des planètes
+  updatePositions()  // Met à jour les positions des planètes
+  animateTextIn()    // Animation d'entrée
 }
 
 const currentService = computed(() => {
@@ -217,7 +339,10 @@ const currentService = computed(() => {
 })
 
 onMounted(() => {
-  updatePositions(false)
+  nextTick(() => {
+    prepareArrow()
+    updatePositions(false)
+  })
 })
 </script>
 
