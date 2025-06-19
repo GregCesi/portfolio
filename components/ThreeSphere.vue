@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-[500px] h-[500px]">
+  <div class="relative" :style="{ width: width, height: height }">
     <div ref="container" class="w-full h-full" />
     <div v-if="error" class="absolute inset-0 flex items-center justify-center text-red-500">
       {{ error }}
@@ -16,8 +16,20 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 const props = defineProps({
   model: {
     type: String,
-    default: 'Planet-2', // Modèle par défaut
-    }
+    default: 'DSCOVR-Triana', // Modèle par défaut
+  },
+  cameraPosition: {
+    type: Number,
+    default: 3,
+  },
+  width: {
+    type: String,
+    default: '500px',
+  },
+  height: {
+    type: String,
+    default: '500px',
+  },
 })
 
 const container = ref<HTMLElement | null>(null)
@@ -77,7 +89,7 @@ const init = async () => {
       1000
     )
     // On recule la caméra pour voir la scène
-    camera.position.z = 3
+    camera.position.z = props.cameraPosition
     // On ajoute la caméra à la scène afin de pouvoir lui attacher la lumière
     scene.add(camera)
 
