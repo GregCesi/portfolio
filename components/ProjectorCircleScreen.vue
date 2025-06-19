@@ -12,7 +12,7 @@
 
     <!-- Votre projecteur SVG, inchangé -->
     <img
-      class="w-3/4 -mt-6"
+      class="w-1/3 -mt-6"
       src="@/public/images/ScreenProjector/screenProjector.svg"
       alt="Projecteur"
     >

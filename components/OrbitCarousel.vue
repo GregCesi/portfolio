@@ -1,5 +1,5 @@
 <template>
-  <div ref="container" class="relative w-full h-screen overflow-hidden max-sm:hidden">
+  <div ref="container" class="relative w-full h-screen overflow-hidden max-md:hidden">
     <!-- Planètes (sans le texte) -->
     <div
       v-for="(planetId, idx) in planets"
@@ -37,9 +37,8 @@
       >
         <path
           ref="arrowPath"
-          d="M67 2H571 M561 2L571 2L566 12L561 2Z"
-          stroke="white"
-          stroke-width="3"
+          d=" M1.5017 73.5713 C1.5411 74.3988 2.24386 75.0377 3.07134 74.9983 L16.5561 74.3562 C17.3836 74.3168 18.0224 73.614 17.983 72.7865 C17.9436 71.959 17.2409 71.3202 16.4134 71.3596 L4.42695 71.9304 L3.85617 59.9439 C3.81677 59.1164 3.11401 58.4776 2.28652 58.517 C1.45903 58.5564 0.820163 59.2591 0.859568 60.0866 L1.5017 73.5713 L66.8901 0.990958 L1.89009 72.491 L3 73.5 L4.10991 74.509 L69.11 3.00898 L68 1.99997 H571"          stroke="white"
+          stroke-width="1"
           fill="none"
           stroke-linejoin="round"
           stroke-linecap="round"
@@ -50,7 +49,7 @@
       </div>
       <button
         ref="ctaRef"
-        class="px-6 py-2 rounded-full bg-white text-black font-bold light-shadow-text hover:light-shadow hover:scale-105 transition-transform place-self-end mr-12"
+        class="px-6 py-2 rounded-full bg-white text-black font-bold light-shadow-text hover:light-shadow hover:scale-105 transition-transform place-self-end mr-8"
       >
         {{ currentService.cta }}
       </button>    
@@ -136,8 +135,8 @@ function updateTextPosition(planetElement: HTMLElement) {
   
   // Positionner le texte à droite de la planète principale
   textPosition.value = {
-    x: planetRect.right - containerRect.left - 110, // 20px de marge
-    y: planetRect.top - containerRect.top + (planetRect.height / 2) - 90
+    x: planetRect.right - containerRect.left + 10, // 20px de marge
+    y: planetRect.top - containerRect.top + (planetRect.height / 2) - 100
   }
 }
 
@@ -146,13 +145,27 @@ function calculatePositions() {
   const width = window.innerWidth
   const height = window.innerHeight
   const scaleFactor = Math.min(width / 1920, 1)
+
+  // Facteur d'ajustement pour les petits écrans
+  const getXPosition = (baseX: number) => {
+    if (baseX == 0.1) {
+       if (width >= 1280) return baseX
+       if (width >= 1024) return baseX * 0.3
+       if (width >= 768) return baseX * -0.5
+    }
+    if (width >= 1280) return baseX
+    if (width >= 1024) return baseX * 0.9
+    if (width >= 768) return baseX * 0.8
+    return baseX
+    }
+
   
   // Positions de base (en pourcentage de la largeur/hauteur)
-   const basePositions = [
-    { x: 0.1, y: 0.3, scale: 1.1 },    // 10% depuis la gauche, 20% depuis le haut
-    { x: 0.5, y: 0.025, scale: 0.6 },  // 80% depuis la gauche, 10% depuis le haut
-    { x: 0.65, y: 0.3, scale: 0.8 },  // etc.
-    { x: 0.4, y: 0.55, scale: 0.9 }
+  const basePositions = [
+    { x: getXPosition(0.1), y: 0.3, scale: 0.7 },
+    { x: getXPosition(0.5), y: 0.025, scale: 0.4 },
+    { x: getXPosition(0.65), y: 0.3, scale: 0.6 },
+    { x: getXPosition(0.4), y: 0.5, scale: 0.5 }
   ]
   
   return basePositions.map(pos => ({
@@ -213,7 +226,7 @@ function animateTextIn() {
   // Animation du dessin de la flèche
   tl.to(arrowPath.value, {
     strokeDashoffset: 0,
-    duration: 1.2,
+    duration: 2.5,
     ease: "power2.inOut"
   })
   
@@ -235,14 +248,14 @@ function animateTextOut() {
     // Animation d'effacement de la flèche (de droite à gauche)
     tl.to(arrowPath.value, {
       strokeDashoffset: -pathLength,
-      duration: 0.8,
+      duration: 1,
       ease: "power2.in"
     })
     
     // Cacher le texte
     tl.to([ctaRef.value, descRef.value, titleRef.value], {
       autoAlpha: 0,
-      duration: 0.3
+      duration: 0.5
     }, '<')
   })
 }
@@ -309,9 +322,10 @@ async function next() {
         }
       }, 100)
     })
+
+    await nextTick()
     
     // 5. Faire apparaître le nouveau texte
-    console.log("j'arrive ici")
     animateTextIn()
   } catch (error) {
     console.error('Error during animation:', error)

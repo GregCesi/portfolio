@@ -1,27 +1,40 @@
 <template>
-    <section class="container mx-auto">
-        <div class="max-w-5xl mx-auto flex gap-16 rounded-full p-8 items-center">
-            <ProjectorCircleScreen :image="'/images/PDP.jpg'" />
-            <div class="flex flex-col gap-8">
-                <div class="font-bold text-white light-shadow-text">
-                    <h2 class="text-2xl ">Grégoire MARCHAND</h2>
-                    <p class="text-lg -mt-1 ml-2">Développeur full-stack</p>
+    <section class="container mx-auto flex items-center">
+        <!-- A propos de moi -->
+        <div class="w-2/3 flex flex-col gap-32 mt-20">
+            <div class="flex items-center justify-center gap-8 ml-28">
+                <div>
+                    <ProjectorCircleScreen image="images/PDP.jpg" />
                 </div>
-                <p class="text-white light-shadow-text"> 
-                    Je suis développeur freelance full-stack . 
-                    J’accompagne start-ups, PPE et PME en transformant leurs besoins en interfaces 
-                    intuitives et performantes. Passionné par la logique et les défis, je crée des 
-                    solutions sur-mesure pour optimiser vos process et booster votre croissance. 
-                    Prêt à relever votre prochain challenge ? 
-                </p>
-                <button 
-                    class="w-1/2 sm:w-auto flex-1 rounded-full bg-white hover:light-shadow light-shadow-text-black text-base sm:text-lg md:text-lg text-black justify-center font-bold px-4 py-3 sm:py-4 hover:scale-105 transition-transform place-self-end mr-12" 
-
-                >
+                <div class="flex flex-col gap-4 text-white light-shadow-text text-balance ">
+                    <p>Enchanté, je suis Grégoire MARCHAND, développeur fullstack.</p>
+                    <p>Je serais votre guide dans cette vaste univers du numérique.</p>
+                    <p>Grâce à mes nombreuses années de passion pour le code, d’experiences variés au fin fond de la galaxie. Je suis aujourd’hui capable de vous aider a conceptualiser et developper vos futurs solutions et vous permettrent de naviguer correctement votre activité.</p>
+                </div>
+            </div>
+            <div class="flex flex-col gap-8 items-center justify-center">
+                <p class="text-white light-shadow-text text-center w-1/2">Envie d'en découvrir plus sur moi ? Mes compétences techniques et mon parcours professionnel ?</p>
+                <button class="px-6 py-4 rounded-full bg-white text-black font-bold light-shadow-text hover:light-shadow hover:scale-105 transition-transform">
                     En découvrir plus sur moi
                 </button>
             </div>
-        </div>
+       </div>
+       <!-- Projets -->
+       <aside class="w-1/3 flex flex-col gap-4 items-center mt-20">
+            <h2 class="text-2xl font-bold text-white light-shadow-text text-center">Mes projets récents</h2>
+            <ProjectorScreen 
+                :images="['/images/ProjectScreenCatra.png', '/images/ProjectScreenPARC.png']"
+                width="70%"
+                max-width="800px"
+                projector-width="200px"
+            />
+            <ProjectorScreen 
+                :images="['/images/ProjectScreenCatra.png', '/images/ProjectScreenPARC.png']"
+                width="70%"
+                max-width="800px"
+                projector-width="200px"
+            />
+       </aside>
     </section>
 </template>
 

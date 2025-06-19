@@ -16,7 +16,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 const props = defineProps({
   model: {
     type: String,
-    default: 'Planet-1', // Modèle par défaut
+    default: 'Planet-2', // Modèle par défaut
     }
 })
 
@@ -42,6 +42,7 @@ const handleResize = () => {
   if (!container.value || !camera || !renderer) return
   const width = container.value.clientWidth
   const height = container.value.clientHeight
+  
   camera.aspect = width / height
   camera.updateProjectionMatrix()
   renderer.setSize(width, height)
@@ -67,7 +68,14 @@ const init = async () => {
     // - ratio largeur/hauteur : pour éviter les déformations
     // - 0.1 : plan de rendu le plus proche
     // - 1000 : plan de rendu le plus éloigné
-    camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
+    
+    // camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
+    camera = new THREE.PerspectiveCamera(
+      45, // Réduire légèrement le FOV pour éviter la distorsion
+      container.value.clientWidth / container.value.clientHeight,
+      0.1,
+      1000
+    )
     // On recule la caméra pour voir la scène
     camera.position.z = 3
     // On ajoute la caméra à la scène afin de pouvoir lui attacher la lumière

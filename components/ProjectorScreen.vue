@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col items-center justify-center">
+  <div class="flex flex-col items-center justify-center" :style="{ width: width, maxWidth: maxWidth }">
     <!-- Conteneur relatif : image + overlay de scan-lines -->
-    <div class="relative w-1/2 aspect-video overflow-hidden">
+    <div class="relative w-full aspect-video overflow-hidden">
       <img
         class="w-full h-full object-cover"
         :src="currentImage"
@@ -26,7 +26,8 @@
 
     <!-- Votre projecteur SVG, inchangé -->
     <img
-      class="w-1/4 -mt-10"
+      class="w-1/3 -mt-10"
+      :style="{ width: projectorWidth }"
       src="@/public/images/ScreenProjector/screenProjector.svg"
       alt="Projecteur"
     >
@@ -46,6 +47,18 @@ const props = defineProps({
     type: Array as () => string[],
     default: () => [],
   },
+  width: {
+    type: String,
+    default: 'w-1/2',
+  },
+  maxWidth: {
+    type: String,
+    default: 'max-w-2xl',
+  },
+  projectorWidth: {
+    type: String,
+    default: '25%'
+  }
 })
 
 const images = computed(() => {

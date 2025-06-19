@@ -12,7 +12,7 @@
         <ServicesSection />
       </section>
       <section class="slide flex items-center justify-center">
-        
+        <ClientRoadmapSection />
       </section>
       <section class="slide flex items-center justify-center">
         <ThreeSphere />
@@ -40,6 +40,7 @@ import Footer from '~/components/Footer.vue'
 import SlideContainer from '~/components/SlideContainer.vue'
 import SlideMenu from '~/components/SlideMenu.vue'
 import ThreeSphere from '~/components/ThreeSphere.vue'
+import ClientRoadmapSection from '~/components/ClientRoadmapSection.vue'
 
 const slideContainer = ref<ComponentPublicInstance | null>(null)
 </script>
