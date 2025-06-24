@@ -15,7 +15,7 @@
         <ClientRoadmapSection />
       </section>
       <section class="slide flex items-center justify-center">
-        <ThreeSphere model="DSCOVR-Triana" :camera-position="800"/>
+        <ThreeSphere model="DSCOVR-Triana" width="1000px" height="1000px" :camera-position="200"/>
       </section>
     </SlideContainer>
     <SlideMenu 
