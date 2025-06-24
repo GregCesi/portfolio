@@ -4,11 +4,12 @@
       Comment je vous accompagne ?
     </h2>
     <div class="grid grid-cols-3 gap-8 items-center mt-12">
-      <TimeLineRoadmap 
-        :steps="steps" 
+      <TimeLineRoadmap
+        ref="timeline"
+        :steps="steps"
         :active-step="activeStep"
-        :is-animating="isAnimating"
-      />   
+        :is-animating="isAnimating" 
+      />
       <div class="flex flex-col items-center text-white text-center gap-4">
         <h3 class="text-2xl font-bold">{{ currentStep.title }}</h3>
         <p v-for="description in currentStep.descriptions" :key="description">{{ description }}</p>
@@ -37,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed } from 'vue';
 import ThreeSphere from './ThreeSphere.vue'
 import TimeLineRoadmap from './TimeLineRoadmap.vue'
 
@@ -98,26 +99,27 @@ const steps = ref<Step[]>([
   }
 ]);
 
-const activeStep = ref(0);
-const isAnimating = ref(false);
-const currentStep = computed(() => steps.value[activeStep.value]);
+const activeStep = ref(0)
+const isAnimating = ref(false)
+const timeline = ref<InstanceType<typeof TimeLineRoadmap> | null>(null)
+const currentStep = computed(() => steps.value[activeStep.value])
 
 async function nextStep() {
-  if (isAnimating.value || activeStep.value >= steps.value.length - 1) return;
-  
-  isAnimating.value = true;
-  await new Promise(resolve => setTimeout(resolve, 1000)); // Durée de l'animation
-  activeStep.value++;
-  isAnimating.value = false;
+  if (isAnimating.value || activeStep.value >= steps.value.length - 1) return
+
+  isAnimating.value = true
+  await timeline.value?.animateToStep(activeStep.value + 1)
+  activeStep.value++
+  isAnimating.value = false
 }
 
 async function prevStep() {
-  if (isAnimating.value || activeStep.value <= 0) return;
-  
-  isAnimating.value = true;
-  await new Promise(resolve => setTimeout(resolve, 500)); // Animation plus rapide en arrière
-  activeStep.value--;
-  isAnimating.value = false;
+  if (isAnimating.value || activeStep.value <= 0) return
+
+  isAnimating.value = true
+  await timeline.value?.animateToStep(activeStep.value - 1)
+  activeStep.value--
+  isAnimating.value = false
 }
 </script>
 

@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col">
-     <div
+    <div
       v-for="(step, index) in steps"
       :key="index"
       class="flex items-start gap-4 transition-all duration-300"
@@ -11,30 +11,27 @@
       }"
     >
       <div class="flex flex-col items-center">
-        <div 
-          v-if="index > 0" 
+        <div
+          v-if="index > 0"
           class="w-px h-16 relative overflow-hidden"
-          :style="{'--progress': index < activeStep ? 1 : (index === activeStep ? progress : 0)}"
         >
           <div class="absolute top-0 left-0 w-full h-full bg-gray-500" />
-          <div 
-            class="absolute top-0 left-0 w-full h-full bg-white transition-all duration-1000" 
-            :style="{ 
-              transform: `scaleY(${index < activeStep ? 1 : (index === activeStep ? progress : 0)})`,
-              transformOrigin: 'top center'
-            }" 
+          <div
+            :ref="el => setLine(el, index - 1)"
+            class="absolute top-0 left-0 w-full h-full bg-white"
           />
         </div>
         <div
-          :class="[indicatorClass(index), index === activeStep ? 'animate-pulse' : '']"
+          :ref="el => setCircle(el, index)"
+          :class="[indicatorClass(index), pulseIndex === index ? 'animate-pulse' : '']"
           class="w-8 h-8 rounded-full border-2 transition-all duration-[300ms] transform"
         />
-        
       </div>
       <p 
+        :ref="el => setText(el, index)"
         :class="[
           'text-white transition-all duration-300',
-          index === activeStep ? 'light-shadow-text font-bold' : 'opacity-70',
+          pulseIndex === index ? 'light-shadow-text font-bold' : 'opacity-70',
           index > 0 ? 'place-self-end -translate-y-1' : 'mt-1'
         ]"
       >
@@ -69,59 +66,111 @@
 </style>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch } from 'vue'
+import { useNuxtApp } from '#app'
 
 interface Step {
-  title: string;
-  descriptions: string[];
-  model: string;
+  title: string
+  descriptions: string[]
+  model: string
 }
 
-const props = defineProps<{ 
-  steps: {
-    title: string;
-    descriptions: string[];
-    model: string;
-  }[]; 
-  activeStep: number;
-  isAnimating: boolean;
-}>();
-const progress = ref(0);
+const props = defineProps<{
+  steps: Step[]
+  activeStep: number
+  isAnimating: boolean
+}>()
 
-// Fonction pour déterminer la classe de l'indicateur
+const lines = ref<HTMLElement[]>([])
+const circles = ref<HTMLElement[]>([])
+const texts = ref<HTMLElement[]>([])
+const pulseIndex = ref(props.activeStep)
+
+function setLine(el: HTMLElement | null, index: number) {
+  if (el) lines.value[index] = el
+}
+function setCircle(el: HTMLElement | null, index: number) {
+  if (el) circles.value[index] = el
+}
+function setText(el: HTMLElement | null, index: number) {
+  if (el) texts.value[index] = el
+}
+
 function indicatorClass(index: number) {
-  if (index < props.activeStep) return "bg-white border-white";
-  if (index === props.activeStep) return "bg-white border-white shadow";
-  return "bg-gray-600 border-gray-600";
+  if (index < props.activeStep) return 'bg-white border-white light-shadow'
+  if (index === props.activeStep) return 'bg-white border-white light-shadow'
+  return 'bg-gray-600 border-gray-600'
 }
 
-// Fonction pour animer la progression
-function animateProgress() {
-  progress.value = 0;
-  let start: number | null = null;
-  const duration = 1000; // durée de l'animation en ms
+const { $gsap } = useNuxtApp()
 
-  function step(timestamp: number) {
-    if (!start) start = timestamp;
-    const elapsed = timestamp - start;
-    const progressValue = Math.min(elapsed / duration, 1);
-    progress.value = progressValue;
-
-    if (progressValue < 1) {
-      window.requestAnimationFrame(step);
-    }
-  }
-
-  window.requestAnimationFrame(step);
-}
-
-// Observer les changements d'étape active
-watch(() => props.activeStep, () => {
-  animateProgress();
-});
-
-// Initialiser l'animation au montage
 onMounted(() => {
-  animateProgress();
-});
+  lines.value.forEach((line, idx) => {
+    if (line) {
+      $gsap.set(line, { scaleY: idx < props.activeStep ? 1 : 0, transformOrigin: 'top center' })
+    }
+  })
+})
+
+function animateToStep(newIndex: number) {
+  return new Promise<void>((resolve) => {
+    pulseIndex.value = -1
+    const dir = newIndex > props.activeStep ? 1 : -1
+    const lineIndex = dir > 0 ? props.activeStep : newIndex
+    const line = lines.value[lineIndex]
+    if (!line) {
+      pulseIndex.value = newIndex
+      resolve()
+      return
+    }
+
+    // Animation différente selon la direction
+    if (dir > 0) {
+      // Animation pour la flèche droite (du haut vers le bas)
+      $gsap.fromTo(
+        line,
+        {
+          scaleY: 0,
+          transformOrigin: 'top center',
+        },
+        {
+          scaleY: 1,
+          duration: 1,
+          ease: 'power1.inOut',
+          onComplete() {
+            pulseIndex.value = newIndex
+            resolve()
+          },
+        }
+      )
+    } else {
+      // Animation pour la flèche gauche (du bas vers le haut)
+      $gsap.fromTo(
+        line,
+        {
+          scaleY: 0,
+          transformOrigin: 'bottom center',
+        },
+        {
+          scaleY: 0,
+          duration: 1,
+          ease: 'power1.inOut',
+          onComplete() {
+            pulseIndex.value = newIndex
+            resolve()
+          },
+        }
+      )
+    }
+  })
+}
+
+watch(
+  () => props.activeStep,
+  (val) => {
+    pulseIndex.value = val
+  }
+)
+
+defineExpose({ animateToStep })
 </script>
