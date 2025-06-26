@@ -15,7 +15,7 @@
         <ClientRoadmapSection />
       </section>
       <section class="slide flex items-center justify-center">
-        <ThreeSphere model="DSCOVR-Triana" width="1000px" height="1000px" :camera-position="200"/>
+        <SolutionsSection />
       </section>
     </SlideContainer>
     <SlideMenu 
@@ -41,6 +41,7 @@ import SlideContainer from '~/components/SlideContainer.vue'
 import SlideMenu from '~/components/SlideMenu.vue'
 import ThreeSphere from '~/components/ThreeSphere.vue'
 import ClientRoadmapSection from '~/components/ClientRoadmapSection.vue'
+import SolutionsSection from '~/components/SolutionsSection.vue'
 
 const slideContainer = ref<ComponentPublicInstance | null>(null)
 </script>
