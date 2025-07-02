@@ -1,5 +1,5 @@
 <template>
-   <section class="container mx-auto mt-20">
+  <section class="container mx-auto mt-20">
     <h2 class="text-4xl font-bold text-white light-shadow-text text-center">
       Comment je vous accompagne ?
     </h2>
@@ -8,45 +8,50 @@
         ref="timeline"
         :steps="steps"
         :active-step="activeStep"
-        :is-animating="isAnimating" 
       />
-      <div class="flex flex-col items-center text-white text-center gap-4">
+      <div ref="textRef" class="flex flex-col items-center text-white text-center gap-4">
         <h3 class="text-2xl font-bold">{{ currentStep.title }}</h3>
-        <p v-for="description in currentStep.descriptions" :key="description">{{ description }}</p>
+        <p v-for="description in currentStep.descriptions" :key="description">
+          {{ description }}
+        </p>
         <div class="flex gap-4 text-3xl">
-          <button 
-      @click="prevStep" 
-      :disabled="isAnimating || activeStep === 0"
-      class="transition-opacity"
-      :class="{'opacity-50': isAnimating || activeStep === 0}"
-    >
-      &#8592;          
-    </button>
-    <button 
-      @click="nextStep" 
-      :disabled="isAnimating || activeStep === steps.length - 1"
-      class="transition-opacity"
-      :class="{'opacity-50': isAnimating || activeStep === steps.length - 1}"
-    >
-      &#8594;
-    </button>
+          <button
+            @click="prevStep"
+            :disabled="isAnimating || activeStep === 0"
+            class="transition-opacity"
+            :class="{ 'opacity-50': isAnimating || activeStep === 0 }"
+          >
+            &#8592;
+          </button>
+          <button
+            @click="nextStep"
+            :disabled="isAnimating || activeStep === steps.length - 1"
+            class="transition-opacity"
+            :class="{ 'opacity-50': isAnimating || activeStep === steps.length - 1 }"
+          >
+            &#8594;
+          </button>
         </div>
-        </div>
-      <ThreeSphere :model="currentStep.model" :camera-position="3" />
+      </div>
+      <ThreeSphere ref="sphereRef" :model="currentStep.model" :camera-position="3" />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import type { ComponentPublicInstance } from 'vue'
+import { useNuxtApp } from '#app'
 import ThreeSphere from './ThreeSphere.vue'
 import TimeLineRoadmap from './TimeLineRoadmap.vue'
 
 interface Step {
-  title: string;
-  descriptions: string[];
-  model: string;
+  title: string
+  descriptions: string[]
+  model: string
 }
+
+const { $gsap } = useNuxtApp()
 
 const steps = ref<Step[]>([
   {
@@ -102,24 +107,48 @@ const steps = ref<Step[]>([
 const activeStep = ref(0)
 const isAnimating = ref(false)
 const timeline = ref<InstanceType<typeof TimeLineRoadmap> | null>(null)
+const textRef = ref<HTMLElement | null>(null)
+const sphereRef = ref<ComponentPublicInstance | null>(null)
 const currentStep = computed(() => steps.value[activeStep.value])
 
-async function nextStep() {
-  if (isAnimating.value || activeStep.value >= steps.value.length - 1) return
-
+async function goToStep(newIndex: number) {
+  if (isAnimating.value) return
   isAnimating.value = true
-  await timeline.value?.animateToStep(activeStep.value + 1)
-  activeStep.value++
+
+  const elements: HTMLElement[] = []
+  if (textRef.value) elements.push(textRef.value)
+  if (sphereRef.value?.$el) elements.push(sphereRef.value.$el as HTMLElement)
+
+  if (elements.length) {
+    await $gsap.to(elements, { opacity: 0, duration: 0.5 })
+  }
+
+  if (newIndex > activeStep.value) {
+    await timeline.value?.expandLine(activeStep.value)
+  } else if (newIndex < activeStep.value) {
+    await timeline.value?.collapseLine(newIndex)
+  }
+  timeline.value?.deactivateCircle(activeStep.value)
+  timeline.value?.activateCircle(newIndex)
+  await timeline.value?.pulseCircle(newIndex)
+
+  activeStep.value = newIndex
+
+  if (elements.length) {
+    await $gsap.to(elements, { opacity: 1, duration: 0.5 })
+  }
+
   isAnimating.value = false
 }
 
-async function prevStep() {
-  if (isAnimating.value || activeStep.value <= 0) return
+function nextStep() {
+  if (activeStep.value >= steps.value.length - 1) return
+  goToStep(activeStep.value + 1)
+}
 
-  isAnimating.value = true
-  await timeline.value?.animateToStep(activeStep.value - 1)
-  activeStep.value--
-  isAnimating.value = false
+function prevStep() {
+  if (activeStep.value <= 0) return
+  goToStep(activeStep.value - 1)
 }
 </script>
 
