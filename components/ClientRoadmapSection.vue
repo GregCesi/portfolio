@@ -124,13 +124,13 @@ async function goToStep(newIndex: number) {
   }
 
   if (newIndex > activeStep.value) {
+    timeline.value?.removePulse(activeStep.value)
     await timeline.value?.expandLine(activeStep.value)
   } else if (newIndex < activeStep.value) {
+    timeline.value?.deactivateCircle(activeStep.value)
     await timeline.value?.collapseLine(newIndex)
   }
-  timeline.value?.deactivateCircle(activeStep.value)
   timeline.value?.activateCircle(newIndex)
-  await timeline.value?.pulseCircle(newIndex)
 
   activeStep.value = newIndex
 

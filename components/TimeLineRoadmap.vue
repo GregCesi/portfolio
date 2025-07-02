@@ -69,15 +69,7 @@ onMounted(() => {
       })
     }
   })
-  circles.value.forEach((circle, idx) => {
-    if (!circle) return
-    if (idx === props.activeStep) {
-      activateCircle(idx)
-    } else if (idx < props.activeStep) {
-      activateCircle(idx)
-      $gsap.set(circle, { scale: 1 })
-    }
-  })
+  activateCircle(props.activeStep)
 })
 
 function expandLine(index: number) {
@@ -104,26 +96,44 @@ function collapseLine(index: number) {
     }
     $gsap.fromTo(
       line,
-      { scaleY: 1, transformOrigin: 'bottom center' },
+      { scaleY: 1, transformOrigin: 'top center' },
       { scaleY: 0, duration: 1, ease: 'power1.inOut', onComplete: resolve }
     )
   })
 }
 
+function updateCircles(activeIndex: number) {
+  circles.value.forEach((circle, idx) => {
+    if (!circle) return
+    if (idx === activeIndex) {
+      circle.classList.add('pulse')
+      $gsap.set(circle, {
+        backgroundColor: '#ffffff',
+        borderColor: '#ffffff',
+        boxShadow: '0 0 6px rgba(255,255,255,0.6)',
+        scale: 1,
+      })
+    } else {
+      circle.classList.remove('pulse')
+      const color = idx < activeIndex ? '#ffffff' : '#4b5563'
+      $gsap.set(circle, {
+        backgroundColor: color,
+        borderColor: color,
+        boxShadow: 'none',
+        scale: 1,
+      })
+    }
+  })
+}
+
 function activateCircle(index: number) {
-  const circle = circles.value[index]
-  if (circle) {
-    $gsap.set(circle, {
-      backgroundColor: '#ffffff',
-      borderColor: '#ffffff',
-      boxShadow: '0 0 6px rgba(255,255,255,0.6)',
-    })
-  }
+  updateCircles(index)
 }
 
 function deactivateCircle(index: number) {
   const circle = circles.value[index]
   if (circle) {
+    circle.classList.remove('pulse')
     $gsap.set(circle, {
       backgroundColor: '#4b5563',
       borderColor: '#4b5563',
@@ -133,27 +143,35 @@ function deactivateCircle(index: number) {
   }
 }
 
-function pulseCircle(index: number) {
+function removePulse(index: number) {
   const circle = circles.value[index]
-  return new Promise<void>((resolve) => {
-    if (!circle) {
-      resolve()
-      return
-    }
-    $gsap.fromTo(
-      circle,
-      { scale: 1 },
-      {
-        scale: 1.1,
-        boxShadow: '0 0 0 10px rgba(255,255,255,0)',
-        duration: 0.6,
-        yoyo: true,
-        repeat: 1,
-        onComplete: resolve,
-      }
-    )
-  })
+  if (circle) {
+    circle.classList.remove('pulse')
+  }
 }
 
-defineExpose({ expandLine, collapseLine, activateCircle, deactivateCircle, pulseCircle })
+function pulseCircle(index: number) {
+  updateCircles(index)
+  return Promise.resolve()
+}
+
+defineExpose({ expandLine, collapseLine, activateCircle, deactivateCircle, removePulse, pulseCircle })
 </script>
+
+<style scoped>
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+}
+
+.pulse {
+  animation: pulse 1.5s infinite;
+}
+</style>
