@@ -29,13 +29,13 @@
        <aside class="w-1/3 flex flex-col gap-4 items-center mt-20">
             <h2 class="text-2xl font-bold text-white light-shadow-text text-center">Mes projets récents</h2>
             <ProjectorScreen 
-                :images="['/images/ProjectScreenCatra.png', '/images/ProjectScreenPARC.png']"
+                :images="['/images/ScreenProjector/ProjectScreenCatra.png', '/images/ScreenProjector/ProjectScreenPARC.png']"
                 width="70%"
                 max-width="800px"
                 projector-width="200px"
             />
             <ProjectorScreen 
-                :images="['/images/ProjectScreenPARC.png', '/images/ProjectScreenCatra.png']"
+                :images="['/images/ScreenProjector/ProjectScreenPARC.png', '/images/ScreenProjector/ProjectScreenCatra.png']"
                 width="70%"
                 max-width="800px"
                 projector-width="200px"
@@ -45,9 +45,9 @@
 </template>
 
 <script setup lang="ts">
-import ProjectorCircleScreen from './ProjectorCircleScreen.vue'
-import ProjectorScreen from './ProjectorScreen.vue'
-import ThreeSphere from './ThreeSphere.vue'
+import ProjectorCircleScreen from '../ProjectorCircleScreen.vue'
+import ProjectorScreen from '../ProjectorScreen.vue'
+import ThreeSphere from '../ThreeSphere.vue'
 </script>
 
 <style scoped>

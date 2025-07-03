@@ -17,6 +17,9 @@
       <section class="slide flex items-center justify-center">
         <SolutionsSection />
       </section>
+      <section class="slide flex items-center justify-center">
+        
+      </section>
     </SlideContainer>
     <SlideMenu 
       :labels="['START', 'À PROPOS DE MOI', 'SERVICES', 'ROADMAP', 'SOLUTIONS']" 
@@ -32,16 +35,16 @@ import { ref } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 
 import Header from '~/components/Header.vue'
-import HeroSection from '~/components/HeroSection.vue'
+import HeroSection from '~/components/Section/HeroSection.vue'
 import ProjectSection from '~/components/ProjectSection.vue'
-import AboutMeSection from '~/components/AboutMeSection.vue'
-import ServicesSection from '~/components/ServicesSection.vue'
+import AboutMeSection from '~/components/Section/AboutMeSection.vue'
+import ServicesSection from '~/components/Section/ServicesSection.vue'
 import Footer from '~/components/Footer.vue'
 import SlideContainer from '~/components/SlideContainer.vue'
 import SlideMenu from '~/components/SlideMenu.vue'
 import ThreeSphere from '~/components/ThreeSphere.vue'
-import ClientRoadmapSection from '~/components/ClientRoadmapSection.vue'
-import SolutionsSection from '~/components/SolutionsSection.vue'
+import ClientRoadmapSection from '~/components/Section/ClientRoadmapSection.vue'
+import SolutionsSection from '~/components/Section/SolutionsSection.vue'
 
 const slideContainer = ref<ComponentPublicInstance | null>(null)
 </script>

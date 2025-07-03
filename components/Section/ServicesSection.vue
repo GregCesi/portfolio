@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import OrbitCarousel from './OrbitCarousel.vue'
+import OrbitCarousel from '../OrbitCarousel.vue'
 </script>
 
 <style scoped>

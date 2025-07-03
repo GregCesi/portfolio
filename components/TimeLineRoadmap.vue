@@ -6,21 +6,21 @@
       class="flex items-start gap-4"
     >
       <div class="flex flex-col items-center">
-        <div v-if="index > 0" class="w-px h-16 relative overflow-hidden">
+        <div v-if="index > 0" class="w-px h-14 relative overflow-hidden">
           <div class="absolute top-0 left-0 w-full h-full bg-gray-500" />
           <div
-            :ref="el => setLine(el, index - 1)"
+            :ref="(el) => setLine(el as HTMLElement, index - 1)"
             class="absolute top-0 left-0 w-full h-full bg-white"
           />
         </div>
         <div
-          :ref="el => setCircle(el, index)"
+          :ref="(el) => setCircle(el as HTMLElement, index)"
           class="w-8 h-8 rounded-full border-2 bg-gray-600 border-gray-600"
         />
       </div>
       <p
-        :ref="el => setText(el, index)"
-        class="text-white opacity-70 transition-all duration-300"
+        :ref="(el) => setText(el as HTMLElement, index)"
+        class="text-white opacity-70 transition-all duration-300 text-lg"
         :class="index > 0 ? 'place-self-end -translate-y-1' : 'mt-1'"
       >
         Etape {{ index + 1 }} : {{ step.title }}
@@ -34,19 +34,31 @@ import { ref, onMounted } from 'vue'
 import { useNuxtApp } from '#app'
 
 interface Step {
-  title: string
-  descriptions: string[]
-  model: string
+  title: string;
+  descriptions: string[];
+  model: string;
 }
 
 const props = defineProps<{
-  steps: Step[]
-  activeStep: number
-}>()
+  steps: Step[];
+  activeStep: number;
+}>();
 
-const lines = ref<HTMLElement[]>([])
-const circles = ref<HTMLElement[]>([])
-const texts = ref<HTMLElement[]>([])
+const lines = ref<HTMLElement[]>([]);
+const circles = ref<HTMLElement[]>([]);
+const texts = ref<HTMLElement[]>([]);
+
+function setActiveText(el: HTMLElement) {
+  el.classList.add("font-bold", "light-shadow-text");
+  el.classList.remove("opacity-70");
+}
+
+function setInactiveText(el: HTMLElement) {
+  el.classList.remove("font-bold", "light-shadow-text");
+  if (!el.classList.contains("opacity-70")) {
+    el.classList.add("opacity-70");
+  }
+}
 
 function setLine(el: HTMLElement | null, index: number) {
   if (el) lines.value[index] = el
@@ -113,6 +125,7 @@ function updateCircles(activeIndex: number) {
         boxShadow: '0 0 6px rgba(255,255,255,0.6)',
         scale: 1,
       })
+      if (texts.value[idx]) setActiveText(texts.value[idx]);
     } else {
       circle.classList.remove('pulse')
       const color = idx < activeIndex ? '#ffffff' : '#4b5563'
@@ -122,6 +135,7 @@ function updateCircles(activeIndex: number) {
         boxShadow: 'none',
         scale: 1,
       })
+      if (texts.value[idx]) setInactiveText(texts.value[idx]);
     }
   })
 }
@@ -141,12 +155,20 @@ function deactivateCircle(index: number) {
       scale: 1,
     })
   }
+  const text = texts.value[index];
+  if (text) {
+    setInactiveText(text);
+  }
 }
 
 function removePulse(index: number) {
   const circle = circles.value[index]
   if (circle) {
     circle.classList.remove('pulse')
+  }
+  const text = texts.value[index];
+  if (text) {
+    setInactiveText(text);
   }
 }
 

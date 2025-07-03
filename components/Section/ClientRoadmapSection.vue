@@ -10,8 +10,8 @@
         :active-step="activeStep"
       />
       <div ref="textRef" class="flex flex-col items-center text-white text-center gap-4">
-        <h3 class="text-2xl font-bold">{{ currentStep.title }}</h3>
-        <p v-for="description in currentStep.descriptions" :key="description">
+        <h3 class="text-4xl font-bold">{{ currentStep.title }}</h3>
+        <p v-for="description in currentStep.descriptions" :key="description" class="text-lg">
           {{ description }}
         </p>
         <div class="flex gap-4 text-3xl">
@@ -33,7 +33,7 @@
           </button>
         </div>
       </div>
-      <ThreeSphere ref="sphereRef" :model="currentStep.model" :camera-position="3" />
+      <ThreeSphere ref="sphereRef" :model="currentStep.model" :camera-position="3" class="ml-12"/>
     </div>
   </section>
 </template>
@@ -42,8 +42,8 @@
 import { ref, computed } from 'vue';
 import type { ComponentPublicInstance } from 'vue'
 import { useNuxtApp } from '#app'
-import ThreeSphere from './ThreeSphere.vue'
-import TimeLineRoadmap from './TimeLineRoadmap.vue'
+import ThreeSphere from '../ThreeSphere.vue'
+import TimeLineRoadmap from '../TimeLineRoadmap.vue'
 
 interface Step {
   title: string
