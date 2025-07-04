@@ -1,20 +1,33 @@
 <template>
-  <section class="container mx-auto mt-20">
-    <h2 class="text-4xl font-bold text-white light-shadow-text text-center">
+  <section class="relative container mx-auto mt-20 ">
+    <h2 class="absolute hidden top-16 left-1/2 -translate-x-1/2 text-4xl font-bold text-white light-shadow-text text-center z-10">
       Comment je vous accompagne ?
     </h2>
-    <div class="grid grid-cols-3 gap-8 items-center mt-12">
+
+    <div class="relative">
       <TimeLineRoadmap
         ref="timeline"
         :steps="steps"
         :active-step="activeStep"
+        class="absolute left-16 top-1/2 -translate-y-1/2"
       />
-      <div ref="textRef" class="flex flex-col items-center text-white text-center gap-4">
-        <h3 class="text-4xl font-bold">{{ currentStep.title }}</h3>
-        <p v-for="description in currentStep.descriptions" :key="description" class="text-lg">
-          {{ description }}
-        </p>
-        <div class="flex gap-4 text-3xl">
+
+      <div class="absolute top-1/2 left-[55%] -translate-x-1/2 -translate-y-[60%] z-10">
+        <div ref="textRef" class="flex flex-col gap-8 text-white z-10 translate-x-16">
+          <h3 class="text-5xl font-bold">{{ currentStep.title }}</h3>
+          <div class="flex flex-col gap-4 text-2xl">
+            <p v-for="description in currentStep.descriptions" :key="description" >
+              {{ description }}
+            </p>
+          </div>
+          
+        </div>
+      </div>
+
+      <ThreeSphere ref="sphereRef" width="700px" height="700px" :model="currentStep.model" :camera-position="3" class="absolute left-1/2  translate-y-[5%]"/>
+    
+      <div class="absolute bottom-40 left-[55%] -translate-x-1/2 text-white">
+        <div class="flex gap-16 text-5xl">
           <button
             @click="prevStep"
             :disabled="isAnimating || activeStep === 0"
@@ -31,9 +44,8 @@
           >
             &#8594;
           </button>
-        </div>
-      </div>
-      <ThreeSphere ref="sphereRef" :model="currentStep.model" :camera-position="3" class="ml-12"/>
+        </div> 
+      </div> 
     </div>
   </section>
 </template>
@@ -63,7 +75,7 @@ const steps = ref<Step[]>([
     model: "Planet-1",
   },
   {
-    title: "Échange découverte (15 à 30 min)",
+    title: "Échange découverte",
     descriptions: [
       "Comprendre votre entreprise, vos enjeux et vos besoins.", 
       "Ce call me permet de mieux cerner votre activité, vos objectifs, vos contraintes et vos idées. L’objectif ? Vous écouter et poser les bases d’un projet aligné avec vous."
@@ -110,6 +122,7 @@ const timeline = ref<InstanceType<typeof TimeLineRoadmap> | null>(null)
 const textRef = ref<HTMLElement | null>(null)
 const sphereRef = ref<ComponentPublicInstance | null>(null)
 const currentStep = computed(() => steps.value[activeStep.value])
+
 
 async function goToStep(newIndex: number) {
   if (isAnimating.value) return
