@@ -18,7 +18,7 @@
         <SolutionsSection />
       </section>
       <section class="slide flex items-center justify-center">
-        <ThreeSphere  width="1000px" height="1000px" :camera-position="10"/>
+        <ThreeSphere  width="1000px" height="1000px" :camera-position="10" :enable-scan="true" :satellite-model="'DSCOVR-Triana'"/>
       </section>
     </SlideContainer>
     <SlideMenu 

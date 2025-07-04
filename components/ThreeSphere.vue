@@ -20,7 +20,11 @@ const props = defineProps({
   },
   satelliteModel: {
     type: String,
-    default: 'DSCOVR-Triana',
+    default: 'null',
+  },
+  enableScan: {
+    type: Boolean,
+    default: false,
   },
   cameraPosition: {
     type: Number,
@@ -47,6 +51,32 @@ let animationFrameId: number
 let planet: THREE.Object3D | null = null
 let orbitGroup: THREE.Group | null = null
 let satellite: THREE.Object3D | null = null
+let scanLight: THREE.SpotLight | null = null
+let scanTarget: THREE.Object3D | null = null
+
+function setupScan() {
+  if (!scene || !satellite) return
+  removeScan()
+  scanLight = new THREE.SpotLight(0xffffff, 1, 5, Math.PI / 10, 0.3)
+  scanLight.position.set(0, -0.1, 0)
+  scanTarget = new THREE.Object3D()
+  scanTarget.position.set(0, 0, 0)
+  scene.add(scanTarget)
+  scanLight.target = scanTarget
+  satellite.add(scanLight)
+}
+
+function removeScan() {
+  if (!scene) return
+  if (scanLight && satellite) {
+    satellite.remove(scanLight)
+  }
+  if (scanTarget) {
+    scene.remove(scanTarget)
+  }
+  scanLight = null
+  scanTarget = null
+}
 
 // Variables pour la rotation de la planète
 let isDragging = false
@@ -126,10 +156,14 @@ async function loadSatellite(modelName: string) {
     scene.add(orbitGroup)
 
     satellite = gltf.scene
-    satellite.scale.set(0.005, 0.005, 0.005)
-    satellite.position.set(1.5, 0, 0)
+    satellite.scale.set(0.0025, 0.0025, 0.0025)
+    satellite.position.set(1.25, 0, 0)
     satellite.rotation.set(0, Math.PI / 2, 0)
     orbitGroup.add(satellite)
+
+    if (props.enableScan) {
+      setupScan()
+    }
 
     error.value = null
   } catch (err) {
@@ -151,6 +185,7 @@ watch(() => props.satelliteModel, (newModel) => {
   if (newModel) {
     loadSatellite(newModel)
   } else if (orbitGroup) {
+    removeScan()
     scene.remove(orbitGroup)
     orbitGroup.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -164,6 +199,17 @@ watch(() => props.satelliteModel, (newModel) => {
     })
     orbitGroup = null
     satellite = null
+  }
+})
+
+watch(() => props.enableScan, (value) => {
+  if (!scene) return
+  if (value) {
+    if (satellite) {
+      setupScan()
+    }
+  } else {
+    removeScan()
   }
 })
 
@@ -230,6 +276,13 @@ async function init() {
       satellite.position.y = Math.sin(t) * 0.2
     }
     
+    if (scanLight) {
+      const t = Date.now() * 0.002
+      scanLight.intensity = 1 + 0.5 * Math.sin(t * 2)
+      scanLight.angle = Math.PI / 10 + Math.PI / 40 * Math.sin(t)
+      scanLight.target.updateMatrixWorld()
+    }
+
     controls.update()
     renderer.render(scene, camera)
   }
@@ -321,6 +374,8 @@ onBeforeUnmount(() => {
     })
   }
   
+  removeScan()
+
   window.removeEventListener('resize', handleResize)
 })
 </script>

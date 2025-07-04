@@ -24,7 +24,16 @@
         </div>
       </div>
 
-      <ThreeSphere ref="sphereRef" width="700px" height="700px" :model="currentStep.model" :camera-position="3" class="absolute left-1/2  translate-y-[5%]"/>
+      <ThreeSphere 
+        ref="sphereRef" 
+        width="1000px" 
+        height="1000px" 
+        :model="currentStep.model" 
+        :camera-position="4" 
+        :enable-scan="shouldEnableScan"
+        :satellite-model="shouldShowSatellite ? 'DSCOVR-Triana' : undefined"
+        class="absolute left-1/2 -translate-x-[10%] translate-y-[5%]"
+      />
     
       <div class="absolute bottom-40 left-[55%] -translate-x-1/2 text-white">
         <div class="flex gap-16 text-5xl">
@@ -80,7 +89,7 @@ const steps = ref<Step[]>([
       "Comprendre votre entreprise, vos enjeux et vos besoins.", 
       "Ce call me permet de mieux cerner votre activité, vos objectifs, vos contraintes et vos idées. L’objectif ? Vous écouter et poser les bases d’un projet aligné avec vous."
     ],
-    model: "Planet-2",
+    model: "Planet-1",
   },
   {
     title: "Proposition personnalisée",
@@ -104,7 +113,7 @@ const steps = ref<Step[]>([
       "Une solution fonctionnelle, optimisée, prête à être utilisée.",
       "Une fois le projet finalisé, je vous le livre dans les conditions définies. Je vous accompagne aussi pour le lancement si besoin."
     ],
-    model: "Planet-4",
+    model: "Planet-5",
   },
   {
     title: "Suivi & évolution",
@@ -112,7 +121,7 @@ const steps = ref<Step[]>([
       "Le projet ne s’arrête pas à la livraison.",
       "Je reste disponible pour les mises à jour, ajustements ou évolutions futures. L’objectif est que vous puissiez faire grandir votre projet dans le temps, sans repartir de zéro."
     ],
-    model: "Planet-4",
+    model: "Planet-5",
   }
 ]);
 
@@ -122,6 +131,16 @@ const timeline = ref<InstanceType<typeof TimeLineRoadmap> | null>(null)
 const textRef = ref<HTMLElement | null>(null)
 const sphereRef = ref<ComponentPublicInstance | null>(null)
 const currentStep = computed(() => steps.value[activeStep.value])
+
+const shouldShowSatellite = computed(() => {
+  // Par exemple, afficher le satellite uniquement pour les étapes 1 et 2 (index 0 et 1)
+  return activeStep.value > 0
+})
+
+const shouldEnableScan = computed(() => {
+  // Par exemple, activer le scan uniquement pour l'étape 1 (index 0)
+  return activeStep.value > 0
+})
 
 
 async function goToStep(newIndex: number) {
@@ -133,7 +152,7 @@ async function goToStep(newIndex: number) {
   if (sphereRef.value?.$el) elements.push(sphereRef.value.$el as HTMLElement)
 
   if (elements.length) {
-    await $gsap.to(elements, { opacity: 0, duration: 0.5 })
+    await $gsap.to(elements, { opacity: 0, duration: 2 })
   }
 
   if (newIndex > activeStep.value) {
@@ -148,7 +167,7 @@ async function goToStep(newIndex: number) {
   activeStep.value = newIndex
 
   if (elements.length) {
-    await $gsap.to(elements, { opacity: 1, duration: 0.5 })
+    await $gsap.to(elements, { opacity: 1, duration: 2 })
   }
 
   isAnimating.value = false
