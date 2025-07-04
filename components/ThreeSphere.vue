@@ -16,7 +16,11 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 const props = defineProps({
   model: {
     type: String,
-    default: 'DSCOVR-Triana', // Modèle par défaut
+    default: 'Planet-1', // Modèle par défaut
+  },
+  satelliteModel: {
+    type: String,
+    default: 'DSCOVR-Triana',
   },
   cameraPosition: {
     type: Number,
@@ -41,6 +45,8 @@ let renderer: THREE.WebGLRenderer
 let controls: OrbitControls
 let animationFrameId: number
 let planet: THREE.Object3D | null = null
+let orbitGroup: THREE.Group | null = null
+let satellite: THREE.Object3D | null = null
 
 // Variables pour la rotation de la planète
 let isDragging = false
@@ -91,11 +97,73 @@ async function loadModel(modelName: string) {
   }
 }
 
+// Fonction pour charger le satellite
+async function loadSatellite(modelName: string) {
+  if (!scene) return
+
+  // Nettoyer l'ancien satellite s'il existe
+  if (orbitGroup) {
+    scene.remove(orbitGroup)
+    orbitGroup.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.geometry.dispose()
+        if (Array.isArray(child.material)) {
+          child.material.forEach((m) => m.dispose())
+        } else {
+          child.material.dispose()
+        }
+      }
+    })
+    orbitGroup = null
+    satellite = null
+  }
+
+  try {
+    const loader = new GLTFLoader()
+    const gltf = await loader.loadAsync(`/models/${modelName}.glb`)
+
+    orbitGroup = new THREE.Group()
+    scene.add(orbitGroup)
+
+    satellite = gltf.scene
+    satellite.scale.set(0.005, 0.005, 0.005)
+    satellite.position.set(1.5, 0, 0)
+    satellite.rotation.set(0, Math.PI / 2, 0)
+    orbitGroup.add(satellite)
+
+    error.value = null
+  } catch (err) {
+    console.error('Erreur lors du chargement du satellite:', err)
+  }
+}
+
 // Watch sur la prop model
 watch(() => props.model, (newModel) => {
   if (newModel && newModel !== currentModel.value) {
     loadModel(newModel)
     currentModel.value = newModel
+  }
+})
+
+// Watch sur la prop satelliteModel
+watch(() => props.satelliteModel, (newModel) => {
+  if (!scene) return
+  if (newModel) {
+    loadSatellite(newModel)
+  } else if (orbitGroup) {
+    scene.remove(orbitGroup)
+    orbitGroup.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.geometry.dispose()
+        if (Array.isArray(child.material)) {
+          child.material.forEach((m) => m.dispose())
+        } else {
+          child.material.dispose()
+        }
+      }
+    })
+    orbitGroup = null
+    satellite = null
   }
 })
 
@@ -141,6 +209,9 @@ async function init() {
   
   // Charger le modèle initial
   await loadModel(props.model)
+  if (props.satelliteModel) {
+    await loadSatellite(props.satelliteModel)
+  }
   
   // Animation
   const animate = () => {
@@ -149,6 +220,14 @@ async function init() {
     // Rotation automatique si pas de glisser-déposer en cours
     if (planet && !isDragging) {
       planet.rotation.y += 0.002
+    }
+
+    if (orbitGroup) {
+      orbitGroup.rotation.y += 0.01
+    }
+    if (satellite) {
+      const t = Date.now() * 0.002
+      satellite.position.y = Math.sin(t) * 0.2
     }
     
     controls.update()
@@ -226,6 +305,20 @@ onBeforeUnmount(() => {
   
   if (planet && scene) {
     scene.remove(planet)
+  }
+
+  if (orbitGroup && scene) {
+    scene.remove(orbitGroup)
+    orbitGroup.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.geometry.dispose()
+        if (Array.isArray(child.material)) {
+          child.material.forEach((m) => m.dispose())
+        } else {
+          child.material.dispose()
+        }
+      }
+    })
   }
   
   window.removeEventListener('resize', handleResize)
