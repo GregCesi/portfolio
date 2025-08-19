@@ -147,14 +147,12 @@ async function goToStep(newIndex: number) {
   if (isAnimating.value) return
   isAnimating.value = true
 
-  const elements: HTMLElement[] = []
-  if (textRef.value) elements.push(textRef.value)
-  if (sphereRef.value?.$el) elements.push(sphereRef.value.$el as HTMLElement)
-
-  if (elements.length) {
-    await $gsap.to(elements, { opacity: 0, duration: 2 })
+  // Animer uniquement le texte en fondu
+  if (textRef.value) {
+    await $gsap.to(textRef.value, { opacity: 0, duration: 0.3 })
   }
 
+  // Exécuter l'animation de la timeline
   if (newIndex > activeStep.value) {
     timeline.value?.removePulse(activeStep.value)
     await timeline.value?.expandLine(activeStep.value)
@@ -162,14 +160,23 @@ async function goToStep(newIndex: number) {
     timeline.value?.deactivateCircle(activeStep.value)
     await timeline.value?.collapseLine(newIndex)
   }
-  timeline.value?.activateCircle(newIndex)
-
+  
+  // Mettre à jour l'étape active
   activeStep.value = newIndex
-
-  if (elements.length) {
-    await $gsap.to(elements, { opacity: 1, duration: 2 })
+  
+  // Animer la planète (fondu rapide)
+  if (sphereRef.value?.$el) {
+    // S'assurer que la planète est invisible avant de la faire réapparaître
+    await $gsap.set(sphereRef.value.$el, { opacity: 0 })
+    await $gsap.to(sphereRef.value.$el, { opacity: 1, duration: 0.1 })
+  }
+  
+  // Réafficher le texte
+  if (textRef.value) {
+    await $gsap.to(textRef.value, { opacity: 1, duration: 0.5 })
   }
 
+  timeline.value?.activateCircle(newIndex)
   isAnimating.value = false
 }
 
@@ -183,7 +190,3 @@ function prevStep() {
   goToStep(activeStep.value - 1)
 }
 </script>
-
-    
-
-    
