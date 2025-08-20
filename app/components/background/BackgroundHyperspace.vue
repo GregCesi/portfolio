@@ -2,29 +2,38 @@
   <canvas
     ref="canvas"
     class="fixed inset-0 -z-10"
-    style="pointer-events:none"
+    :style="{
+      'transform': 'translateZ(0)', // Active l'accélération matérielle
+      'will-change': 'transform', // Prévient le navigateur des changements
+      'pointer-events': 'none' // Permet les clics à travers le canvas
+    }"
   />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useNuxtApp } from '#app'
-import HyperspaceRenderer from '@/graphics/background/Renderer'
+import Renderer from '@/graphics/background/Renderer'
 import StarsField from '@/graphics/background/StarsField'
 import WarpEffect from '@/graphics/background/WarpEffect'
 
 const canvas = ref<HTMLCanvasElement | null>(null)
-let renderer: HyperspaceRenderer
+let renderer: Renderer
 let starsField: StarsField
 let warpEffect: WarpEffect
 
 const { $emitter } = useNuxtApp()
 
+const accelerate = (duration?: number) => {
+  warpEffect.start(duration)
+}
+
 onMounted(() => {
   if (!canvas.value) return
 
-  renderer = new HyperspaceRenderer(canvas.value)
+  renderer = new Renderer(canvas.value)
   renderer.init()
+  
   starsField = new StarsField()
   warpEffect = new WarpEffect(starsField)
 
@@ -32,16 +41,32 @@ onMounted(() => {
   renderer.register(warpEffect)
   renderer.start()
 
-  console.log('warpEffect', warpEffect)
-
-
-  // écoute de l'event pour déclencher le warp
-  $emitter.on('accelerate-stars', (duration?: number) => warpEffect.start())
+  // Écoute de l'event pour déclencher le warp (identique à l'original)
+  $emitter.on('accelerate-stars', accelerate)
 })
 
 onUnmounted(() => {
-  // cleanup
-  $emitter.off('accelerate-stars', (duration?: number) => warpEffect.start())
-  renderer.stop()
+  $emitter.off('accelerate-stars', accelerate)
+  warpEffect.destroy()
+  renderer.destroy()
 })
 </script>
+
+<style scoped>
+.fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -10;
+  pointer-events: none;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+</style>
+*/

@@ -7,103 +7,113 @@ interface Star {
   color: string
 }
 
-const BASE_STAR_SPEED_MIN = 0.1
-const BASE_STAR_SPEED_MAX = 0.5
-
-const STAR_COLORS = [
-  { color: '#ffffff', weight: 40 },
-  { color: '#4cc9f0', weight: 40 },
-  { color: '#f72585', weight: 2 }
-]
+// Configuration exacte de l'original
+const CONFIG = {
+  starCount: 800,
+  starSpeed: 0.1,
+  starSize: 1.5,
+  starColors: [
+    { color: "#ffffff", weight: 40 },
+    { color: "#4cc9f0", weight: 40 },
+    { color: "#f72585", weight: 2 }
+  ],
+  fov: 250,
+  warpSpeed: 1,
+  warpFactor: 0
+}
 
 export default class StarsField {
   private stars: Star[] = []
-  private width = window.innerWidth
-  private height = window.innerHeight
-  private centerX = this.width / 2
-  private centerY = this.height / 2
-  private warpFactor = 1
-  private warpSpeed = 1
+  private time = 0
 
-  constructor(private starCount = 800, private fov = 250, private starSize = 1.5) {
+  constructor() {
     this.initStars()
   }
 
   private getRandomColor(): string {
-    const totalWeight = STAR_COLORS.reduce((sum, c) => sum + c.weight, 0)
+    const totalWeight = CONFIG.starColors.reduce((sum, color) => sum + color.weight, 0)
     let random = Math.random() * totalWeight
 
-    for (const entry of STAR_COLORS) {
-      random -= entry.weight
-      if (random <= 0) return entry.color
+    for (const color of CONFIG.starColors) {
+      random -= color.weight
+      if (random <= 0) return color.color
     }
-    return STAR_COLORS[0]!.color
+    
+    return CONFIG.starColors[0]!.color
   }
 
   private initStars() {
-    const newStars: Star[] = []
-    for (let i = 0; i < this.starCount; i++) {
+    const newStars = []
+    for (let i = 0; i < CONFIG.starCount; i++) {
       const z = Math.random() * 2000
       newStars.push({
         x: (Math.random() - 0.5) * 5000,
         y: (Math.random() - 0.5) * 5000,
         z,
         prevZ: z,
-        speed: BASE_STAR_SPEED_MIN + Math.random() * BASE_STAR_SPEED_MAX,
+        speed: 0.1 + Math.random() * 0.5,
         color: this.getRandomColor()
       })
     }
     this.stars = newStars
   }
 
-  
-
-  setWarpFactor(value: number) {
-    this.warpFactor = value
+  // Méthodes pour contrôler le warp (appelées par WarpEffect)
+  setWarpSpeed(speed: number) {
+    CONFIG.warpSpeed = speed
   }
 
-  setWarpSpeed(value: number) {
-    this.warpSpeed = value
+  setWarpFactor(factor: number) {
+    CONFIG.warpFactor = factor
   }
 
-  update(deltaTime: number, ctx: CanvasRenderingContext2D) {
-    for (const star of this.stars) {
-      // Mettre à jour les profondeurs
-      star.prevZ = star.z
-      star.z -= (star.speed * 10 + this.warpSpeed * 10 * this.warpFactor) * deltaTime * 0.01
+  update(deltaTime: number, ctx: CanvasRenderingContext2D, width: number, height: number, centerX: number, centerY: number) {
+    // Mise à jour du temps (identique à l'original)
+    this.time += deltaTime * 0.001
+    if (CONFIG.warpSpeed === 1) {
+      CONFIG.warpFactor = 0.5 + 0.5 * Math.sin(this.time * 0.5)
+    }
 
-      // Remise à zéro quand on arrive trop près
-      if (star.z <= 0) {
-        star.z = 2000
-        star.x = (Math.random() - 0.5) * 5000
-        star.y = (Math.random() - 0.5) * 5000
-        star.prevZ = star.z
+    // Mise à jour des étoiles (identique à l'original)
+    for (let i = 0; i < this.stars.length; i++) {
+      const star = this.stars[i]
+      star!.prevZ = star!.z
+      star!.z -= (star!.speed * 10 + CONFIG.warpSpeed * 10 * CONFIG.warpFactor) * deltaTime * 0.01
+
+      if (star!.z <= 0) {
+        star!.z = 2000
+        star!.x = (Math.random() - 0.5) * 5000
+        star!.y = (Math.random() - 0.5) * 5000
+        star!.prevZ = star!.z
       }
+    }
 
-      // Calcul de position actuelle
-      const scale = this.fov / (star.z + this.fov)
-      const x = this.centerX + star.x * scale
-      const y = this.centerY + star.y * scale
+    // Tri des étoiles par profondeur (identique à l'original)
+    const sortedStars = [...this.stars].sort((a, b) => b.z - a.z)
 
-      // Calcul de la position précédente (à partir de prevZ)
-      const prevScale = this.fov / (star.prevZ + this.fov)
-      const prevX = this.centerX + star.x * prevScale
-      const prevY = this.centerY + star.y * prevScale
+    // Rendu des étoiles (identique à l'original)
+    for (const star of sortedStars) {
+      const scale = CONFIG.fov / (star.z + CONFIG.fov)
+      const x = centerX + star.x * scale
+      const y = centerY + star.y * scale
+      const prevScale = CONFIG.fov / (star.prevZ + CONFIG.fov)
+      const prevX = centerX + star.x * prevScale
+      const prevY = centerY + star.y * prevScale
 
-      // Ligne de vitesse (de prev -> current)
-      if (Math.floor(performance.now() / 16) % 2 === 0) {
+      // Dessiner la ligne de vitesse (avec vérification des limites comme l'original)
+      if (Math.abs(x - prevX) < width / 2 && Math.abs(y - prevY) < height / 2) {
         ctx.beginPath()
         ctx.strokeStyle = star.color
-        ctx.lineWidth = scale * this.starSize * 0.15
+        ctx.lineWidth = scale * CONFIG.starSize * 0.5
         ctx.moveTo(prevX, prevY)
         ctx.lineTo(x, y)
         ctx.stroke()
       }
 
-      // Etoile (point)
+      // Dessiner l'étoile
       ctx.beginPath()
       ctx.fillStyle = star.color
-      ctx.arc(x, y, scale * this.starSize, 0, Math.PI * 2)
+      ctx.arc(x, y, scale * CONFIG.starSize, 0, Math.PI * 2)
       ctx.fill()
     }
   }

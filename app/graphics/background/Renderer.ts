@@ -1,5 +1,5 @@
 export interface Animatable {
-  update: (deltaTime: number, ctx: CanvasRenderingContext2D) => void
+  update: (deltaTime: number, ctx: CanvasRenderingContext2D, width: number, height: number, centerX: number, centerY: number) => void
 }
 
 export default class Renderer {
@@ -8,6 +8,14 @@ export default class Renderer {
   private objects: Animatable[] = []
   private lastTime = 0
   private animationFrameId: number | null = null
+  private isAnimating = false
+  private resizeTimeout: number | null = null
+  
+  // Dimensions
+  private width = 0
+  private height = 0
+  private centerX = 0
+  private centerY = 0
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
@@ -19,13 +27,44 @@ export default class Renderer {
       throw new Error('Unable to get canvas 2D context')
     }
     this.ctx = context
-    this.resize()
-    window.addEventListener('resize', this.resize)
+    this.handleResize()
+    window.addEventListener('resize', this.handleResize)
+    document.addEventListener('visibilitychange', this.handleVisibilityChange)
   }
 
-  private resize = () => {
-    this.canvas.width  = window.innerWidth
-    this.canvas.height = window.innerHeight
+  private handleResize = () => {
+    // Annuler le redimensionnement précédent s'il n'est pas encore exécuté
+    if (this.resizeTimeout) {
+      window.cancelAnimationFrame(this.resizeTimeout)
+    }
+
+    // Utiliser requestAnimationFrame pour regrouper les mises à jour
+    this.resizeTimeout = window.requestAnimationFrame(() => {
+      const newWidth = window.innerWidth
+      const newHeight = window.innerHeight
+      
+      // Ne mettre à jour que si la taille a réellement changé
+      if (newWidth !== this.width || newHeight !== this.height) {
+        this.width = this.canvas.width = newWidth
+        this.height = this.canvas.height = newHeight
+        this.centerX = newWidth / 2
+        this.centerY = newHeight / 2
+        
+        // Redessiner immédiatement après le redimensionnement
+        if (this.ctx) {
+          this.ctx.fillStyle = "rgba(0, 0, 0, 1)" // Fond noir plein pour éviter le clignotement
+          this.ctx.fillRect(0, 0, newWidth, newHeight)
+        }
+      }
+    })
+  }
+
+  private handleVisibilityChange = () => {
+    if (document.hidden) {
+      this.stop()
+    } else {
+      this.start()
+    }
   }
 
   register(object: Animatable) {
@@ -33,22 +72,27 @@ export default class Renderer {
   }
 
   start() {
-    this.lastTime = performance.now()
-    const loop = (timestamp: number) => {
-      const dt = timestamp - this.lastTime
-      this.lastTime = timestamp
+    if (!this.isAnimating) {
+      this.lastTime = performance.now()
+      const loop = (timestamp: number) => {
+        const deltaTime = timestamp - this.lastTime
+        this.lastTime = timestamp
 
-      // Clear the canvas
-      this.ctx.fillStyle = "rgba(0, 0, 0, 0.08)"
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+        // Effet de traînée (identique à l'original)
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.15)"
+        this.ctx.fillRect(0, 0, this.width, this.height)
 
-      // Update all registered objects
-      this.objects.forEach(obj => obj.update(dt, this.ctx))
+        // Update all registered objects
+        this.objects.forEach(obj => 
+          obj.update(deltaTime, this.ctx, this.width, this.height, this.centerX, this.centerY)
+        )
+
+        this.animationFrameId = requestAnimationFrame(loop)
+      }
 
       this.animationFrameId = requestAnimationFrame(loop)
+      this.isAnimating = true
     }
-
-    this.animationFrameId = requestAnimationFrame(loop)
   }
 
   stop() {
@@ -56,6 +100,18 @@ export default class Renderer {
       cancelAnimationFrame(this.animationFrameId)
       this.animationFrameId = null
     }
-    window.removeEventListener('resize', this.resize)
+    this.isAnimating = false
   }
+
+  destroy() {
+    this.stop()
+    window.removeEventListener('resize', this.handleResize)
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange)
+  }
+
+  // Getters pour les dimensions (utile pour les objets qui en ont besoin)
+  get canvasWidth() { return this.width }
+  get canvasHeight() { return this.height }
+  get canvasCenterX() { return this.centerX }
+  get canvasCenterY() { return this.centerY }
 }

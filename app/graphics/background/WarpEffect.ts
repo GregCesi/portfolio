@@ -2,30 +2,36 @@ import StarsField from './StarsField'
 
 export default class WarpEffect {
   private starsField: StarsField
-  private elapsed = 0
-  private duration = 800 // 0.8s comme avant
+  private normalizeTimeout: ReturnType<typeof setTimeout> | null = null
+  private isWarping = false
 
   constructor(starsField: StarsField) {
     this.starsField = starsField
   }
 
-  start() {
-    this.elapsed = 0
+  start(duration: number = 0.8) {
+    // Logique identique à l'original
+    if (this.normalizeTimeout) clearTimeout(this.normalizeTimeout)
+    
     this.starsField.setWarpSpeed(10)
+    this.starsField.setWarpFactor(1)
+    this.isWarping = true
+    
+    this.normalizeTimeout = setTimeout(() => {
+      this.starsField.setWarpSpeed(1)
+      this.isWarping = false
+    }, duration * 1000)
   }
 
-  update(deltaTime: number) {
-    this.elapsed += deltaTime
+  update(deltaTime: number, ctx: CanvasRenderingContext2D, width: number, height: number, centerX: number, centerY: number) {
+    // WarpEffect ne fait que déclencher, la logique d'animation est dans StarsField
+    // comme dans l'original
+  }
 
-    // oscillation du warpFactor
-    const t = this.elapsed / this.duration
-    const factor = 0.5 + 0.5 * Math.sin(t * 0.5)
-    this.starsField.setWarpFactor(factor)
-
-    // fin
-    if (this.elapsed >= this.duration) {
-      this.starsField.setWarpSpeed(1)
-      this.starsField.setWarpFactor(1)
+  destroy() {
+    if (this.normalizeTimeout) {
+      clearTimeout(this.normalizeTimeout)
+      this.normalizeTimeout = null
     }
   }
 }
