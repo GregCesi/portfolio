@@ -1,4 +1,4 @@
-import StarsField from './StarsField'
+import type StarsField from './StarsField'
 
 export default class WarpEffect {
   private starsField: StarsField
@@ -23,7 +23,7 @@ export default class WarpEffect {
     }, duration * 1000)
   }
 
-  update(deltaTime: number, ctx: CanvasRenderingContext2D, width: number, height: number, centerX: number, centerY: number) {
+  update(_deltaTime: number, _ctx: CanvasRenderingContext2D, _width: number, _height: number, _centerX: number, _centerY: number) {
     // WarpEffect ne fait que déclencher, la logique d'animation est dans StarsField
     // comme dans l'original
   }

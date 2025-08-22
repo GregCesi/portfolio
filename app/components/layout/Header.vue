@@ -20,7 +20,8 @@
 
           <!-- navigation -->
           <nav class="pr-1 lg:pr-6 hidden">
-            <ul class="flex items-center gap-4 sm:gap-6 md:gap-8 lg:gap-10
+            <ul
+class="flex items-center gap-4 sm:gap-6 md:gap-8 lg:gap-10
                        text-base sm:text-lg md:text-xl lg:text-2xl font-bold">
               <li>
                 <a href="#" class="block py-1 light-shadow-text hover:scale-105 transition-transform">

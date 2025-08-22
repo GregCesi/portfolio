@@ -5,6 +5,7 @@
       :key="idx"
       :label="label"
       :index="idx"
+      :active="idx === props.activeIndex"
       @select="selectSlide"
     />
   </nav>
@@ -12,17 +13,12 @@
 
 <script setup lang="ts">
 import SlideMenuItem from '~/components/navigation/SlideMenuItem.vue'
+import type { SlideMenuProps, SlideMenuEmits } from '~/types/navigation'
 
-interface Props {
-  labels: string[]
-  container: any
-}
-
-const props = defineProps<Props>()
+const props = defineProps<SlideMenuProps>()
+const emit = defineEmits<SlideMenuEmits>()
 
 function selectSlide(i: number) {
-  if (props.container && typeof props.container.goTo === 'function') {
-    props.container.goTo(i)
-  }
+  emit('select', i)
 }
 </script>

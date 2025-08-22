@@ -2,9 +2,10 @@
   <SlideMenu
     :labels="labels"
     :container="slideRef"
+    :active-index="currentIndex"
     @select="goToSection"
   />
-  <SlideContainer ref="slideRef" @section-change="triggerWarp">
+  <SlideContainer ref="slideRef" @section-change="onSectionChange">
     <section class="slide"><HeroSection /></section>
     <section class="slide"><AboutSection /></section>
     <section class="slide"><ValueSection /></section>
@@ -24,19 +25,18 @@ import ValueSection from '@/components/sections/Value/ValueSection.vue'
 import RoadmapSection from '@/components/sections/Roadmap/RoadmapSection.vue'
 import SolutionsSection from '@/components/sections/Solutions/SolutionsSection.vue'
 
-const { $emitter } = useNuxtApp() as any
+import type { SlideContainerExposed } from '~/types/slides'
+
+
+const { $emitter } = useNuxtApp()
 
 const labels = ['Start', 'À propos', 'Valeur ajoutée', 'Roadmap', 'Solutions']
-const slideRef = ref<InstanceType<typeof SlideContainer> | null>(null)
-const currentIndex = ref(0)
-
-function triggerWarp() {
-  $emitter.emit('accelerate-stars')
-}
+const slideRef = ref<SlideContainerExposed | null>(null)
+const currentIndex = ref(-1)
 
 function onSectionChange(index: number) {
   currentIndex.value = index
-  // (si tu déclenches le warp ici, garde-le, sinon laisse SlideContainer le faire)
+  console.log(currentIndex.value)
   $emitter.emit('accelerate-stars')
 }
 
