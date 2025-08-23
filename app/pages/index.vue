@@ -32,11 +32,10 @@ const { $emitter } = useNuxtApp()
 
 const labels = ['Start', 'À propos', 'Valeur ajoutée', 'Roadmap', 'Solutions']
 const slideRef = ref<SlideContainerExposed | null>(null)
-const currentIndex = ref(-1)
+const currentIndex = ref(0)
 
 function onSectionChange(index: number) {
   currentIndex.value = index
-  console.log(currentIndex.value)
   $emitter.emit('accelerate-stars')
 }
 
