@@ -57,9 +57,38 @@ const timelineElements = ref({
   content: null as HTMLElement | null
 })
 
+// === FONCTIONS UTILITAIRES D'ANIMATION ===
+
+const fadeOut = async (element: HTMLElement): Promise<void> => {
+  return new Promise((resolve) => {
+    gsap.to(element, { opacity: 0, duration: 0.3, onComplete: resolve })
+  })
+}
+
+const fadeIn = async (element: HTMLElement): Promise<void> => {
+  return new Promise((resolve) => {
+    gsap.to(element, { opacity: 1, duration: 0.3, onComplete: resolve })
+  })
+}
+
+const animateLineGrow = async (line: HTMLElement): Promise<void> => {
+  return new Promise((resolve) => {
+    gsap.fromTo(line, 
+      { scaleY: 0, transformOrigin: 'top center' },
+      { scaleY: 1, duration: 1.5, ease: 'power2.inOut', onComplete: resolve }
+    )
+  })
+}
+
+const animateLineShrink = async (line: HTMLElement): Promise<void> => {
+  return new Promise((resolve) => {
+    gsap.to(line, 
+      { scaleY: 0, transformOrigin: 'top center', duration: 1.5, ease: 'power2.inOut', onComplete: resolve }
+    )
+  })
+}
+
 export const useRoadmapState = () => {
-    // GSAP import direct (plus fiable)
-    // const { $gsap } = useNuxtApp() as any
     
     // Computed : récupère l'étape active 
     const activeStep = computed(() => steps.value[currentStep.value - 1])
@@ -115,75 +144,39 @@ export const useRoadmapState = () => {
         // NEXT: Fade-out, ligne, cercle, fade-in
         
         // 1. FADE-OUT du texte
-        if (content) {
-          await new Promise<void>((resolve) => {
-            gsap.to(content, { opacity: 0, duration: 0.3, onComplete: resolve })
-          })
-        }
-        // 2. Animation ligne
-        const lineIndex = oldStep - 1 // Ligne entre oldStep et newStep
+        if (content) await fadeOut(content)
         
+        // 2. Animation ligne
+        const lineIndex = oldStep - 1
         const line = lines[lineIndex]
-        if (line) {
-          await new Promise<void>((resolve) => {
-            gsap.fromTo(line, 
-              { scaleY: 0, transformOrigin: 'top center' },
-              { scaleY: 1, duration: 1.5, ease: 'power2.inOut', onComplete: resolve }
-            )
-          })
-        }
+        if (line) await animateLineGrow(line)
         
         // 3. Mettre à jour currentStep + ajout pulse cercle
         currentStep.value = newStep
-        
         const newCircle = circles[newStep - 1]
-        if (newCircle) {
-          newCircle.classList.add('pulse')
-        }
+        if (newCircle) newCircle.classList.add('pulse')
         
         // 4. FADE-IN du texte
-        if (content) {
-          await new Promise<void>((resolve) => {
-            gsap.to(content, { opacity: 1, duration: 0.3, onComplete: resolve })
-          })
-        }
+        if (content) await fadeIn(content)
         
       } else {
         // PREV: Cercle, fade-out, ligne, fade-in
         
         // 1. Retirer le pulse + mise à jour currentStep
         const oldCircle = circles[oldStep - 1]
-        if (oldCircle) {
-          oldCircle.classList.remove('pulse')
-        }
-        
+        if (oldCircle) oldCircle.classList.remove('pulse')
         currentStep.value = newStep
         
         // 2. FADE-OUT du texte
-        if (content) {
-          await new Promise<void>((resolve) => {
-            gsap.to(content, { opacity: 0, duration: 0.3, onComplete: resolve })
-          })
-        }
+        if (content) await fadeOut(content)
         
-        // 3. Animer la ligne à l'envers (disparaît du bas)
+        // 3. Animer la ligne à l'envers
         const lineIndex = newStep - 1
-        
         const lineToAnimate = lines[lineIndex]
-        if (lineToAnimate) {
-          await new Promise<void>((resolve) => {
-            gsap.to(lineToAnimate, 
-              { scaleY: 0, transformOrigin: 'top center', duration: 1.5, ease: 'power2.inOut', onComplete: resolve }
-            )
-          })
-        }
+        if (lineToAnimate) await animateLineShrink(lineToAnimate)
         
         // 4. FADE-IN du texte
-        if (content) {
-          await new Promise<void>((resolve) => {
-            gsap.to(content, { opacity: 1, duration: 0.3, onComplete: resolve })
-          })
-        }
+        if (content) await fadeIn(content)
       }
     }
 

@@ -4,13 +4,14 @@
     <div v-for="(step, index) in steps" :key="index" class="relative flex items-center gap-8">
 
       <!-- Cercle vide -->
-      <div :ref="(el) => setCircleRef(el as HTMLElement, index)"
+      <div
+:ref="(el) => setCircleRef(el as HTMLElement, index)"
             class="w-10 h-10 rounded-full border-2 transition-all duration-300"
-            :class="getCircleClass(index)">
-      </div>
+            :class="getCircleClass(index)"/>
 
       <!-- Titre -->
-      <div class="transition-all duration-300 text-xl"
+      <div
+class="transition-all duration-300 text-xl"
             :class="getTitleClass(index)">
         Etape {{ index + 1 }} : {{ step.title }}
       </div>
@@ -18,10 +19,11 @@
       <!-- Ligne vers le bas (sauf pour le dernier) -->
       <div v-if="index < steps.length - 1" class="absolute left-5 top-10 w-0.5 h-16">
         <!-- Ligne grise (toujours visible) -->
-        <div class="w-full h-full bg-gray-400" />
+        <div class="w-full h-full bg-gray-600" />
 
         <!-- Ligne blanche (animée par GSAP) -->
-        <div :ref="(el) => setLineRef(el as HTMLElement, index)"
+        <div
+:ref="(el) => setLineRef(el as HTMLElement, index)"
              class="absolute inset-0 w-full h-full bg-white origin-top"
              style="transform: scaleY(0);" />
       </div>

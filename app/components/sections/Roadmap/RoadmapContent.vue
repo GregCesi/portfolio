@@ -15,18 +15,18 @@
     <!-- Navigation avec icônes -->
     <div class="flex gap-8 justify-center items-center">
     <button
-        @click="prevStepAnimated"
         :disabled="!canGoPrev"
-        class="text-4xl transition-all duration-300"
-        :class="canGoPrev ? 'text-white hover:text-gray-300' : 'text-gray-600'">
+        class="text-6xl transition-all duration-300"
+        :class="canGoPrev ? 'text-white hover:text-gray-300' : 'text-gray-600'"
+        @click="prevStepAnimated">
         ←
     </button>
 
     <button
-        @click="nextStepAnimated"
         :disabled="!canGoNext"
-        class="text-4xl transition-all duration-300"
-        :class="canGoNext ? 'text-white hover:text-gray-300' : 'text-gray-600'">
+        class="text-6xl transition-all duration-300"
+        :class="canGoNext ? 'text-white hover:text-gray-300' : 'text-gray-600'"
+        @click="nextStepAnimated">
         →
     </button>
     </div>
@@ -34,10 +34,12 @@
 </template>
 
 <script setup lang="ts">
-    const { activeStep, nextStepAnimated, prevStepAnimated, canGoNext, canGoPrev, currentStep, registerContent } = useRoadmapState()
+    import type { ComponentPublicInstance } from 'vue'
+    
+    const { activeStep, nextStepAnimated, prevStepAnimated, canGoNext, canGoPrev, registerContent } = useRoadmapState()
 
     // Fonction pour enregistrer l'élément de contenu dans le composable
-    const setContentRef = (el: any) => {
+    const setContentRef = (el: Element | ComponentPublicInstance | null) => {
       if (el && el instanceof HTMLElement) registerContent(el)
     }
 </script>
