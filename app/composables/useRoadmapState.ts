@@ -12,27 +12,31 @@ const steps = ref<Step[]>([
             "Discutons ensemble de votre projet.", 
             "Un formulaire, un mail, un message : peu importe. Ce premier échange permet de fixer un rendez-vous pour faire connaissance et comprendre rapidement ce que vous cherchez."
             ],
+            planetTexture: "planet-bake-1"
         },
         {
             title: "Échange découverte",
             descriptions: [
             "Comprendre votre entreprise, vos enjeux et vos besoins.", 
-            "Ce call me permet de mieux cerner votre activité, vos objectifs, vos contraintes et vos idées. L’objectif ? Vous écouter et poser les bases d’un projet aligné avec vous."
+            "Ce call me permet de mieux cerner votre activité, vos objectifs, vos contraintes et vos idées. L'objectif ? Vous écouter et poser les bases d'un projet aligné avec vous."
             ],
+            planetTexture: "planet-bake-1"
         },
         {
             title: "Proposition personnalisée",
             descriptions: [
             "Je vous présente une solution sur-mesure, à ajuster ensemble.", 
-            "Je vous propose une structure claire, que l’on affine si besoin. Une fois la solution validée, on signe le devis et on se lance, avec un plan précis."
+            "Je vous propose une structure claire, que l'on affine si besoin. Une fois la solution validée, on signe le devis et on se lance, avec un plan précis."
             ],
+            planetTexture: "planet-bake-2"
         },
         {
             title: "Conception et suivi agile",
             descriptions: [
-            "Vous suivez l’avancement du projet en temps réel.",
+            "Vous suivez l'avancement du projet en temps réel.",
             "Je travaille en mode itératif, avec la possibilité de vous partager des maquettes, idées et avancements via Miro ou d'autres outils. Vous êtes impliqué(e) autant que vous le souhaitez."
             ],
+            planetTexture: "planet-bake-3"
         },
         {
             title: "Livraison et déploiement",
@@ -40,13 +44,15 @@ const steps = ref<Step[]>([
             "Une solution fonctionnelle, optimisée, prête à être utilisée.",
             "Une fois le projet finalisé, je vous le livre dans les conditions définies. Je vous accompagne aussi pour le lancement si besoin."
             ],
+            planetTexture: "planet-bake-4"
         },
         {
             title: "Suivi & évolution",
             descriptions: [
-            "Le projet ne s’arrête pas à la livraison.",
-            "Je reste disponible pour les mises à jour, ajustements ou évolutions futures. L’objectif est que vous puissiez faire grandir votre projet dans le temps, sans repartir de zéro."
+            "Le projet ne s'arrête pas à la livraison.",
+            "Je reste disponible pour les mises à jour, ajustements ou évolutions futures. L'objectif est que vous puissiez faire grandir votre projet dans le temps, sans repartir de zéro."
             ],
+            planetTexture: "planet-bake-4"
         }
 ])
 
@@ -56,6 +62,9 @@ const timelineElements = ref({
   lines: [] as HTMLElement[],
   content: null as HTMLElement | null
 })
+
+// Fonction de changement de texture planète (enregistrée par PlanetModel)
+let planetTextureChanger: ((textureName: string) => void) | null = null
 
 // === FONCTIONS UTILITAIRES D'ANIMATION ===
 
@@ -109,6 +118,43 @@ export const useRoadmapState = () => {
       timelineElements.value.content = element
     }
 
+    // Fonction pour enregistrer le changement de texture planète
+    const registerPlanetMaterial = (changeTextureFunction: (textureName: string) => void) => {
+      planetTextureChanger = changeTextureFunction
+    }
+
+    // Fonction d'animation de texture planète avec morphing fluide
+    const animatePlanetTexture = async (textureName: string, duration: number = 2.1): Promise<void> => {
+      return new Promise((resolve) => {
+        if (planetTextureChanger) {
+          // Créer un morphing fluide avec GSAP
+          // 1. Fade out la planète actuelle
+          gsap.to('.planet-container', {
+            opacity: 0.3,
+            duration: duration * 0.3, // 30% du temps pour fade out
+            ease: 'power2.out',
+            onComplete: () => {
+              // 2. Changer la texture au milieu
+              if (planetTextureChanger) {
+                planetTextureChanger(textureName)
+              }
+              
+              // 3. Fade in avec la nouvelle texture
+              gsap.to('.planet-container', {
+                opacity: 1,
+                duration: duration * 0.7, // 70% du temps pour fade in
+                ease: 'power2.inOut',
+                onComplete: resolve
+              })
+            }
+          })
+        } else {
+          console.warn('Planet texture changer not registered')
+          resolve()
+        }
+      })
+    }
+
     // Navigation avec limites
     const nextStep = () => {
       if (currentStep.value < steps.value.length) {  // Pas au-delà de 6
@@ -141,7 +187,16 @@ export const useRoadmapState = () => {
       const content = timelineElements.value.content
 
       if (direction === 'next') {
-        // NEXT: Fade-out, ligne, cercle, fade-in
+        // NEXT: Fade-out, ligne, cercle, fade-in + morphing planète en parallèle
+        
+        // Calculer la durée totale: fadeOut(0.3) + lineGrow(1.5) + fadeIn(0.3) = 2.1s
+        const totalDuration = 2.1
+        
+        // 🪐 Lancer le morphing planète en parallèle (commence maintenant, finit à la fin)
+        const planetMorphPromise = animatePlanetTexture(
+          steps.value[newStep - 1]?.planetTexture || '', 
+          totalDuration
+        )
         
         // 1. FADE-OUT du texte
         if (content) await fadeOut(content)
@@ -156,11 +211,21 @@ export const useRoadmapState = () => {
         const newCircle = circles[newStep - 1]
         if (newCircle) newCircle.classList.add('pulse')
         
-        // 4. FADE-IN du texte
-        if (content) await fadeIn(content)
+        // 4. FADE-IN du texte + attendre la fin du morphing
+        const fadeInPromise = content ? fadeIn(content) : Promise.resolve()
+        await Promise.all([fadeInPromise, planetMorphPromise])
         
       } else {
-        // PREV: Cercle, fade-out, ligne, fade-in
+        // PREV: Cercle, fade-out, ligne, fade-in + morphing planète en parallèle
+        
+        // Calculer la durée totale: fadeOut(0.3) + lineShrink(1.5) + fadeIn(0.3) = 2.1s
+        const totalDuration = 2.1
+        
+        // 🪐 Lancer le morphing planète en parallèle
+        const planetMorphPromise = animatePlanetTexture(
+          steps.value[newStep - 1]?.planetTexture || '', 
+          totalDuration
+        )
         
         // 1. Retirer le pulse + mise à jour currentStep
         const oldCircle = circles[oldStep - 1]
@@ -175,8 +240,9 @@ export const useRoadmapState = () => {
         const lineToAnimate = lines[lineIndex]
         if (lineToAnimate) await animateLineShrink(lineToAnimate)
         
-        // 4. FADE-IN du texte
-        if (content) await fadeIn(content)
+        // 4. FADE-IN du texte + attendre la fin du morphing
+        const fadeInPromise = content ? fadeIn(content) : Promise.resolve()
+        await Promise.all([fadeInPromise, planetMorphPromise])
       }
     }
 
@@ -196,6 +262,7 @@ export const useRoadmapState = () => {
     return { 
       currentStep, steps, activeStep, nextStep, prevStep, goToStep, canGoNext, canGoPrev,
       goToStepAnimated, nextStepAnimated, prevStepAnimated,
-      registerCircle, registerLine, registerContent
+      registerCircle, registerLine, registerContent,
+      registerPlanetMaterial, animatePlanetTexture
     }
 }

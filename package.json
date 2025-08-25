@@ -9,19 +9,24 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write ."
   },
   "dependencies": {
     "@nuxt/eslint": "^1.9.0",
     "@tailwindcss/vite": "^4.1.12",
+    "@tresjs/cientos": "^4.3.1",
+    "@tresjs/nuxt": "^3.0.8",
     "eslint": "^9.33.0",
     "gsap": "^3.13.0",
     "nuxt": "^4.0.3",
     "tailwindcss": "^4.1.12",
+    "three": "^0.179.1",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@types/three": "^0.179.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.6.2"
   }
