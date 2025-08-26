@@ -1,6 +1,6 @@
 <template>
   <BaseSection>
-    <h1 class="text-2xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight light-shadow-text text-white text-balance">
+    <h1 class="text-2xl sm:text-5xl md:text-[50px] lg:text-[68px] font-bold leading-tight light-shadow-text text-white text-balance">
       Booster votre activité avec des solutions sur-mesure
     </h1>
 
