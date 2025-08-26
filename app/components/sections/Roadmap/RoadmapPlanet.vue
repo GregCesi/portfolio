@@ -11,11 +11,14 @@
 import * as THREE from 'three'
 import Universal3DModel from '~/components/3d/Universal3DModel.vue'
 import { useRoadmapState } from '~/composables/useRoadmapState'
+import { useCrossfadeTexture } from '~/composables/3d/useCrossfadeTexture'
 
 const { registerPlanetMaterial } = useRoadmapState()
+const { crossfadeToTexture } = useCrossfadeTexture()
 
 let planetMesh: THREE.Mesh | null = null
 let textureMap: Record<string, THREE.Texture> = {}
+let currentTextureName = 'planet-bake-1'
 
 const handleModelLoaded = async (model: THREE.Object3D) => {
   console.log('🪐 Modèle planète chargé:', model)
@@ -63,15 +66,25 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
       'planet-bake-5': originalTexture || textureLoader.load('/3d/models/textures/planet-5/planet-bake-5.png')
     }
     
-    // 3. Créer la fonction de changement de texture
-    const changePlanetTexture = (textureName: string) => {
-      const texture = textureMap[textureName]
-      if (texture && material) {
-        material.map = texture
-        material.needsUpdate = true
-        console.log('🎨 Texture changée vers:', textureName)
+    // 3. Créer la fonction de changement de texture avec crossfade
+    const changePlanetTexture = async (textureName: string) => {
+      if (textureName === currentTextureName) return
+      
+      const fromTexture = textureMap[currentTextureName]
+      const toTexture = textureMap[textureName]
+      
+      if (fromTexture && toTexture && planetMesh) {
+        console.log(`🎨 Crossfade de ${currentTextureName} vers ${textureName}`)
+        
+        try {
+          await crossfadeToTexture(planetMesh, fromTexture, toTexture, 2.0)
+          currentTextureName = textureName
+          console.log('✨ Crossfade terminé')
+        } catch (error) {
+          console.error('❌ Erreur crossfade:', error)
+        }
       } else {
-        console.warn('❌ Texture non trouvée:', textureName)
+        console.warn('❌ Textures ou mesh non trouvé pour crossfade')
       }
     }
     
@@ -81,4 +94,6 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
     console.log('✅ Système de texture planète initialisé')
   }
 }
+
+// Plus besoin de cleanup spécifique pour le crossfade
 </script>
