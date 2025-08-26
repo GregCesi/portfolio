@@ -6,12 +6,12 @@
       <RoadmapTimeline class="absolute left-0 top-1/2 -translate-y-1/2 z-10" />
 
       <!-- Contenu + nav - centre -->
-      <div class="absolute inset-0 z-20 flex items-center justify-center">
+      <div class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center">
         <RoadmapContent />
       </div>
 
       <!-- Planète - background -->
-      <RoadmapPlanet class="absolute right-0 top-0 translate-x-1/3 z-0" />
+      <RoadmapPlanet class="absolute right-0 top-0 translate-x-24 z-0" />
 
     </div>
   </BaseSection>

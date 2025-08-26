@@ -15,8 +15,6 @@
   "dependencies": {
     "@nuxt/eslint": "^1.9.0",
     "@tailwindcss/vite": "^4.1.12",
-    "@tresjs/cientos": "^4.3.1",
-    "@tresjs/nuxt": "^3.0.8",
     "eslint": "^9.33.0",
     "gsap": "^3.13.0",
     "nuxt": "^4.0.3",
