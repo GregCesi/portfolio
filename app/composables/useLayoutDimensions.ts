@@ -19,21 +19,13 @@ export function useLayoutDimensions() {
       if (slideMenuDesktop) {
         // Utiliser seulement la position de base (left-12 = 48px + un peu de marge)
         slidemenuWidth.value = 48 + 80// left-12 + marge pour les barres qui slide
-        console.log('🎯 SlideMenu desktop: utilisation largeur fixe', slidemenuWidth.value + 'px')
       } else {
-        console.log('❌ SlideMenu desktop non trouvé')
         slidemenuWidth.value = 0
       }
     } else {
       slidemenuWidth.value = 0 // Pas de SlideMenu sur mobile
-      console.log('📱 Mode mobile: SlideMenu width = 0')
     }
 
-    console.log('📏 Dimensions mesurées:', {
-      headerHeight: headerHeight.value + 'px',
-      slidemenuWidth: slidemenuWidth.value + 'px',
-      viewport: `${window.innerWidth - slidemenuWidth.value}x${window.innerHeight - headerHeight.value}`
-    })
 
     // Mettre à jour les CSS custom properties
     document.documentElement.style.setProperty('--header-height', headerHeight.value + 'px')

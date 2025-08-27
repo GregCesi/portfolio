@@ -1,8 +1,6 @@
 <template>
   <section class="section-viewport" ref="sectionRef">
-    <div class="w-full max-w-7xl text-center mx-auto flex flex-col gap-6 sm:gap-12 h-full items-center justify-center px-4 sm:px-6 lg:px-8">
-      <slot />
-    </div>
+    <slot />
   </section>
 </template>
 

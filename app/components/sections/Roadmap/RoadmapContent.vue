@@ -1,5 +1,5 @@
 <template>
-<div :ref="setContentRef" class="text-center text-white translate-x-16">
+<div :ref="setContentRef" class="text-center text-white">
     <!-- Titre de l'étape active -->
     <h3 class="text-4xl font-bold mb-8 light-shadow-text">
     {{ activeStep?.title }}

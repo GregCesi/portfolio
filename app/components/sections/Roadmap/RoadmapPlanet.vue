@@ -21,7 +21,6 @@ let textureMap: Record<string, THREE.Texture> = {}
 let currentTextureName = 'planet-bake-1'
 
 const handleModelLoaded = async (model: THREE.Object3D) => {
-  console.log('🪐 Modèle planète chargé:', model)
   
   // 1. Trouver le mesh de la planète (premier enfant)
   planetMesh = model.children[0] as THREE.Mesh
@@ -74,24 +73,17 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
       const toTexture = textureMap[textureName]
       
       if (fromTexture && toTexture && planetMesh) {
-        console.log(`🎨 Crossfade de ${currentTextureName} vers ${textureName}`)
-        
         try {
           await crossfadeToTexture(planetMesh, fromTexture, toTexture, 2.0)
           currentTextureName = textureName
-          console.log('✨ Crossfade terminé')
         } catch (error) {
           console.error('❌ Erreur crossfade:', error)
         }
-      } else {
-        console.warn('❌ Textures ou mesh non trouvé pour crossfade')
       }
     }
     
     // 4. Enregistrer la fonction dans useRoadmapState
     registerPlanetMaterial(changePlanetTexture)
-    
-    console.log('✅ Système de texture planète initialisé')
   }
 }
 

@@ -1,16 +1,16 @@
 <template>
   <BaseSection>
-    <div class="relative w-full h-full">
+    <div class="flex items-center justify-center h-full w-full">
       <!-- Timeline - gauche avec marge -->
-      <RoadmapTimeline class="absolute left-8 top-1/2 -translate-y-[65%] z-10" />
+      <RoadmapTimeline class="" />
 
       <!-- Contenu + nav - centre -->
-      <div class="absolute top-1/2 -translate-y-[60%] left-1/2 -translate-x-1/2 z-20 flex items-center justify-center">
+      <div class="">
         <RoadmapContent />
       </div>
 
       <!-- Planète - background avec espace pour SlideMenu -->
-      <RoadmapPlanet class="absolute right-8 top-0 translate-x-12 -translate-y-16 z-0" />
+      <RoadmapPlanet class="" />
     </div>
   </BaseSection>
 </template>
