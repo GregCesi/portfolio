@@ -24,3 +24,6 @@ logs
 !.env.example
 
 .history
+
+# Claude Code local
+.claude/settings.local.json
