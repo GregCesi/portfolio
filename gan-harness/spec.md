@@ -43,7 +43,6 @@ Lu dans le code le 18 septembre 2026.
 `useHead` / `useSeoMeta` : title, description, Open Graph, `lang="fr"`. Valeurs dans le fichier de contenu.
 
 ## 3. Hygiène
-- Corriger `.gitignore` : la ligne `.history` est collée à la suivante.
 - Remplacer le README par défaut par un README court : ce qu'est le site, stack, commandes.
 - `npm run build`, `npm run generate`, `npm run lint` et `npx nuxi typecheck` passent à 0 erreur. Console du navigateur sans erreur ni warning Vue.
 
