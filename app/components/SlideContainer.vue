@@ -124,12 +124,12 @@ function goTo(index: number) {
   // ~1,4s à ~`transitionDuration` (0,8s en temps normal), sans raccourcir le
   // déplacement lui-même. Gain notable sur mobile où ce délai s'ajoutait à
   // celui du défilement interne vers une ancre (ex. bouton « Me contacter »).
-  const fadeDuration = 0.25
+  const fadeDuration = 0.5
   const fadeInStart = Math.max(props.transitionDuration - fadeDuration, 0)
 
   tl.to(slides.value[current.value]!, { autoAlpha: 0, duration: fadeDuration }, 0)
     .add(() => emit('section-change', index), 0)
-    .to(wrapper.value, { y: -index * fixedSlideHeight.value, duration: props.transitionDuration }, 0)
+    .to(wrapper.value, { y: -index * fixedSlideHeight.value, duration: props.transitionDuration, ease: 'power2.inOut' }, 0)
     .fromTo(slides.value[index]!, { autoAlpha: 0 }, { autoAlpha: 1, duration: fadeDuration }, fadeInStart)
 }
 
@@ -295,10 +295,9 @@ defineExpose({
 <style scoped>
 /*
  * Accusé de réception discret pour un appui clavier reçu pendant une
- * transition : trois points mono, couleur accent, qui apparaissent le temps
- * que la file d'attente d'une entrée se vide (§Craft). Ni glow, ni
- * glassmorphism — juste un repère texte, dans le même langage que les
- * autres libellés mono du site.
+ * transition : trois points Jost, couleur accent, posés sur le noir du bas
+ * d'écran, qui apparaissent le temps que la file d'attente d'une entrée se
+ * vide (§Craft). Aucun cadre, aucun fond, aucun halo.
  */
 .queued-hint {
   position: fixed;
@@ -307,17 +306,12 @@ defineExpose({
   transform: translateX(-50%);
   z-index: 60;
   margin: 0;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 0.9rem;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.3em;
   color: var(--color-accent);
-  /* Fond plat opaque (même traitement que `.panel`) : posé directement sur
-     le canvas comme le reste des indicateurs mono du site, même risque de
-     contraste face à une étoile claire derrière le glyphe (§2.3). */
-  background-color: var(--panel-bg);
-  border: 1px solid var(--color-line);
   padding: 0.3rem 0.7rem;
-  animation: queued-pulse 0.6s ease-in-out infinite;
+  animation: queued-pulse 1.2s ease-in-out infinite;
 }
 
 @media (min-width: 768px) {
@@ -326,14 +320,7 @@ defineExpose({
   }
 }
 
-/*
- * 0.85 au creux de la pulsation (pas 0.45 comme dans le correctif
- * précédent) : même protégé par `--panel-bg`, le texte accent est celui
- * qui a la plus faible marge de contraste de tout le site (couleur plus
- * proche du gris moyen que le blanc cassé — voir generator-state.md) ; à
- * 0.45 d'opacité, la mesure sur pixels réels retombait à 3,22:1 au creux de
- * l'animation. 0.85 tient >= 4,5:1 tout en gardant une pulsation perceptible.
- */
+/* Pulsation lente, jamais sous 0.85 d'opacité (contraste AA du texte accent). */
 @keyframes queued-pulse {
   0%,
   100% {

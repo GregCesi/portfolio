@@ -1,19 +1,23 @@
 <template>
-  <Universal3DModel
-    v-if="ready"
-    model="/3d/models/Planet-1.glb"
-    :width="planetSize"
-    :height="planetSize"
-    :auto-rotate="!prefersReducedMotion"
-    @model-loaded="handleModelLoaded"
-  />
-  <div v-else :style="{ width: planetSize, height: planetSize }" aria-hidden="true" />
+  <!-- Racine unique : mesurée pour caler la taille de la planète sur la place
+       réellement libre à côté de la frise et du texte (aucun chevauchement). -->
+  <div ref="wrapRef" class="rp">
+    <Universal3DModel
+      v-if="ready"
+      model="/3d/models/Planet-1.glb"
+      :width="planetSize"
+      :height="planetSize"
+      :auto-rotate="!prefersReducedMotion"
+      @model-loaded="handleModelLoaded"
+    />
+    <div v-else :style="{ width: planetSize, height: planetSize }" aria-hidden="true" />
+  </div>
 </template>
 
 <script setup lang="ts">
 import * as THREE from 'three'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import Universal3DModel from '~/components/3d/Universal3DModel.vue'
+import Universal3DModel from '~/components/models3d/Universal3DModel.vue'
 import { useRoadmapState } from '~/composables/useRoadmapState'
 import { useCrossfadeTexture } from '~/composables/3d/useCrossfadeTexture'
 import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
@@ -22,21 +26,26 @@ const { registerPlanetMaterial } = useRoadmapState()
 const { crossfadeToTexture } = useCrossfadeTexture()
 const prefersReducedMotion = usePrefersReducedMotion()
 
-// Taille responsive : la planète ne doit chevaucher ni la timeline ni le
-// contenu, de 375 px à 1920 px (§2.2.4 de la spec).
+// Taille responsive : la planète ne doit chevaucher ni la frise ni le texte,
+// de 375 px à 1920 px (§2.2.4 de la spec).
 const planetSize = ref('220px')
+const wrapRef = ref<HTMLElement | null>(null)
+let resizeObserver: ResizeObserver | null = null
 
 function updatePlanetSize() {
   const w = window.innerWidth
-  // En dessous de 1024px, la planète est empilée avec le contenu et la
-  // frise (§2.2 point 4) : des tailles plus modestes que sur 1024px+
-  // (rangée horizontale, beaucoup plus de hauteur libre) évitent un
-  // débordement vertical de la section (mesuré, voir RoadmapSection.vue).
-  if (w < 480) planetSize.value = '130px'
-  else if (w < 768) planetSize.value = '190px'
-  else if (w < 1024) planetSize.value = '260px'
-  else if (w < 1440) planetSize.value = '380px'
-  else planetSize.value = '460px'
+  // En dessous de 1024px, la planète est empilée avec le texte (sous-écrans
+  // sur mobile) : tailles fixes, calées sur le budget vertical mesuré.
+  if (w < 480) planetSize.value = '140px'
+  else if (w < 768) planetSize.value = '200px'
+  else if (w < 1024) planetSize.value = '240px'
+  else {
+    // >= 1024px : la planète occupe la place restante de la rangée
+    // (frise | texte | planète), plafonnée par la hauteur de la fenêtre.
+    const free = wrapRef.value?.clientWidth ?? 0
+    const size = Math.min(free, Math.round(window.innerHeight * 0.6), 480)
+    planetSize.value = `${Math.max(size, 220)}px`
+  }
 }
 
 // Chargement différé après le premier rendu (spec §4 Performance) : le GLB
@@ -61,6 +70,10 @@ function scheduleModelLoad(callback: () => void) {
 onMounted(() => {
   updatePlanetSize()
   window.addEventListener('resize', updatePlanetSize)
+  if (wrapRef.value && typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(updatePlanetSize)
+    resizeObserver.observe(wrapRef.value)
+  }
   scheduleModelLoad(() => {
     ready.value = true
   })
@@ -68,6 +81,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updatePlanetSize)
+  resizeObserver?.disconnect()
   if (idleHandle !== null) {
     const win = window as Window & { cancelIdleCallback?: (handle: number) => void }
     if (typeof win.cancelIdleCallback === 'function') {
@@ -153,3 +167,16 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
 
 // Plus besoin de cleanup spécifique pour le crossfade
 </script>
+<style scoped>
+.rp {
+  display: flex;
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .rp {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+</style>

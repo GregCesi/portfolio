@@ -31,9 +31,9 @@ const accelerate = (duration?: number) => {
   if (prefersReducedMotion.value) {
     warpEffect.start(0.25, 2)
   } else {
-    // Warp bref et discret (§2.3 bis) : au service du changement de section,
-    // pas un spectacle en soi.
-    warpEffect.start(duration ?? 0.6, 6)
+    // Warp plus lent (§2.3 bis) : au service du changement de section, pas
+    // un spectacle en soi.
+    warpEffect.start(duration ?? 1.0, 4)
   }
 }
 

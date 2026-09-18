@@ -4,22 +4,44 @@
     <h3 class="rc__title">{{ activeStep?.title }}</h3>
 
     <div class="rc__text">
-      <p v-for="desc in activeStep?.descriptions" :key="desc">{{ desc }}</p>
+      <p v-for="desc in activeStep?.descriptions" :key="desc" class="t-body">{{ desc }}</p>
     </div>
 
     <div class="rc__nav">
-      <button :disabled="!canGoPrev" aria-label="Étape précédente" class="rc__btn" @click="prevStepAnimated">‹</button>
+      <button :disabled="prevDisabled" aria-label="Étape précédente" class="rc__btn" @click="onPrev">‹</button>
       <button :disabled="!canGoNext" aria-label="Étape suivante" class="rc__btn" @click="nextStepAnimated">›</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { ComponentPublicInstance } from 'vue'
+import { computed, type ComponentPublicInstance } from 'vue'
 import { useRoadmapState } from '~/composables/useRoadmapState'
 
-const { currentStep, steps, activeStep, nextStepAnimated, prevStepAnimated, canGoNext, canGoPrev, registerContent } =
-  useRoadmapState()
+const {
+  currentStep,
+  steps,
+  activeStep,
+  nextStepAnimated,
+  prevStepAnimated,
+  canGoNext,
+  canGoPrev,
+  registerContent,
+  isMobileViewport,
+  introVisible,
+} = useRoadmapState()
+
+// Sur mobile, « précédent » depuis la première étape revient à l'introduction
+// (surtitre, titre, sous-titre) ; ailleurs il est désactivé à l'étape 1.
+const prevDisabled = computed(() => !canGoPrev.value && !isMobileViewport.value)
+
+function onPrev() {
+  if (!canGoPrev.value && isMobileViewport.value) {
+    introVisible.value = true
+    return
+  }
+  void prevStepAnimated()
+}
 
 const setContentRef = (el: Element | ComponentPublicInstance | null) => {
   if (el && el instanceof HTMLElement) registerContent(el)
@@ -32,34 +54,39 @@ const setContentRef = (el: Element | ComponentPublicInstance | null) => {
 }
 
 .rc__step {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
   color: var(--color-accent);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .rc__title {
-  font-family: var(--font-serif);
-  font-weight: 500;
-  font-size: clamp(1.1rem, 0.95rem + 0.6vw, 1.6rem);
-  line-height: 1.2;
-  margin-bottom: 0.4rem;
+  font-family: var(--font-display);
+  font-weight: 300;
+  text-transform: uppercase;
+  font-size: clamp(1.1rem, 0.9rem + 0.7vw, 1.6rem);
+  letter-spacing: 0.24em;
+  line-height: 1.35;
+  margin-bottom: 0.75rem;
 }
 
 .rc__text {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  line-height: 1.5;
+  gap: 0.6rem;
+  max-width: 28rem;
+}
+
+.rc__text p:last-child {
   color: var(--color-ink-dim);
-  max-width: 42ch;
 }
 
 .rc__nav {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.25rem;
   margin-top: 0.6rem;
 }
 
@@ -67,29 +94,25 @@ const setContentRef = (el: Element | ComponentPublicInstance | null) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
+  width: 2.5rem;
   height: 2.25rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-line);
+  border: none;
   background: transparent;
   color: var(--color-ink);
-  font-size: 1.2rem;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 1.4rem;
   line-height: 1;
   cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+  transition: color 0.6s var(--ease-slow), opacity 0.6s var(--ease-slow);
 }
 
 .rc__btn:hover:not(:disabled) {
-  border-color: var(--color-accent);
   color: var(--color-accent);
 }
 
-.rc__btn:active:not(:disabled) {
-  transform: scale(0.92);
-}
-
 .rc__btn:disabled {
-  opacity: 0.3;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 </style>

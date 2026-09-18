@@ -1,18 +1,15 @@
 <template>
-  <!-- >= 768px : frise verticale (>= 1024px : horizontale, voir RoadmapSection.vue)
-       complète, les 6 libellés toujours visibles. En dessous, la mise en page
-       empile planète + contenu + frise (§2.2 point 4 de la spec) : la liste
-       complète n'a pas la place de tenir sans déborder (mesuré : 129px de trop
-       à 375x667), elle est donc remplacée par la frise compacte ci-dessous,
-       même logique que la barre mobile du menu (§2.3 bis : "numéros visibles,
-       libellé de l'actif seul") — aucun texte n'est perdu : le titre complet de
-       l'étape active reste affiché en entier par RoadmapContent ("Étape X / 6"
-       + titre + texte), qui, lui, n'est jamais coupé. -->
+  <!-- >= 1024px : frise verticale complète, comme un compte à rebours de
+       mission, les 6 libellés toujours visibles. En dessous, la mise en page
+       empile planète + contenu + frise : la liste complète n'a pas la place de
+       tenir, elle est remplacée par la frise compacte ci-dessous (numéros
+       seuls). Aucun texte n'est perdu : le titre complet de l'étape active
+       reste affiché en entier par RoadmapContent. -->
   <!-- Racine unique (Vue n'hérite `class`/`$attrs` automatiquement que sur un
        composant à racine unique) : c'est ce noeud qui reçoit
-       `class="roadmap__timeline panel-inset"` posé par RoadmapSection.vue,
-       donc le fond de protection AA (§2.3) s'applique quelle que soit la
-       frise affichée à l'intérieur (liste complète ou compacte). -->
+       `class="roadmap__timeline scrim"` posé par RoadmapSection.vue, donc le
+       voile de contraste AA s'applique quelle que soit la frise affichée à
+       l'intérieur (liste complète ou compacte). -->
   <div class="rt-root">
     <ol class="rt-list">
       <li v-for="(step, index) in steps" :key="index" class="rt-item">
@@ -34,7 +31,7 @@
       </li>
     </ol>
 
-    <!-- < 768px : frise compacte, 6 segments numérotés, l'étape active en accent.
+    <!-- < 1024px : frise compacte, 6 segments numérotés, l'étape active en accent.
          Chaque segment reste un vrai bouton de navigation directe (même rôle que
          les flèches ‹ › de RoadmapContent), avec le titre complet de l'étape en
          `aria-label` pour les lecteurs d'écran. -->
@@ -43,10 +40,10 @@
         <button
           type="button"
           class="rt-compact__seg"
-          :class="getCircleClass(index)"
+          :class="compactClass(index)"
           :aria-label="`Étape ${index + 1} : ${step.title}`"
           :aria-current="stepsStatus[index]?.active ? 'step' : undefined"
-          @click="goToStep(index + 1)"
+          @click="selectCompact(index + 1)"
         >
           {{ index + 1 }}
         </button>
@@ -60,7 +57,13 @@ import { computed } from 'vue'
 import type { StepStatus } from '~/types/roadmap'
 import { useRoadmapState } from '~/composables/useRoadmapState'
 
-const { currentStep, steps, registerCircle, registerLine, goToStep } = useRoadmapState()
+const { currentStep, steps, registerCircle, registerLine, goToStep, introVisible, introActive } = useRoadmapState()
+
+// Un segment de la frise compacte quitte l'introduction mobile, puis va à l'étape.
+const selectCompact = (stepNumber: number) => {
+  introVisible.value = false
+  goToStep(stepNumber)
+}
 
 const setCircleRef = (el: HTMLElement | null, index: number) => {
   if (el) registerCircle(el, index)
@@ -89,6 +92,8 @@ const getCircleClass = (index: number) => {
   return 'is-future'
 }
 
+const compactClass = (index: number) => (introActive.value ? '' : getCircleClass(index))
+
 const getTitleClass = (index: number) => {
   const status = stepsStatus.value[index]
   return status?.active ? 'is-active' : ''
@@ -100,26 +105,26 @@ const getTitleClass = (index: number) => {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
+  display: none;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.8rem;
 }
 
 .rt-item {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.9rem;
 }
 
 .rt-circle {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-line);
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--color-ink-dim);
   background: transparent;
   flex-shrink: 0;
-  transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+  transition: background-color 0.8s var(--ease-slow), border-color 0.8s var(--ease-slow);
 }
 
 .rt-circle.is-past,
@@ -128,17 +133,12 @@ const getTitleClass = (index: number) => {
   border-color: var(--color-accent);
 }
 
-.rt-circle.is-active {
-  transform: scale(1.35);
-}
-
 .rt-label {
   display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  font-size: 0.85rem;
+  flex-direction: column;
+  gap: 0.1rem;
   color: var(--color-ink-dim);
-  transition: color 0.25s ease;
+  transition: color 0.8s var(--ease-slow);
 }
 
 .rt-label.is-active {
@@ -146,24 +146,30 @@ const getTitleClass = (index: number) => {
 }
 
 .rt-label__step {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.05em;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  line-height: 1.4;
   color: var(--color-ink-dim);
-  flex-shrink: 0;
 }
 
 .rt-label__title {
-  font-family: var(--font-serif);
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  line-height: 1.4;
 }
 
 .rt-connector {
   position: absolute;
-  left: 0.34rem;
+  left: 0.25rem;
   top: 100%;
-  width: 2px;
-  height: 0.6rem;
+  width: 1px;
+  height: 0.8rem;
 }
 
 .rt-connector__track {
@@ -180,7 +186,8 @@ const getTitleClass = (index: number) => {
   transform-origin: top center;
 }
 
-/* Frise compacte (< 768px), voir commentaire dans le template. */
+/* Frise compacte (< 1024px), voir commentaire dans le template : des
+   chiffres Jost sans cadre, un filet sous l'étape active et les passées. */
 .rt-compact {
   list-style: none;
   margin: 0;
@@ -201,43 +208,38 @@ const getTitleClass = (index: number) => {
   justify-content: center;
   width: 1.6rem;
   height: 1.6rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-line);
-  /* Posé directement sur le canvas hyperspace : même fond opaque que les
-     boutons `SubscreenNav` (§2.3), zéro risque pour "tient dans l'écran"
-     puisque la boîte est déjà dimensionnée. */
-  background-color: var(--panel-bg);
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: transparent;
   color: var(--color-ink-dim);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.8125rem;
   line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+  transition: border-color 0.8s var(--ease-slow), color 0.8s var(--ease-slow);
 }
 
-.rt-compact__seg.is-past,
-.rt-compact__seg.is-active {
-  background-color: var(--color-accent);
-  border-color: var(--color-accent);
-  color: #0a0908;
+.rt-compact__seg.is-past {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-ink-dim);
 }
 
 .rt-compact__seg.is-active {
-  transform: scale(1.15);
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
 }
 
 .rt-compact__seg:hover {
-  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
-@media (max-width: 767.98px) {
+@media (min-width: 1024px) {
   .rt-list {
-    display: none;
+    display: flex;
   }
-}
 
-@media (min-width: 768px) {
   .rt-compact {
     display: none;
   }

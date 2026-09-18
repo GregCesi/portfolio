@@ -5,6 +5,13 @@ import type { Step } from '~/types/roadmap'
 // État global partagé (singleton)
 const currentStep = ref(1)
 
+// Mobile (< 768px) : la section Projet phare se découpe en sous-écrans, le
+// premier montre le surtitre, le titre et le sous-titre avec la planète, les
+// suivants une étape chacun. `introVisible` ne compte que sur mobile.
+const introVisible = ref(true)
+const isMobileViewport = ref(false)
+const introActive = computed(() => introVisible.value && isMobileViewport.value)
+
 // Steps global partagé, alimentés par la source de contenu unique
 const steps = ref<Step[]>(siteContent.roadmap.steps)
 
@@ -22,13 +29,13 @@ let planetTextureChanger: ((textureName: string) => Promise<void> | void) | null
 
 const fadeOut = async (element: HTMLElement): Promise<void> => {
   return new Promise((resolve) => {
-    gsap.to(element, { opacity: 0, duration: 0.3, onComplete: resolve })
+    gsap.to(element, { opacity: 0, duration: 0.45, ease: 'power1.out', onComplete: resolve })
   })
 }
 
 const fadeIn = async (element: HTMLElement): Promise<void> => {
   return new Promise((resolve) => {
-    gsap.to(element, { opacity: 1, duration: 0.3, onComplete: resolve })
+    gsap.to(element, { opacity: 1, duration: 0.9, ease: 'power1.out', onComplete: resolve })
   })
 }
 
@@ -186,6 +193,9 @@ export const useRoadmapState = () => {
   }
 
   return {
+    introVisible,
+    isMobileViewport,
+    introActive,
     currentStep,
     steps,
     activeStep,

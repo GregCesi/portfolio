@@ -52,7 +52,7 @@ export default class Renderer {
         
         // Redessiner immédiatement après le redimensionnement
         if (this.ctx) {
-          this.ctx.fillStyle = "rgba(0, 0, 0, 1)" // Fond noir plein pour éviter le clignotement
+          this.ctx.fillStyle = "rgba(5, 7, 10, 1)" // Fond noir bleuté plein (#05070A) pour éviter le clignotement
           this.ctx.fillRect(0, 0, newWidth, newHeight)
         }
       }
@@ -79,7 +79,7 @@ export default class Renderer {
         this.lastTime = timestamp
 
         // Effet de traînée (identique à l'original)
-        this.ctx.fillStyle = "rgba(0, 0, 0, 0.15)"
+        this.ctx.fillStyle = "rgba(5, 7, 10, 0.15)"
         this.ctx.fillRect(0, 0, this.width, this.height)
 
         // Update all registered objects

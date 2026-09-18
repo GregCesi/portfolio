@@ -5,9 +5,14 @@ Projet phare, Projets), fond hyperspace animé et planète 3D à textures
 changeantes. Chaque section tient entièrement dans la fenêtre, sans
 défilement interne ; sur mobile (< 768px), une section trop dense se
 découpe en sous-écrans navigables (flèches, glissement horizontal, indicateur
-« N / M »). Direction artistique « instrument de bord » : serif/sans/mono,
-un seul accent ambre, pas de glow ni de dégradé. Tous les textes visibles
-viennent de `content/portfolio.md`, repris à l'identique dans
+« N / M »).
+
+Direction artistique « générique de film » (référence : Interstellar) : fond
+noir bleuté, titres en capitales espacées en Jost, texte courant en Hanken
+Grotesk, un seul accent bleu glacier, mouvement lent (fondus depuis le noir,
+interlettrage qui se resserre à la révélation des titres). Aucune teinte
+chaude dans l'interface, aucune lueur, aucune carte à fond. Tous les textes
+visibles viennent de `content/portfolio.md`, repris à l'identique dans
 `app/data/content.ts`.
 
 ## Stack
@@ -59,5 +64,7 @@ relancer la commande le résout généralement.
 - `app/components/sections/*` : une section par dossier (Hero, AboutMe, Method, Roadmap, Projects).
 - `app/components/subscreen/*` : piste glissante et navigation des sous-écrans mobile (`SubscreenTrack`, `SubscreenNav`).
 - `app/composables/useMobileSubscreens.ts`, `useSubscreenNav.ts` : état et registre des sous-écrans (clavier gauche/droite).
+- `app/composables/useSplitReveal.ts` : révélation lente de chaque section (fondu, interlettrage, cascade).
+- `app/assets/css/main.css` : jetons de couleur et de police, voile `.scrim`, styles de texte.
 - `app/graphics/background/*` : fond hyperspace (canvas 2D).
 - `app/composables/3d/*` : scène Three.js réutilisable (planète, fondu de textures).

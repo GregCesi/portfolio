@@ -12,7 +12,7 @@ import { computed } from 'vue'
 import { useLayoutDimensions } from '~/composables/useLayoutDimensions'
 
 interface Props {
-  /** Numéro 1-based de la section (repère mono "01 / 05", §2.3 bis de la spec). */
+  /** Numéro 1-based de la section (repère Jost "01 / 05", §2.3 bis de la spec). */
   index: number
   total?: number
 }
@@ -45,33 +45,34 @@ useLayoutDimensions()
 
 @media (min-width: 768px) {
   .section-viewport {
-    padding-top: calc(var(--header-height, 80px) + 2rem);
-    padding-bottom: 2rem;
+    padding-top: calc(var(--header-height, 80px) + 0.5rem);
+    padding-bottom: 1.25rem;
     padding-left: var(--slidemenu-width, 0px);
+    padding-right: 1.5rem;
   }
 }
 
 /*
- * Fond plat opaque (même traitement que `.panel`) : le repère "01 / 05" est
- * posé directement sur le canvas hyperspace, comme le Header et le menu
- * (même défaut, même correctif — voir feedback-2.md). Élément déjà en
- * position absolue : le padding ajouté ici ne modifie aucune hauteur de
- * flux, aucun risque pour la contrainte "tient dans l'écran" (§2.3).
+ * Repère « 01 / 05 » : Jost, capitales espacées, posé sur le noir du voile du
+ * layout (aucun cadre ni fond). Déjà en position absolue : aucune hauteur
+ * ajoutée au flux, aucun risque pour la contrainte « tient dans l'écran ».
  */
 .section-marker {
   position: absolute;
-  top: 0.75rem;
+  top: 0.9rem;
   right: 1.25rem;
   margin: 0;
   z-index: 1;
-  background-color: var(--panel-bg);
-  border: 1px solid var(--color-line);
-  padding: 0.25rem 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.75rem;
+  letter-spacing: 0.32em;
+  color: var(--color-ink-dim);
 }
 
 @media (min-width: 768px) {
   .section-marker {
-    top: 1.5rem;
+    top: 1.7rem;
     right: 2.5rem;
   }
 }

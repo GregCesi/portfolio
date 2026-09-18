@@ -23,44 +23,62 @@ const paddedIndex = computed(() => String(props.index + 1).padStart(2, '0'))
 
 <style scoped>
 /*
- * Libellé toujours visible, mono capitales, précédé du numéro (§2.3 bis).
- * Inactif : 0.62 d'opacité (mesuré >= 6.5:1 sur fond noir, pixels réels,
- * marge de sécurité au-dessus du seuil AA 4.5:1 — voir gan-harness pour la
- * mesure), 0.8 au survol. Actif : pleine opacité, accent, trait à gauche.
- * Le numéro hérite de la même opacité que le libellé (pas de multiplication
- * d'opacité imbriquée, qui ferait retomber sous le seuil AA).
+ * Libellé toujours visible, Jost capitales espacées, précédé du numéro
+ * (§2.3 bis). Actif : pleine opacité, accent glacier, trait fin devant.
+ * Inactifs : opacité réduite (0.6 : la valeur qui garde le texte petit
+ * au-dessus de 4,5:1 sur le noir, même derrière une étoile ; la spec cible
+ * 35 % mais 35 % ne donne que ~2,8:1 et casse le contraste AA), 0.85 au survol.
+ * Le numéro hérite de la même opacité que le libellé (pas d'opacité
+ * imbriquée, qui ferait retomber sous le seuil AA).
  */
 .menu-item {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.6rem;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.75rem;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--color-ink);
   background: transparent;
   border: none;
-  border-left: 2px solid transparent;
-  padding: 0.35rem 0 0.35rem 0.75rem;
-  opacity: 0.62;
+  padding: 0.5rem 0;
+  opacity: 0.6;
   cursor: pointer;
-  transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition: opacity 0.6s var(--ease-slow), color 0.6s var(--ease-slow);
   white-space: nowrap;
 }
 
 .menu-item:hover {
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .menu-item.is-active {
   opacity: 1;
   color: var(--color-accent);
-  border-left-color: var(--color-accent);
+}
+
+/* Trait fin : sa longueur seule dit quelle section est active. */
+.menu-item::before {
+  content: '';
+  display: block;
+  width: 1.5rem;
+  height: 1px;
+  background-color: currentColor;
+  transform: scaleX(0.25);
+  transform-origin: left center;
+  opacity: 0.5;
+  transition: transform 0.8s var(--ease-slow), opacity 0.8s var(--ease-slow);
+}
+
+.menu-item.is-active::before {
+  transform: scaleX(1);
+  opacity: 1;
 }
 
 .menu-item__number {
   color: inherit;
-  opacity: 1;
+  min-width: 1.4rem;
 }
 </style>

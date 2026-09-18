@@ -46,7 +46,7 @@ useSeoMeta({
 
 const { $emitter } = useNuxtApp()
 const prefersReducedMotion = usePrefersReducedMotion()
-const transitionDuration = computed(() => (prefersReducedMotion.value ? 0.2 : 0.65))
+const transitionDuration = computed(() => (prefersReducedMotion.value ? 0.2 : 1.1))
 const subscreenNav = useSubscreenNav()
 
 const slideRef = ref<SlideContainerExposed | null>(null)
@@ -55,6 +55,7 @@ const currentIndex = ref(0)
 function onSectionChange(index: number) {
   currentIndex.value = index
   $emitter.emit('accelerate-stars')
+  $emitter.emit('section-enter', index)
 }
 
 function onMenuSelect(index: number) {

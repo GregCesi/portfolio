@@ -86,7 +86,7 @@ onMounted(async () => {
   watch(
     () => [props.width, props.height],
     ([width, height]) => {
-      resize(parsePixels(width), parsePixels(height))
+      resize(parsePixels(width ?? '400px'), parsePixels(height ?? '400px'))
       render()
     }
   )

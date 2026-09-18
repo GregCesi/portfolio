@@ -62,7 +62,7 @@ function onTouchEnd(e: TouchEvent) {
 .subtrack__rail {
   display: flex;
   height: 100%;
-  transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+  transition: transform 0.8s var(--ease-slow);
 }
 
 /*

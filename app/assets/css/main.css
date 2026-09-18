@@ -1,36 +1,54 @@
-@import 'tailwindcss';
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import './reset.css' layer(base);
+@import 'tailwindcss/utilities.css' layer(utilities);
 
+/*
+ * Direction artistique v3 : générique de film (spec §2.3 bis).
+ * Jost (géométrique, famille Futura) pour les titres, le menu, les repères
+ * et les chiffres, en capitales espacées, graisse 300 à 400.
+ * Hanken Grotesk (grotesque neutre) pour le texte courant.
+ * Aucune police à empattements, aucune police à chasse fixe. Aucune teinte
+ * chaude : le chaud n'existe que dans les textures de la planète.
+ */
 @theme {
-  --font-serif: 'Fraunces', 'Georgia', serif;
-  --font-sans: 'Inter', 'Helvetica Neue', sans-serif;
-  --font-mono: 'IBM Plex Mono', 'Menlo', monospace;
+  --font-*: initial;
+  --font-display: 'Jost', 'Futura', system-ui;
+  --font-sans: 'Hanken Grotesk', 'Helvetica Neue', system-ui;
 
-  --color-ink: #ede8de;
-  --color-ink-dim: rgb(237 232 222 / 60%);
-  --color-accent: #c98a4b;
-  --color-line: rgb(237 232 222 / 14%);
+  --color-bg: #05070a;
+  --color-ink: #e6ecef;
+  --color-ink-dim: #8c98a3;
+  --color-accent: #a9cbdd;
+  --color-line: rgb(230 236 239 / 22%);
 }
 
 :root {
-  /*
-   * Fond plat opaque partagé par tous les encarts "instrument de bord"
-   * (Header, menu, `.panel`, `.panel-inset`, indicateurs mono posés
-   * directement sur le canvas) : une seule valeur à ajuster pour toute la
-   * page. 96% (au lieu des 93% du premier correctif, feedback-2.md) :
-   * mesuré sur pixels réellement rendus, le texte accent (plus proche du
-   * gris moyen que le blanc cassé, donc moins de marge à contraste égal)
-   * pouvait retomber sous le seuil AA pendant les quelques secondes qui
-   * suivent une transition entre sections (le champ d'étoiles reste plus
-   * dense un instant après le warp). 96% referme cette marge.
-   */
-  --panel-bg: rgb(8 7 6 / 96%);
+  /* Noir bleuté de fond, utilisé aussi par le canvas hyperspace et les voiles. */
+  --bg-rgb: 5 7 10;
+  /* Durées et courbes du mouvement lent : aucun rebond, aucun effet élastique. */
+  --ease-slow: cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* Texte courant : 16 px à 720 de haut, 18 px à 1080 (spec : 16 à 18 px) ;
+     15 px seulement sur les fenêtres étroites (tablette portrait, mobile), où
+     la largeur limite la hauteur utile et où rien ne doit ni défiler ni se couper. */
+  /* Débord horizontal du voile derrière un bloc de texte : égal au retrait
+     latéral des sections, pour que le voile ne fasse jamais déborder la section. */
+  --scrim-x: 1.25rem;
+  --fs-body: clamp(0.9375rem, min(0.75rem + 0.556vh, 0.5rem + 0.9vw), 1.125rem);
 }
 
-/* Styles globaux */
+@media (min-width: 1024px) {
+  :root {
+    --scrim-x: 2rem;
+  }
+}
+
 @layer base {
   html {
     font-family: var(--font-sans);
+    font-weight: 400;
     color: var(--color-ink);
+    background-color: var(--color-bg);
   }
 
   /* Désactive le zoom sur mobile et desktop */
@@ -66,8 +84,7 @@
   /*
    * Exception ciblée à `user-select: none` : le bloc Contact contient
    * l'adresse e-mail, que la personne doit pouvoir sélectionner et copier
-   * à la main. Le reste du site garde la sélection désactivée (nécessaire
-   * pour un défilement tactile propre sur les slides plein écran).
+   * à la main.
    */
   #contact,
   #contact * {
@@ -81,8 +98,7 @@
   /* Focus clavier toujours visible, quel que soit l'élément (§2.3 de la spec) */
   :focus-visible {
     outline: 2px solid var(--color-accent);
-    outline-offset: 3px;
-    border-radius: 1px;
+    outline-offset: 4px;
   }
 
   /* prefers-reduced-motion : transitions et animations CSS raccourcies (§2.3) */
@@ -100,53 +116,79 @@
 
 @layer utilities {
   /*
-   * Fond translucide plat (pas de flou, pas de dégradé, pas de coin
-   * arrondi) posé derrière les blocs de texte, pour garantir le contraste
-   * WCAG AA sur le fond hyperspace mouvant — voir `--panel-bg` (main.css,
-   * bloc `:root`) pour l'historique de calibration de l'opacité.
+   * Voile noir à bords fondus, posé derrière un bloc de texte : protège le
+   * contraste WCAG AA sur le champ d'étoiles sans former ni carte, ni cadre,
+   * ni bordure (le bord se dissout dans le noir, comme un vignettage de film).
+   * Usage : classe sur un conteneur STATIQUE (pas sur l'élément animé en
+   * opacité, pour que le voile reste en place pendant les fondus du texte).
    */
-  .panel {
-    background-color: var(--panel-bg);
-    border: 1px solid var(--color-line);
-  }
-
-  /*
-   * Même fond que `.panel`, mais posé en pseudo-élément (`::before`)
-   * absolument positionné plutôt qu'en vraie boîte : protège le texte du
-   * canvas hyperspace SANS ajouter de hauteur au flux du document (aucun
-   * risque de dépasser les 100vh d'une section, §2.3). `isolation: isolate`
-   * crée un contexte d'empilement local : le pseudo-élément (z-index -1)
-   * reste toujours sous le contenu de CET élément, quel que soit
-   * l'empilement global de la page (canvas compris).
-   * Usage : poser la classe sur le conteneur à protéger (déjà en position
-   * normale, pas besoin de lui donner `position: relative` à la main).
-   */
-  .panel-inset {
+  .scrim {
     position: relative;
     isolation: isolate;
   }
 
-  .panel-inset::before {
+  .scrim::before {
     content: '';
     position: absolute;
-    inset: -0.5rem -0.75rem;
-    background-color: var(--panel-bg);
-    border: 1px solid var(--color-line);
+    inset: -0.5rem calc(var(--scrim-x) * -1);
     z-index: -1;
     pointer-events: none;
+    background-color: rgb(var(--bg-rgb) / 86%);
+    /* Bords en dégradé lent (courbe en S), pour que le voile se dissolve sans arête. */
+    --fade-x: linear-gradient(
+      to right,
+      transparent 0,
+      rgb(0 0 0 / 0.2) calc(var(--scrim-x) * 0.3),
+      rgb(0 0 0 / 0.65) calc(var(--scrim-x) * 0.65),
+      #000 var(--scrim-x),
+      #000 calc(100% - var(--scrim-x)),
+      rgb(0 0 0 / 0.65) calc(100% - var(--scrim-x) * 0.65),
+      rgb(0 0 0 / 0.2) calc(100% - var(--scrim-x) * 0.3),
+      transparent 100%
+    );
+    --fade-y: linear-gradient(
+      to bottom,
+      transparent 0,
+      rgb(0 0 0 / 0.5) 0.25rem,
+      #000 0.5rem,
+      #000 calc(100% - 0.5rem),
+      rgb(0 0 0 / 0.5) calc(100% - 0.25rem),
+      transparent 100%
+    );
+    -webkit-mask-image: var(--fade-x), var(--fade-y);
+    -webkit-mask-composite: source-in;
+    mask-image: var(--fade-x), var(--fade-y);
+    mask-composite: intersect;
   }
 
-  /* Filet fin à faible opacité, utilisé pour structurer la grille éditoriale. */
-  .filet {
-    border-color: var(--color-line);
+  /* Titre de générique : Jost, capitales, graisse 300, interlettrage large. */
+  .t-title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.26em;
+    line-height: 1.4;
+    color: var(--color-ink);
   }
 
-  /* Repère mono de section, style instrument de bord : "01 / 05". */
-  .section-marker {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
+  /* Repère et libellé : Jost, capitales, petit, interlettrage large. */
+  .t-label {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.32em;
+    line-height: 1.4;
     color: var(--color-ink-dim);
+  }
+
+  /* Texte courant : Hanken Grotesk, bas de casse, 16 à 18 px. */
+  .t-body {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: var(--fs-body);
+    line-height: 1.55;
+    color: var(--color-ink);
   }
 
   .text-dim {
@@ -155,5 +197,14 @@
 
   .text-accent {
     color: var(--color-accent);
+  }
+
+  /*
+   * Élément révélé par le mouvement lent d'une section (fondu depuis le noir).
+   * Masqué tant que le script de section ne l'a pas révélé ; le repli
+   * <noscript> de app.vue le remet visible sans JavaScript.
+   */
+  .rv {
+    opacity: 0;
   }
 }

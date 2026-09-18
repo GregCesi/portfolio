@@ -48,6 +48,8 @@ function selectSlide(i: number) {
   display: none;
 }
 
+/* Barre mobile : même style que le menu desktop (Jost capitales espacées,
+   actif à pleine opacité avec un trait fin), sur le noir du voile du layout. */
 .mobile-nav {
   position: fixed;
   left: 0;
@@ -59,34 +61,30 @@ function selectSlide(i: number) {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.6rem 1rem;
-  border-top: 1px solid var(--color-line);
-  /* `--panel-bg` (même fond que `.panel`/Header/menu desktop) : 85%
-     d'opacité tenait une marge trop faible (4,88:1 mesuré, feedback-2.md). */
-  background-color: var(--panel-bg);
 }
 
 .mobile-nav__numbers {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.1rem;
 }
 
 .mobile-nav__num {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.05em;
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
   color: var(--color-ink);
-  /* 0.62 d'opacité : même marge de sécurité AA que le menu desktop
-     (>= 6.5:1 mesuré sur pixels réels), au lieu de 0.4 (~3.2-3.75:1). */
-  opacity: 0.62;
+  opacity: 0.6;
   background: transparent;
   border: none;
-  padding: 0.35rem 0.4rem;
+  padding: 0.35rem 0.45rem;
   cursor: pointer;
-  transition: opacity 0.2s ease, color 0.2s ease;
+  transition: opacity 0.6s var(--ease-slow), color 0.6s var(--ease-slow);
 }
 
 .mobile-nav__num:hover {
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .mobile-nav__num.is-active {
@@ -94,10 +92,28 @@ function selectSlide(i: number) {
   color: var(--color-accent);
 }
 
+.mobile-nav__num::after {
+  content: '';
+  position: absolute;
+  left: 0.45rem;
+  right: 0.65rem;
+  bottom: 0.1rem;
+  height: 1px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.8s var(--ease-slow);
+}
+
+.mobile-nav__num.is-active::after {
+  transform: scaleX(1);
+}
+
 .mobile-nav__label {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--color-accent);
   white-space: nowrap;
@@ -109,28 +125,23 @@ function selectSlide(i: number) {
     flex-direction: column;
     gap: 0.35rem;
     position: fixed;
-    left: 2.5rem;
+    left: 1.5rem;
     top: 50%;
     transform: translateY(-50%);
     z-index: 50;
-    /*
-     * Fond plat opaque (même traitement que `.panel`) : le menu était posé
-     * directement sur le canvas hyperspace, sans aucun fond. Une opacité de
-     * texte seule (0.62) ne suffit pas : une étoile blanche pleine derrière
-     * un libellé faisait chuter le contraste à ~1,13-1,26:1 (mesuré sur
-     * pixels réels, feedback-2.md). `--slidemenu-width` (utilisé par
-     * `BaseSection` pour ne pas chevaucher le contenu) est mesuré en
-     * direct sur la largeur réelle de cet élément (voir
-     * `useLayoutDimensions.ts`) : le padding ajouté ici est donc pris en
-     * compte automatiquement, aucune valeur à recalculer à la main.
-     */
-    background-color: var(--panel-bg);
-    border: 1px solid var(--color-line);
-    padding: 1.1rem 1.35rem;
+    /* Aucun fond, aucun cadre : le voile du layout porte le contraste.
+       `--slidemenu-width` (utilisé par `BaseSection`) est mesuré en direct
+       sur la largeur réelle de cet élément (voir `useLayoutDimensions.ts`). */
   }
 
   .mobile-nav {
     display: none;
+  }
+}
+
+@media (min-width: 1280px) {
+  .desktop-nav {
+    left: 2.5rem;
   }
 }
 </style>
