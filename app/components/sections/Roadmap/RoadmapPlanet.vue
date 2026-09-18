@@ -28,9 +28,13 @@ const planetSize = ref('220px')
 
 function updatePlanetSize() {
   const w = window.innerWidth
-  if (w < 480) planetSize.value = '190px'
-  else if (w < 768) planetSize.value = '240px'
-  else if (w < 1024) planetSize.value = '300px'
+  // En dessous de 1024px, la planète est empilée avec le contenu et la
+  // frise (§2.2 point 4) : des tailles plus modestes que sur 1024px+
+  // (rangée horizontale, beaucoup plus de hauteur libre) évitent un
+  // débordement vertical de la section (mesuré, voir RoadmapSection.vue).
+  if (w < 480) planetSize.value = '130px'
+  else if (w < 768) planetSize.value = '190px'
+  else if (w < 1024) planetSize.value = '260px'
   else if (w < 1440) planetSize.value = '380px'
   else planetSize.value = '460px'
 }

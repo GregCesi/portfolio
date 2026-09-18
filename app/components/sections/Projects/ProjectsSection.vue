@@ -97,7 +97,10 @@ useSplitReveal(rootRef, '.projects__title, .projects__intro')
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(0.75rem, 1.8vh, 1.75rem);
+  /* 0.75vh (au lieu de 1.8vh) : un débordement de 8px mesuré à 768x1024
+     (`.section-inner` scrollHeight vs clientHeight, empilement colonne des
+     3 cartes + contact) resserre ce budget vertical. */
+  gap: clamp(0.6rem, 0.75vh, 1.5rem);
   padding: 0 1.25rem;
 }
 
@@ -260,7 +263,7 @@ useSplitReveal(rootRef, '.projects__title, .projects__intro')
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    gap: 0.55rem;
+    gap: 0.3rem;
     height: auto;
     max-height: none;
   }

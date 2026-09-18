@@ -53,8 +53,19 @@ onBeforeUnmount(() => subscreenNav.unregister('roadmap'))
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(1rem, 2.5vh, 1.75rem);
+  /* En dessous de 1024px, planète + contenu + frise sont empilés (§2.2
+     point 4) : un budget vertical plus serré que sur 1024px+ (rangée
+     horizontale, beaucoup plus de hauteur libre) évite un débordement de
+     `.section-inner` à 375x667 et 768x1024 (mesuré, voir historique dans
+     RoadmapPlanet.vue et RoadmapTimeline.vue). */
+  gap: clamp(0.6rem, 1.6vh, 1.75rem);
   padding: 0 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .roadmap {
+    gap: clamp(1rem, 2.5vh, 1.75rem);
+  }
 }
 
 /* `.panel-inset` (posé sur `.roadmap__head`, `.roadmap__timeline` et
@@ -71,7 +82,7 @@ onBeforeUnmount(() => subscreenNav.unregister('roadmap'))
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-accent);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.2rem;
 }
 
 .roadmap__title {
@@ -79,7 +90,7 @@ onBeforeUnmount(() => subscreenNav.unregister('roadmap'))
   font-weight: 500;
   font-size: clamp(1.25rem, 1rem + 1.1vw, 2rem);
   line-height: 1.2;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.2rem;
 }
 
 .roadmap__subtitle {
@@ -92,7 +103,11 @@ onBeforeUnmount(() => subscreenNav.unregister('roadmap'))
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  /* Même raison que le gap de `.roadmap` ci-dessus : budget vertical plus
+     serré en dessous de 1024px (empilement planète/contenu/frise). La règle
+     `@media (min-width: 1024px)` plus bas dans ce fichier remonte ce gap à
+     2rem, une fois passé en rangée horizontale (plus de hauteur libre). */
+  gap: 0.6rem;
 }
 
 .roadmap__timeline {

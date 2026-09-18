@@ -36,7 +36,7 @@ const setContentRef = (el: Element | ComponentPublicInstance | null) => {
   font-size: 0.68rem;
   letter-spacing: 0.06em;
   color: var(--color-accent);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.25rem;
 }
 
 .rc__title {
@@ -44,7 +44,7 @@ const setContentRef = (el: Element | ComponentPublicInstance | null) => {
   font-weight: 500;
   font-size: clamp(1.1rem, 0.95rem + 0.6vw, 1.6rem);
   line-height: 1.2;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.4rem;
 }
 
 .rc__text {
@@ -60,7 +60,7 @@ const setContentRef = (el: Element | ComponentPublicInstance | null) => {
 .rc__nav {
   display: flex;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 0.6rem;
 }
 
 .rc__btn {
