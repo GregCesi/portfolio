@@ -4,10 +4,11 @@
       <!--
         Scrim opaque derrière le titre et le texte (§2.3, contraste WCAG AA) :
         le Hero est posé directement sur le canvas hyperspace animé, où des
-        étoiles quasi blanches peuvent traverser un glyphe. Un fond plat à
-        93% (pas de flou, pas de glow, pas de coin arrondi — même langage
-        visuel que `.panel`) garantit >= 4,5:1 même quand une étoile blanche
-        pleine est exactement derrière le texte, marge de sécurité incluse.
+        étoiles quasi blanches peuvent traverser un glyphe. Un fond plat
+        (`--panel-bg`, pas de flou, pas de glow, pas de coin arrondi — même
+        langage visuel que `.panel`) garantit >= 4,5:1 même quand une étoile
+        blanche pleine est exactement derrière le texte, marge de sécurité
+        incluse.
       -->
       <div class="hero__scrim">
         <h1 class="hero__title">{{ hero.title }}</h1>
@@ -58,7 +59,7 @@ useSplitReveal(rootRef, '.hero__title, .hero__text p')
 }
 
 .hero__scrim {
-  background-color: rgb(8 7 6 / 93%);
+  background-color: var(--panel-bg);
   border: 1px solid var(--color-line);
   display: flex;
   flex-direction: column;

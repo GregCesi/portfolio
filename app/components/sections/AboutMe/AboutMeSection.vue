@@ -1,12 +1,12 @@
 <template>
   <BaseSection :index="2">
     <div ref="rootRef" class="about">
-      <header class="about__head">
+      <header class="about__head panel-inset">
         <h2 class="about__title">{{ about.title }}</h2>
         <p class="about__intro">{{ about.intro }}</p>
       </header>
 
-      <div class="about__timeline">
+      <div class="about__timeline panel-inset">
         <SubscreenTrack :index="sub.index.value" :total="sub.total.value" @update:index="sub.goTo">
           <article
             v-for="(entry, index) in about.timeline"
@@ -144,6 +144,9 @@ onBeforeUnmount(() => {
   padding: 0 1.25rem;
 }
 
+/* `.panel-inset` (posé sur `.about__head` et `.about__timeline` dans le
+   template) protège le texte du canvas hyperspace sans ajouter de hauteur
+   au flux — voir la classe utilitaire dans main.css pour le détail. */
 .about__head {
   max-width: 42rem;
 }

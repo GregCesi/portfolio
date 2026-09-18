@@ -11,6 +11,21 @@
   --color-line: rgb(237 232 222 / 14%);
 }
 
+:root {
+  /*
+   * Fond plat opaque partagé par tous les encarts "instrument de bord"
+   * (Header, menu, `.panel`, `.panel-inset`, indicateurs mono posés
+   * directement sur le canvas) : une seule valeur à ajuster pour toute la
+   * page. 96% (au lieu des 93% du premier correctif, feedback-2.md) :
+   * mesuré sur pixels réellement rendus, le texte accent (plus proche du
+   * gris moyen que le blanc cassé, donc moins de marge à contraste égal)
+   * pouvait retomber sous le seuil AA pendant les quelques secondes qui
+   * suivent une transition entre sections (le champ d'étoiles reste plus
+   * dense un instant après le warp). 96% referme cette marge.
+   */
+  --panel-bg: rgb(8 7 6 / 96%);
+}
+
 /* Styles globaux */
 @layer base {
   html {
@@ -87,12 +102,38 @@
   /*
    * Fond translucide plat (pas de flou, pas de dégradé, pas de coin
    * arrondi) posé derrière les blocs de texte, pour garantir le contraste
-   * WCAG AA sur le fond hyperspace mouvant. Opacité calibrée pour tenir un
-   * ratio >= 4.5:1 même avec du texte à 60% d'opacité (voir §2.3 bis).
+   * WCAG AA sur le fond hyperspace mouvant — voir `--panel-bg` (main.css,
+   * bloc `:root`) pour l'historique de calibration de l'opacité.
    */
   .panel {
-    background-color: rgb(8 7 6 / 85%);
+    background-color: var(--panel-bg);
     border: 1px solid var(--color-line);
+  }
+
+  /*
+   * Même fond que `.panel`, mais posé en pseudo-élément (`::before`)
+   * absolument positionné plutôt qu'en vraie boîte : protège le texte du
+   * canvas hyperspace SANS ajouter de hauteur au flux du document (aucun
+   * risque de dépasser les 100vh d'une section, §2.3). `isolation: isolate`
+   * crée un contexte d'empilement local : le pseudo-élément (z-index -1)
+   * reste toujours sous le contenu de CET élément, quel que soit
+   * l'empilement global de la page (canvas compris).
+   * Usage : poser la classe sur le conteneur à protéger (déjà en position
+   * normale, pas besoin de lui donner `position: relative` à la main).
+   */
+  .panel-inset {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .panel-inset::before {
+    content: '';
+    position: absolute;
+    inset: -0.5rem -0.75rem;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--color-line);
+    z-index: -1;
+    pointer-events: none;
   }
 
   /* Filet fin à faible opacité, utilisé pour structurer la grille éditoriale. */

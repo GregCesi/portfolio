@@ -60,7 +60,9 @@ function selectSlide(i: number) {
   gap: 1rem;
   padding: 0.6rem 1rem;
   border-top: 1px solid var(--color-line);
-  background-color: rgb(8 7 6 / 85%);
+  /* `--panel-bg` (même fond que `.panel`/Header/menu desktop) : 85%
+     d'opacité tenait une marge trop faible (4,88:1 mesuré, feedback-2.md). */
+  background-color: var(--panel-bg);
 }
 
 .mobile-nav__numbers {
@@ -111,6 +113,20 @@ function selectSlide(i: number) {
     top: 50%;
     transform: translateY(-50%);
     z-index: 50;
+    /*
+     * Fond plat opaque (même traitement que `.panel`) : le menu était posé
+     * directement sur le canvas hyperspace, sans aucun fond. Une opacité de
+     * texte seule (0.62) ne suffit pas : une étoile blanche pleine derrière
+     * un libellé faisait chuter le contraste à ~1,13-1,26:1 (mesuré sur
+     * pixels réels, feedback-2.md). `--slidemenu-width` (utilisé par
+     * `BaseSection` pour ne pas chevaucher le contenu) est mesuré en
+     * direct sur la largeur réelle de cet élément (voir
+     * `useLayoutDimensions.ts`) : le padding ajouté ici est donc pris en
+     * compte automatiquement, aucune valeur à recalculer à la main.
+     */
+    background-color: var(--panel-bg);
+    border: 1px solid var(--color-line);
+    padding: 1.1rem 1.35rem;
   }
 
   .mobile-nav {

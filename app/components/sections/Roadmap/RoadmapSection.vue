@@ -1,15 +1,17 @@
 <template>
   <BaseSection :index="4">
     <div class="roadmap">
-      <header class="roadmap__head">
+      <header class="roadmap__head panel-inset">
         <p class="roadmap__kicker">{{ roadmap.kicker }}</p>
         <h2 class="roadmap__title">{{ roadmap.title }}</h2>
         <p class="roadmap__subtitle">{{ roadmap.subtitle }}</p>
       </header>
 
       <div class="roadmap__grid">
-        <RoadmapTimeline class="roadmap__timeline" />
-        <RoadmapContent class="roadmap__content" />
+        <RoadmapTimeline class="roadmap__timeline panel-inset" />
+        <RoadmapContent class="roadmap__content panel-inset" />
+        <!-- Pas de panel-inset ici : la planète est le spectacle (§2.3 bis
+             de la spec), elle ne doit jamais être masquée par un fond. -->
         <RoadmapPlanet class="roadmap__planet" />
       </div>
     </div>
@@ -55,6 +57,10 @@ onBeforeUnmount(() => subscreenNav.unregister('roadmap'))
   padding: 0 1.25rem;
 }
 
+/* `.panel-inset` (posé sur `.roadmap__head`, `.roadmap__timeline` et
+   `.roadmap__content` dans le template — jamais sur `.roadmap__planet`)
+   protège le texte du canvas hyperspace sans ajouter de hauteur au flux ni
+   recouvrir la planète — voir la classe utilitaire dans main.css. */
 .roadmap__head {
   max-width: 46rem;
 }

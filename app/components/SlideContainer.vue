@@ -311,6 +311,12 @@ defineExpose({
   font-size: 0.9rem;
   letter-spacing: 0.2em;
   color: var(--color-accent);
+  /* Fond plat opaque (même traitement que `.panel`) : posé directement sur
+     le canvas comme le reste des indicateurs mono du site, même risque de
+     contraste face à une étoile claire derrière le glyphe (§2.3). */
+  background-color: var(--panel-bg);
+  border: 1px solid var(--color-line);
+  padding: 0.3rem 0.7rem;
   animation: queued-pulse 0.6s ease-in-out infinite;
 }
 
@@ -320,10 +326,18 @@ defineExpose({
   }
 }
 
+/*
+ * 0.85 au creux de la pulsation (pas 0.45 comme dans le correctif
+ * précédent) : même protégé par `--panel-bg`, le texte accent est celui
+ * qui a la plus faible marge de contraste de tout le site (couleur plus
+ * proche du gris moyen que le blanc cassé — voir generator-state.md) ; à
+ * 0.45 d'opacité, la mesure sur pixels réels retombait à 3,22:1 au creux de
+ * l'animation. 0.85 tient >= 4,5:1 tout en gardant une pulsation perceptible.
+ */
 @keyframes queued-pulse {
   0%,
   100% {
-    opacity: 0.45;
+    opacity: 0.85;
   }
   50% {
     opacity: 1;

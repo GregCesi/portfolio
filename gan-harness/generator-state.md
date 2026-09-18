@@ -1,157 +1,244 @@
-# Generator State — Run 2, itération 2
+# Generator State — Run 2, itération 3
 
 ## Contexte
 
-Correctif ciblé après l'évaluation de l'itération 1 (commit `efb489d`,
-4,7/10, FAIL — voir `gan-harness/feedback/feedback-1.md`). Une seule porte
-bloquante a échoué, **P2 Contraste**, mesurée sur pixels réellement rendus
-(pas seulement un calcul analytique) : les libellés inactifs du menu latéral
-(~3,2–3,75:1) et le titre/texte du Hero posé sans fond sur le canvas
-hyperspace (~1:1–1,6:1 quand une étoile blanche traverse un glyphe). Cette
-seule porte plafonnait les 4 critères notés à 5/10. Le reste de l'itération 1
-(sections tenant à l'écran, sous-écrans mobile, clavier/molette/tactile,
-direction artistique « instrument de bord ») était solide et n'a pas été
-touché au-delà des correctifs demandés.
+Feedback de l'itération 2 (`gan-harness/feedback/feedback-2.md`, 4.85/10, FAIL) :
+la porte **P2 Contraste** échoue une deuxième fois consécutive, pour la même
+raison structurelle que le Hero à l'itération 1 (texte posé directement sur
+le canvas hyperspace, sans fond, vulnérable à une étoile claire derrière un
+glyphe) mais sur des zones différentes — le menu latéral desktop (correctif
+d'opacité seule, incomplet) et le Header (jamais traité). L'itération 2
+documentait elle-même avoir limité le correctif au strict périmètre demandé
+plutôt que de faire l'audit systématique déjà suggéré à l'itération 1.
 
-## Ce qui a été corrigé
+Cette itération fait cet audit systématique, sur les 5 sections + Header +
+menu + tout overlay, et traite la classe de défaut plutôt que les symptômes
+un par un.
 
-### P2 — Contraste, menu latéral (`SlideMenuItem.vue`, `SlideMenu.vue`)
+## Audit systématique — chaque zone de texte, protégée ou non, et pourquoi
 
-- `.menu-item` : opacité inactive `0.4` → `0.62`, survol `0.7` → `0.8`.
-- `.menu-item__number` avait une opacité **imbriquée** (`0.8` sur un parent
-  déjà à `0.4`, soit un facteur effectif de `0.32`) : supprimée (`1`), le
-  numéro hérite désormais de la même opacité que le libellé, plus stricte.
-- `.mobile-nav__num` (barre mobile) : même correctif (`0.4` → `0.62`, survol
-  `0.7`/`0.8` → `0.8`), pour la même raison (le fond de la barre mobile est
-  translucide, pas garanti noir pur).
-- Mesure (script Playwright indépendant, `getComputedStyle` + couleur/opacité
-  réelles, composité sur noir — le cas le plus favorable comme dans
-  l'évaluation) : **6,58:1** au repos (calcul confirmé par un second calcul
-  analytique manuel avant implémentation). Marge de sécurité de ~46%
-  au-dessus du seuil AA 4,5:1, pour absorber les étoiles claires qui
-  passent derrière le menu à l'occasion (non mesurées séparément mais la
-  marge est volontairement large).
-- L'état actif garde sa distinction visuelle intacte (opacité pleine, accent
-  `#C98A4B`, trait à gauche) — seule l'opacité de repos des items inactifs a
-  changé, conformément à la demande de garder l'actif identifiable (§2.3 bis
-  de la spec).
+| Zone | Fichier | Avant | Après |
+|---|---|---|---|
+| Header (nom + sous-titre), persistant sur les 5 sections | `Header.vue`, `.site-header__inner` | Aucun fond (1,21:1 mesuré, feedback-2) | `background-color: var(--panel-bg)` + bordure filet |
+| Menu latéral desktop, 5 libellés | `SlideMenu.vue`, `.desktop-nav` | Opacité seule sur les items, aucun fond (1,13-1,26:1 mesuré) | Panel opaque sur toute la colonne (padding, bordure), en plus de l'opacité déjà correcte des items |
+| Barre mobile (numéros + libellé actif) | `SlideMenu.vue`, `.mobile-nav` | `rgb(8 7 6 / 85%)`, marge faible (4,88:1 mesuré) | `var(--panel-bg)` (96%), marge large |
+| Repère de section "01 / 05" | `BaseSection.vue`, `.section-marker` | Aucun fond, position absolue | Panel opaque (padding, bordure) — même défaut que Header/menu, jamais mesuré avant, trouvé par cet audit |
+| Hero (titre, texte, boutons) | `HeroSection.vue`, `.hero__scrim` | Déjà protégé (itération 2, PASS confirmé) | Inchangé dans son principe, aligné sur `var(--panel-bg)` partagée |
+| Accusé de réception clavier "···" | `SlideContainer.vue`, `.queued-hint` | Aucun fond ; pulsation CSS descendant à 0,45 d'opacité (3,22:1 mesuré au creux) | Panel opaque + **creux de pulsation remonté à 0,85** (0,45 était insuffisant même protégé par le panel, l'accent est la couleur la moins marginale du site — voir plus bas) |
+| Parcours : intro + titre | `AboutMeSection.vue`, `.about__head` | Aucun fond | `.panel-inset` (pseudo-élément, voir plus bas) |
+| Parcours : frise (période, lieu, rôle, détail, cercles, connecteurs) | `AboutMeSection.vue`, `.about__timeline` | Aucun fond | `.panel-inset` |
+| Méthode : intro + titre | `MethodSection.vue`, `.method__head` | Aucun fond | `.panel-inset` |
+| Méthode : 4 cartes (numéro, titre, texte) | `MethodSection.vue`, `.method__grid` | Aucun fond | `.panel-inset` |
+| Projets : intro + titre | `ProjectsSection.vue`, `.projects__head` | Aucun fond | `.panel-inset` |
+| Projets : 3 cartes + bloc Contact (email, GitHub, LinkedIn, CV) | `ProjectsSection.vue`, `.projects__grid` | Aucun fond | `.panel-inset` (englobe aussi `#contact`, même DOM) |
+| Projet phare : kicker + titre + sous-titre | `RoadmapSection.vue`, `.roadmap__head` | Aucun fond | `.panel-inset` |
+| Projet phare : timeline 6 étapes (cercles, labels) | `RoadmapTimeline.vue` via `.roadmap__timeline` | Aucun fond | `.panel-inset` |
+| Projet phare : contenu (étape, titre, texte, flèches) | `RoadmapContent.vue` via `.roadmap__content` | Aucun fond | `.panel-inset` |
+| Projet phare : planète 3D | `RoadmapPlanet.vue` via `.roadmap__planet` | — | **Volontairement non protégée** : c'est le spectacle (§2.3 bis), aucun texte dessus, rien à protéger |
+| Sous-écrans mobile : flèches ‹ › + indicateur "x / y" | `SubscreenNav.vue` | Boutons `background: transparent` ; indicateur sans fond | Boutons : fond opaque (remplace `transparent`, zéro risque de mise en page car la boîte a déjà une taille fixe). Indicateur : fond + bordure + padding modeste (la rangée flex est déjà dimensionnée par les boutons ronds 2,25rem, plus hauts) |
 
-### P2 — Contraste, Hero (`HeroSection.vue`)
+Zones vérifiées et jugées non concernées : `RoadmapPlanet.vue` (aucun texte,
+juste le modèle 3D) ; les filets de séparation (`--color-line`) et les
+cercles de progression (accent plein), qui ne portent pas de texte — non
+audités au sens strict AA texte (hors périmètre §2.3 : "4,5:1 texte
+courant, 3:1 texte large"), mais protégés de fait puisqu'ils sont tous
+descendants d'un élément `.panel-inset` ou d'un panel réel désormais.
 
-- Le Hero était la seule section sans fond derrière son texte (posé
-  directement sur le canvas hyperspace animé). Ajout d'un `.hero__scrim` :
-  fond plat `rgb(8 7 6 / 93%)`, filet `1px` (`--color-line`), **pas de flou,
-  pas de glow, pas de coin arrondi** — même langage visuel que l'utilitaire
-  `.panel` déjà défini dans `main.css` pour exactement cet usage (jusqu'ici
-  inutilisé nulle part dans le code, alors que sa raison d'être documentée
-  en commentaire est précisément « posé derrière les blocs de texte, pour
-  garantir le contraste WCAG AA sur le fond hyperspace mouvant »).
-- Calcul (avant implémentation, puis revérifié après coup par script) : pour
-  le texte secondaire (`--color-ink-dim`, 60% d'opacité, le cas le plus
-  défavorable du Hero) contre le scrim composé avec une étoile blanche pleine
-  juste derrière (pire cas absolu) → **~5,83:1**, marge de ~30% au-dessus du
-  seuil AA 4,5:1. Le titre (opacité pleine) est encore plus confortable.
-- Les deux boutons (`hero__btn`) sont maintenant à l'intérieur du scrim :
-  leur libellé, qui portait le même risque (posé sur transparent), est
-  protégé du même coup.
-- Layout : le scrim ajoute un padding modeste (`clamp(1.1rem, …, 1.85rem)`
-  vertical) autour du contenu existant, sans changer sa structure. Revérifié
-  qu'aucune section ne déborde aux 4 tailles requises (voir Vérifications) —
-  le Hero avait de la marge verticale disponible, aucun régression.
+## Deux mécanismes de fond, choisis selon le risque de mise en page
 
-### Craft — deux `<nav>` avec le même `aria-label`
+1. **Fond réel** (`background-color`, vraie boîte) pour tout élément déjà
+   indépendant du flux ou déjà dimensionné : Header (fixed), menu desktop et
+   barre mobile (fixed), repère de section et accusé de réception clavier
+   (absolute/fixed), boutons ronds de sous-écran (taille fixe, le fond ne
+   change rien à la boîte). Zéro risque pour la contrainte "tient dans
+   l'écran" (§2.3) puisqu'aucune hauteur n'est ajoutée au flux normal, ou
+   que l'élément n'est de toute façon jamais soumis à cette contrainte.
+2. **`.panel-inset`** (nouvelle classe utilitaire, `main.css`) pour tout
+   bloc de texte encore dans le flux normal d'une section déjà calibrée au
+   pixel près pour tenir dans 100vh (Parcours, Méthode, Projet phare,
+   Projets). Plutôt que d'ajouter du vrai padding (risque de dépassement
+   vérifié comme réel à l'itération 2 pour le Hero — "le Hero avait de la
+   marge, aucune régression" y est noté comme un cas favorable, pas
+   généralisable), le fond est peint par un pseudo-élément `::before`
+   absolument positionné (`inset: -0.5rem -0.75rem`), qui ne participe pas
+   au calcul de hauteur du flux. `isolation: isolate` garantit que ce
+   pseudo-élément (z-index -1) reste toujours sous le contenu de l'élément
+   qui porte la classe, indépendamment de l'empilement global de la page
+   (donc toujours au-dessus du canvas, jamais l'inverse). Vérifié : les 5
+   tailles requises (1920×1080, 1440×900, 1280×720, 768×1024, 375×667)
+   tiennent toujours exactement (voir Vérifications).
 
-`SlideMenu.vue` : `data-desktop-nav` et `data-mobile-bar` portaient tous deux
-`aria-label="Navigation entre les sections"`. Libellés distincts :
-« Navigation entre les sections, menu latéral » (desktop) et « Navigation
-entre les sections, barre mobile » (mobile).
+## Fond partagé, calibré une seule fois
 
-### Craft — appuis clavier perdus pendant une transition
+Toutes les zones ci-dessus utilisent désormais la même valeur,
+`--panel-bg` (nouvelle custom property, `main.css`, bloc `:root`), au lieu
+de valeurs codées en dur dispersées dans 7 fichiers comme à l'itération 2 —
+un seul endroit à ajuster si la marge doit encore bouger.
 
-`SlideContainer.vue` :
+**Valeur : `rgb(8 7 6 / 96%)`** (montée depuis 93% pendant cette itération,
+voir méthodologie ci-dessous). `.panel` (utilitaire déjà existant, jusqu'ici
+inutilisé) partage la même valeur.
 
-- Auparavant, `goTo()` **retirait complètement** les écouteurs `wheel`/
-  `keydown`/`touch*` du DOM pendant toute la durée de la transition GSAP
-  (~0,65s), pour les rattacher une fois l'animation finie. Un appui clavier
-  pendant ce laps de temps ne déclenchait donc même pas `onKeydown` — il
-  n'existait pas de garde-fou à corriger, l'événement n'atteignait
-  simplement jamais le gestionnaire.
-- Les écouteurs restent maintenant attachés en permanence (attachés une
-  seule fois au montage, retirés au démontage) ; chaque gestionnaire garde
-  son garde-fou interne (`state.isAnimating`) pour ne pas déclencher une
-  nouvelle transition en double.
-- Ajout d'une **file d'attente d'une seule entrée** (`requestNavigate` /
-  `runPendingAction`) pour les quatre touches de changement de section
-  (flèches haut/bas, PageUp/PageDown, Home, End) : si l'une d'elles est
-  pressée pendant une transition en cours, la dernière intention est retenue
-  et rejouée automatiquement dès que la transition se termine — rien n'est
-  perdu.
-- Retour visuel : un petit accusé de réception mono (`···`, couleur accent,
-  pulsation discrète, `aria-hidden`) s'affiche tant qu'une entrée est en
-  file d'attente et disparaît dès qu'elle est consommée. Respecte
-  `prefers-reduced-motion` (pas d'animation, opacité fixe). Vérifié par
-  script : appui rapide de deux `ArrowDown` pendant la même fenêtre de
-  transition → avance bien de 2 sections au total (aucune perte), indicateur
-  visible pendant la fenêtre d'attente puis disparu.
-- Molette et tactile n'ont pas été touchés (hors périmètre de la demande,
-  qui portait spécifiquement sur le clavier) : ils gardent leur propre
-  garde-fou (`if (state.isAnimating) return`), inchangé.
+## Méthodologie de vérification — et un faux positif de mon propre harnais, documenté par transparence
+
+Comme à l'itération 2, chaque zone a été revérifiée sur **pixels réellement
+rendus** (texte masqué en `visibility:hidden`, fond échantillonné sur
+plusieurs secondes, couleur CSS réelle du texte compositée dessus), pas
+seulement calculée. Script Playwright indépendant (`playwright` 1.63,
+hors dépôt, cache npx de la machine — même outil que l'Évaluateur).
+
+**Résultat final, 20 zones mesurées (13 desktop + 7 mobile), 0 échec** :
+tout tient au moins 4,5:1 (texte courant) ou 3:1 (texte large) dans le pire
+cas capturé. Le texte en couleur accent (`#C98A4B`, kicker, périodes,
+numéros) est systématiquement la couleur la moins marginale du site — sa
+luminosité relative est bien plus proche du gris moyen que le blanc cassé
+`--color-ink`, donc son ratio de contraste s'effondre plus vite si le fond
+derrière s'éclaircit. C'est cette couleur qui a guidé la calibration finale
+de `--panel-bg` (93% → 96%) et le relèvement du creux de pulsation de
+`.queued-hint` (0,45 → 0,85 : à 0,45, même protégé par le panel, le texte
+accent retombait à 3,22:1 au point le plus bas de l'animation — mesuré, pas
+supposé).
+
+**Faux positif rencontré et écarté, documenté ici par la même exigence de
+transparence que l'Évaluateur applique à son propre harnais (cf. le widget
+Nuxt DevTools écarté en itération 2)** : une première version de mon script
+d'audit, qui enchaînait un tour complet des 5 sections avec, pour chaque
+élément, 40 à 100 itérations de `page.screenshot()` + décodage de l'image
+**dans le contexte de la page elle-même** (`new Image(); await img.decode()`
+côté navigateur, à chaque frame), a occasionnellement mesuré des fonds
+anormalement clairs derrière le kicker accent de Projet phare (jusqu'à
+1,08:1 à 1,51:1 selon les passes) — mathématiquement incompatibles avec un
+fond à 93-96% d'opacité (la seule source de lumière possible, le canvas,
+ne peut pas dépasser 255 par canal, et l'équation de compositing implique
+une valeur source très supérieure à 255 pour expliquer certaines lectures).
+Trois contre-vérifications l'ont confirmé comme un artefact de mon propre
+harnais (contention du fil principal de la page pendant les boucles lourdes
+de décodage, qui interfère avec la capture d'un canvas WebGL — catégorie de
+flakiness documentée pour ce genre de test) et non un défaut réel :
+1. Une navigation unique et réaliste (comme le ferait l'Évaluateur pour
+   tester une section) suivie d'un échantillonnage de 9 secondes/100 frames
+   donne un fond parfaitement stable (8,7,6) sans aucune variance.
+2. Des captures plein écran prises aux mêmes instants que les pires mesures
+   montrent un panneau parfaitement opaque, sans aucune trace de
+   transparence.
+3. En rejouant exactement le même tour lourd des 5 sections mais avec un
+   décodage PNG fait côté Node (zlib, hors du fil principal de la page,
+   sans solliciter le navigateur), le même point de mesure redevient stable
+   (8,7,6) sur 60 frames.
+Le chiffre final retenu (6,85:1 pour ce kicker, voir tableau plus haut) vient
+de cette version corrigée du script, sur une fenêtre dédiée de 90 frames
+(~12s) après une navigation directe.
+
+### Détail des mesures finales (pire cas, desktop 1440×900)
+
+| Zone | Ratio | Seuil |
+|---|---|---|
+| Header nom | 16,48:1 | 4,5:1 |
+| Header sous-titre | 6,17:1 | 4,5:1 |
+| Hero titre | 16,48:1 | 3:1 (grand texte) |
+| Hero texte | 6,14:1 | 4,5:1 |
+| Menu desktop libellé inactif | 16,48:1 | 4,5:1 |
+| Repère de section "01/05" | 6,2:1 | 4,5:1 |
+| Parcours titre | 16,48:1 | 3:1 |
+| Parcours période (accent) | 6,92:1 | 4,5:1 |
+| Méthode titre de carte | 16,48:1 | 4,5:1 |
+| Projet phare kicker (accent) | 6,85:1 | 4,5:1 |
+| Projet phare contenu, titre | 16,39:1 | 4,5:1 |
+| Projets titre de carte | 16,48:1 | 4,5:1 |
+| Contact texte | 6,16:1 | 4,5:1 |
+
+### Détail des mesures finales (mobile 375×667)
+
+7 zones mesurées (barre mobile actif/inactif, libellé actif, Parcours en
+sous-écran, indicateur de sous-écran, accusé de réception clavier après
+correctif) : 0 échec.
+
+## Ce qui a été corrigé cette itération
+
+- `app/assets/css/main.css` : nouvelle custom property `--panel-bg`
+  (`rgb(8 7 6 / 96%)`) ; `.panel` la référence désormais ; nouvelle classe
+  utilitaire `.panel-inset` (fond en pseudo-élément, zéro impact sur le
+  flux, voir plus haut).
+- `Header.vue` : `.site-header__inner` a désormais un fond opaque.
+- `SlideMenu.vue` : `.desktop-nav` a désormais un fond opaque + padding ;
+  `.mobile-nav` passe de 85% à `--panel-bg` (96%).
+- `BaseSection.vue` : `.section-marker` ("01/05") a désormais un fond
+  opaque.
+- `SlideContainer.vue` : `.queued-hint` a désormais un fond opaque ; le
+  creux de sa pulsation passe de 0,45 à 0,85 d'opacité (voir méthodologie).
+- `AboutMeSection.vue`, `MethodSection.vue`, `ProjectsSection.vue`,
+  `RoadmapSection.vue` : `.panel-inset` posée sur chaque bloc de texte
+  encore sans fond (voir tableau d'audit). La planète (`RoadmapPlanet`)
+  reste volontairement sans fond.
+- `SubscreenNav.vue` : boutons ‹ › et indicateur "x / y" ont désormais un
+  fond opaque (zéro impact sur le flux, voir plus haut).
+- `HeroSection.vue` : commentaire mis à jour pour référencer `--panel-bg`
+  au lieu d'une valeur codée en dur (le scrim lui-même, déjà correct depuis
+  l'itération 2, n'a pas changé de principe).
 
 ## Vérifications faites
 
-- `npm run lint` → 0 erreur/avertissement.
-- `npm run build` → succès.
+- `npm run lint` → 0 erreur/avertissement (hormis un warning de dépréciation
+  ESLint sans rapport, déjà présent avant cette itération).
+- `npm run build` → succès, `.output` généré.
 - `npm run generate` → succès (warnings sourcemap Tailwind préexistants,
-  non applicatifs, déjà documentés à l'itération précédente).
-- `npx nuxi typecheck` → échoue dans ce sandbox pour la raison d'environnement
-  déjà documentée et **indépendamment reproduite par l'Évaluateur lui-même**
-  dans son propre environnement (`ERR_PACKAGE_PATH_NOT_EXPORTED` sur
-  `typescript/package.json` résolu par `npx`, message ne référençant aucun
-  fichier du projet). Tentative de contournement (installation isolée de
-  `vue-tsc@2.2.0`/`typescript@5.9.2` dans un répertoire temporaire hors
-  dépôt) bloquée par une protection de l'environnement d'exécution sur les
-  commandes destructrices ; non poursuivie car hors périmètre du correctif
-  demandé et déjà qualifiée de non bloquante par l'Évaluateur (P3 passé
-  « avec réserve d'environnement » à l'itération précédente).
-- Script Playwright indépendant (hors dépôt, `playwright` déjà présent dans
-  le cache npx de la machine, même outil que l'Évaluateur) :
-  - Menu, item inactif : `getComputedStyle` réel (`opacity: 0.62`,
-    `color: rgb(237,232,222)`) composé sur noir → **6,58:1** mesuré (calcul
-    programmatique, formule WCAG complète).
-  - Hero : `hero__scrim` présent avec `background-color: rgba(8,7,6,0.93)`
-    confirmé en `getComputedStyle` réel.
-  - `aria-label` des deux `<nav>` confirmés distincts.
-  - Tenue à l'écran : les 5 sections aux 4 tailles requises (1920×1080,
-    1440×900, 1280×720, 768×1024) → `scrollHeight === clientHeight` partout
-    (0 px d'écart, aucune régression du Hero malgré le scrim ajouté). Mobile
-    375×667 : les 5 sections tiennent aussi exactement (667/667), 0 erreur
-    console sur le parcours complet.
-  - Boutons Hero : « Voir mes projets » et « Me contacter » amènent bien à
-    la section Projets (index actif 4), aucune régression fonctionnelle.
-  - File d'attente clavier : deux `ArrowDown` rapprochés pendant une
-    transition font bien avancer de 2 sections (aucune perte), indicateur
-    `.queued-hint` visible pendant la fenêtre d'attente puis absent une fois
-    consommé.
-  - Aucune erreur console sur l'ensemble de ces parcours.
+  non applicatifs, déjà documentés aux itérations précédentes).
+- `npx nuxi typecheck` → échoue toujours pour la même raison d'environnement
+  déjà documentée et indépendamment reproduite par l'Évaluateur
+  (`ERR_PACKAGE_PATH_NOT_EXPORTED` sur `typescript/package.json` résolu par
+  `npx`, message ne référençant aucun fichier du projet) — reproduit à
+  l'identique cette fois encore, pas un nouvel échec.
+- Contraste : voir section dédiée ci-dessus (20 zones, 0 échec, mesure sur
+  pixels réellement rendus, faux positif de mon propre harnais identifié et
+  écarté par contre-vérification).
+- Non-régression (script Playwright indépendant) :
+  - Tenue à l'écran : les 5 sections aux 4 tailles desktop + mobile 375×667
+    tiennent toujours exactement (`scrollHeight === clientHeight`), y
+    compris sur les sections désormais dotées de `.panel-inset` — confirme
+    que le pseudo-élément n'ajoute aucune hauteur de flux.
+  - Boutons Hero (« Voir mes projets », « Me contacter ») toujours
+    fonctionnels.
+  - `aria-label` distincts des deux `<nav>`, file d'attente clavier avec
+    accusé de réception (désormais mieux protégé, voir plus haut) :
+    non retouchés, revérifiés visuellement sans régression.
+  - Aucune erreur console sur l'ensemble des parcours de test.
+- Visuel (captures desktop 1440×900 et mobile 375×667, Hero/Parcours/Projet
+  phare/Projets) : DA "instrument de bord" respectée — fonds plats, pas de
+  flou, pas de glow, pas de coin arrondi, filets internes toujours visibles
+  à l'intérieur des panels (`.method__card`, `.projects__card`,
+  `.about__entry` gardent leur `border-top`/leurs propres filets, qui
+  restent lisibles sur le fond du panel).
 
-## Connu, non fait
+## Connu, non fait / risques résiduels
 
-- Seuls le Hero et le menu ont été traités, conformément au périmètre exact
-  de la demande. L'Évaluateur note en suggestion (non bloquante à
-  l'itération 1) que les autres sections (Parcours, Méthode, Projet phare,
-  Projets) posent aussi du texte directement sur le canvas sans `.panel` —
-  elles n'ont pas été signalées en échec et n'ont pas été touchées ici pour
-  ne rien régresser hors périmètre ; à auditer systématiquement si
-  l'Évaluateur les signale à son tour.
-- Molette et tactile ne bénéficient pas de la file d'attente ajoutée pour le
-  clavier (non demandé).
-- Typecheck non vérifié à 0 erreur dans ce sandbox précis pour la raison
-  d'environnement documentée ci-dessus (déjà actée comme non bloquante par
-  l'Évaluateur à l'itération précédente, reproduite indépendamment de son
-  côté).
+- Le panel des sections Méthode/Projets/Parcours/Projet phare protège
+  l'ENSEMBLE du bloc de texte (titre+intro dans un panel, grille/frise dans
+  un autre), pas chaque carte individuellement — choix délibéré pour rester
+  proche de la lecture "lignes éditoriales séparées par des filets" de la
+  spec (§2.3 bis) plutôt que de multiplier les petites cartes à fond, tout
+  en garantissant le contraste sur 100% de la surface de texte.
+- Le faux positif de harnais documenté ci-dessus concernait spécifiquement
+  un enchaînement rapide et inhabituel de 5 sections avec un décodage
+  d'image lourd côté page à chaque frame ; si l'Évaluateur utilise une
+  méthode de mesure comparable (screenshot + décodage répété dans le
+  contexte de la page), il pourrait en théorie retomber sur un artefact
+  similaire — dans ce cas, une navigation directe vers la section suivie
+  d'un échantillonnage dédié (sans ping-pong rapide entre sections) donnera
+  la mesure représentative de l'usage réel.
+- `--panel-bg` à 96% rend les panels visuellement très proches d'un fond
+  plein (peu de translucidité résiduelle) ; assumé comme compatible avec la
+  DA (fond plat, pas de glow/glassmorphism, cf. §2.3 bis), mais si
+  l'Évaluateur juge que ça sacrifie trop l'effet "posé sur le canvas
+  animé", une piste alternative serait de garder une opacité plus basse
+  uniquement pour les panels dont le texte est en `--color-ink` (marge
+  large, 16,5:1 mesuré même à 93%) et de réserver 96%+ aux seuls blocs
+  contenant du texte accent — non fait ici pour garder une seule valeur
+  partagée, plus simple à maintenir et à auditer.
+- Zone vide en bas des sous-écrans mobile (signalée itération 1, non
+  bloquante) : toujours non retouchée, hors périmètre de cette itération.
 
 ## Dev Server
 
 - URL : http://localhost:3000
-- Status : en cours d'exécution (arrière-plan)
+- Status : en cours d'exécution (arrière-plan, `nuxt dev --port 3000`)
 - Commande : `npm run dev`

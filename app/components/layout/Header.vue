@@ -13,7 +13,7 @@ import { siteContent } from '~/data/content'
 
 <style scoped>
 /* Instrument de bord, sans capsule ni lueur (§2.3 bis de la spec) : un simple
-   bloc mono/serif posé en haut à gauche, souligné d'un filet fin. */
+   bloc mono/serif posé en haut à gauche. */
 .site-header {
   position: fixed;
   top: 0;
@@ -21,9 +21,17 @@ import { siteContent } from '~/data/content'
   z-index: 50;
 }
 
+/*
+ * Fond plat opaque (`--panel-bg`, même traitement que `.panel`) : le nom
+ * est persistant sur les 5 sections, posé directement sur le canvas
+ * hyperspace animé. Sans ce fond, une étoile blanche pleine derrière le
+ * glyphe fait chuter le contraste à ~1,21:1 (mesuré sur pixels réels,
+ * feedback-2.md) — corrigé ici, tient >= 4,5:1 dans le pire cas.
+ */
 .site-header__inner {
   padding: 1rem 1.25rem 0.85rem;
-  border-bottom: 1px solid var(--color-line);
+  background-color: var(--panel-bg);
+  border: 1px solid var(--color-line);
 }
 
 .site-header__name {

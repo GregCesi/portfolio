@@ -46,7 +46,11 @@ defineEmits<{ prev: []; next: [] }>()
   height: 2.25rem;
   border-radius: 999px;
   border: 1px solid var(--color-line);
-  background: transparent;
+  /* Fond plat opaque plutôt que transparent : ce bouton est posé
+     directement sur le canvas, hors de tout `.panel-inset` (§2.3). Un fond
+     opaque sur une boîte déjà dimensionnée ne change aucune taille de
+     flux, donc aucun risque pour "tient dans l'écran" sur mobile. */
+  background-color: var(--panel-bg);
   color: var(--color-ink);
   font-size: 1.15rem;
   line-height: 1;
@@ -71,6 +75,13 @@ defineEmits<{ prev: []; next: [] }>()
   color: var(--color-ink-dim);
   min-width: 3.5ch;
   text-align: center;
+  /* Même correctif que `.subnav__btn` : fond opaque, texte posé sur le
+     canvas. Padding modeste, sans risque de hauteur : la rangée flex est
+     déjà dimensionnée par les boutons ronds (2.25rem), plus hauts que ce
+     texte même avec padding. */
+  background-color: var(--panel-bg);
+  border: 1px solid var(--color-line);
+  padding: 0.15rem 0.45rem;
 }
 
 @media (min-width: 768px) {

@@ -51,12 +51,22 @@ useLayoutDimensions()
   }
 }
 
+/*
+ * Fond plat opaque (même traitement que `.panel`) : le repère "01 / 05" est
+ * posé directement sur le canvas hyperspace, comme le Header et le menu
+ * (même défaut, même correctif — voir feedback-2.md). Élément déjà en
+ * position absolue : le padding ajouté ici ne modifie aucune hauteur de
+ * flux, aucun risque pour la contrainte "tient dans l'écran" (§2.3).
+ */
 .section-marker {
   position: absolute;
   top: 0.75rem;
   right: 1.25rem;
   margin: 0;
   z-index: 1;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--color-line);
+  padding: 0.25rem 0.5rem;
 }
 
 @media (min-width: 768px) {

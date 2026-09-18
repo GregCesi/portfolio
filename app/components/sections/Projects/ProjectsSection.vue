@@ -1,12 +1,12 @@
 <template>
   <BaseSection :index="5">
     <div ref="rootRef" class="projects">
-      <header class="projects__head">
+      <header class="projects__head panel-inset">
         <h2 class="projects__title">{{ projects.title }}</h2>
         <p class="projects__intro">{{ projects.intro }}</p>
       </header>
 
-      <div class="projects__grid">
+      <div class="projects__grid panel-inset">
         <SubscreenTrack :index="sub.index.value" :total="sub.total.value" @update:index="sub.goTo">
           <article v-for="(card, index) in projects.cards" :key="card.id" class="projects__card">
             <p class="projects__number">{{ String(index + 1).padStart(2, '0') }}</p>
@@ -101,6 +101,10 @@ useSplitReveal(rootRef, '.projects__title, .projects__intro')
   padding: 0 1.25rem;
 }
 
+/* `.panel-inset` (posé sur `.projects__head` et `.projects__grid`, ce
+   dernier englobant aussi le bloc `#contact`, dans le template) protège le
+   texte du canvas hyperspace sans ajouter de hauteur au flux — voir la
+   classe utilitaire dans main.css pour le détail. */
 .projects__head {
   max-width: 46rem;
   flex-shrink: 0;
