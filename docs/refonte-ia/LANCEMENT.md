@@ -10,7 +10,13 @@ git switch ia-refonte
 npm install
 ```
 
-Garder la ligne Co-Authored-By dans tous tes dépôts : ECC la coupe globalement sauf si la clé est déjà explicite. Ouvre `~/.claude/settings.json` et ajoute `"includeCoAuthoredBy": true` **avant** l'installation.
+Garder la ligne Co-Authored-By dans tous tes dépôts : ECC la coupe globalement sauf si la clé est déjà explicite. À lancer **avant** l'installation :
+
+```bash
+python3 -c 'import json,os;p=os.path.expanduser("~/.claude/settings.json");d=json.load(open(p)) if os.path.exists(p) else {};d["includeCoAuthoredBy"]=True;json.dump(d,open(p,"w"),indent=2)' && grep includeCoAuthoredBy ~/.claude/settings.json
+```
+
+Ce dépôt la force déjà à `true` dans `.claude/settings.json`, mais seulement pour lui.
 
 Installer ECC en portée locale :
 
