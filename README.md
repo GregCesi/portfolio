@@ -29,6 +29,28 @@ npm run lint     # ESLint
 npx nuxi typecheck # vérification TypeScript (vue-tsc)
 ```
 
+### Limitation connue : `npx nuxi typecheck` en local
+
+Sur certains environnements de développement locaux, `npx nuxi typecheck`
+échoue avec :
+
+```
+Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './lib/tsc' is not
+defined by "exports" in
+~/.npm/_npx/<hash>/node_modules/typescript/package.json
+    at resolveTscPath (.../vue-tsc/index.js:73:43)
+```
+
+C'est un problème de résolution de module entre la version de `typescript`
+mise en cache par `npx` (hors de ce dépôt, sous `~/.npm/_npx/`) et
+`vue-tsc` — aucun fichier de ce projet n'apparaît dans la trace. Reproduit
+à l'identique sur plusieurs itérations et par plusieurs agents indépendants
+sans qu'aucune modification de code n'y change quoi que ce soit. Le build
+(`npm run build`, `npm run generate`) et le lint (`npm run lint`) ne sont
+pas affectés. Si ce problème apparaît, vider le cache npx
+(`npx clear-npx-cache` ou suppression manuelle de `~/.npm/_npx/`) avant de
+relancer la commande le résout généralement.
+
 ## Structure
 
 - `content/portfolio.md` : source unique de tous les textes visibles.

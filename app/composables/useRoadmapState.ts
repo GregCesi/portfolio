@@ -115,7 +115,21 @@ export const useRoadmapState = () => {
     }
   }
 
-  // Navigation animée avec GSAP
+  // Navigation animée avec GSAP.
+  //
+  // Les deux sens (next/prev) suivent désormais exactement la même séquence,
+  // dans le même ordre, pour éliminer l'asymétrie relevée à l'itération 4
+  // (feedback-4.md) : `currentStep.value` n'est mis à jour qu'une fois le
+  // texte totalement invisible (après le fade-out), jamais avant — donc
+  // aucun flash de contenu n'est possible dans aucun des deux sens.
+  //
+  // Le texte réapparaît dès que possible : le fade-in du contenu démarre
+  // juste après la mise à jour du modèle, sans attendre la fin de
+  // l'animation de ligne (1,5s). La ligne continue d'animer en arrière-plan
+  // (langage visuel inchangé, même durée, même easing) mais elle ne bloque
+  // plus la lisibilité du texte — la fonction attend malgré tout sa fin
+  // avant de résoudre, pour que les appelants (navigation clavier en file
+  // d'attente notamment) restent synchronisés sur l'état final réel.
   const goToStepAnimated = async (newStep: number): Promise<void> => {
     if (newStep === currentStep.value) return
     if (newStep < 1 || newStep > steps.value.length) return
@@ -126,51 +140,36 @@ export const useRoadmapState = () => {
     const lines = timelineElements.value.lines
     const content = timelineElements.value.content
 
+    // 🪐 Lancer le morphing planète en parallèle (commence maintenant, finit à la fin)
+    const planetMorphPromise = animatePlanetTexture(steps.value[newStep - 1]?.planetTexture || '')
+
+    // 1. FADE-OUT du texte (identique dans les deux sens)
+    if (content) await fadeOut(content)
+
+    // 2. Mettre à jour le modèle au même point du cycle dans les deux sens :
+    // le texte est déjà invisible, donc aucun flash de contenu possible.
+    currentStep.value = newStep
+
+    // 3. Mise à jour visuelle des cercles + démarrage de l'animation de
+    // ligne, en arrière-plan (ne bloque pas la réapparition du texte).
+    let linePromise: Promise<void> = Promise.resolve()
     if (direction === 'next') {
-      // NEXT: Fade-out, ligne, cercle, fade-in + morphing planète en parallèle
-
-      // 🪐 Lancer le morphing planète en parallèle (commence maintenant, finit à la fin)
-      const planetMorphPromise = animatePlanetTexture(steps.value[newStep - 1]?.planetTexture || '')
-
-      // 1. FADE-OUT du texte
-      if (content) await fadeOut(content)
-
-      // 2. Animation ligne
-      const lineIndex = oldStep - 1
-      const line = lines[lineIndex]
-      if (line) await animateLineGrow(line)
-
-      // 3. Mettre à jour currentStep + ajout pulse cercle
-      currentStep.value = newStep
       const newCircle = circles[newStep - 1]
       if (newCircle) newCircle.classList.add('pulse')
-
-      // 4. FADE-IN du texte + attendre la fin du morphing
-      const fadeInPromise = content ? fadeIn(content) : Promise.resolve()
-      await Promise.all([fadeInPromise, planetMorphPromise])
+      const line = lines[oldStep - 1]
+      if (line) linePromise = animateLineGrow(line)
     } else {
-      // PREV: Cercle, fade-out, ligne, fade-in + morphing planète en parallèle
-
-      // 🪐 Lancer le morphing planète en parallèle
-      const planetMorphPromise = animatePlanetTexture(steps.value[newStep - 1]?.planetTexture || '')
-
-      // 1. Retirer le pulse + mise à jour currentStep
       const oldCircle = circles[oldStep - 1]
       if (oldCircle) oldCircle.classList.remove('pulse')
-      currentStep.value = newStep
-
-      // 2. FADE-OUT du texte
-      if (content) await fadeOut(content)
-
-      // 3. Animer la ligne à l'envers
-      const lineIndex = newStep - 1
-      const lineToAnimate = lines[lineIndex]
-      if (lineToAnimate) await animateLineShrink(lineToAnimate)
-
-      // 4. FADE-IN du texte + attendre la fin du morphing
-      const fadeInPromise = content ? fadeIn(content) : Promise.resolve()
-      await Promise.all([fadeInPromise, planetMorphPromise])
+      const line = lines[newStep - 1]
+      if (line) linePromise = animateLineShrink(line)
     }
+
+    // 4. FADE-IN du texte immédiatement (le contenu redevient lisible en
+    // ~0,6s au lieu de ~2s) + attendre la fin de la ligne et du morphing
+    // planète avant de résoudre, pour la synchronisation des appelants.
+    const fadeInPromise = content ? fadeIn(content) : Promise.resolve()
+    await Promise.all([fadeInPromise, planetMorphPromise, linePromise])
   }
 
   // Fonctions de navigation animées
