@@ -1,27 +1,31 @@
 <template>
   <BaseSection :index="3">
     <div ref="rootRef" class="method">
-      <div class="method__scene">
-        <!-- Mobile : titre et introduction en premier sous-écran, puis une carte par sous-écran (§2.3). -->
-        <SubscreenTrack :index="sub.index.value" :total="sub.total.value" @update:index="sub.goTo">
+      <div class="method__scene rv">
+        <!--
+          Un plan à la fois, comme un générique : le titre et l'introduction, puis
+          une carte par plan. Sur mobile la piste glisse, sur desktop les plans
+          se fondent l'un dans l'autre (§2.3, §2.3 bis). Rien n'est coupé.
+        -->
+        <SubscreenTrack stage :index="sub.index.value" :total="sub.total.value" @update:index="sub.goTo">
           <header class="method__head">
-            <div class="method__head-inner scrim">
+            <div class="method__head-inner">
               <h2 class="method__title t-title rv">{{ method.title }}</h2>
-              <p class="method__intro t-body rv">{{ method.intro }}</p>
+              <p class="method__intro t-body">{{ method.intro }}</p>
             </div>
           </header>
 
           <article v-for="(card, index) in method.cards" :key="card.title" class="method__card">
-            <div class="method__card-inner scrim">
-              <p class="method__number rv">{{ String(index + 1).padStart(2, '0') }}</p>
-              <h3 class="method__card-title rv">{{ card.title }}</h3>
-              <p class="method__card-text t-body rv">{{ card.text }}</p>
+            <div class="method__card-inner">
+              <p class="method__number">{{ String(index + 1).padStart(2, '0') }}</p>
+              <h3 class="method__card-title">{{ card.title }}</h3>
+              <p class="method__card-text t-body">{{ card.text }}</p>
             </div>
           </article>
         </SubscreenTrack>
       </div>
 
-      <SubscreenNav :index="sub.index.value" :total="sub.total.value" @prev="sub.prev" @next="sub.next" />
+      <SubscreenNav persistent :index="sub.index.value" :total="sub.total.value" @prev="sub.prev" @next="sub.next" />
     </div>
   </BaseSection>
 </template>
@@ -39,7 +43,7 @@ import { useSplitReveal } from '~/composables/useSplitReveal'
 const method = siteContent.method
 
 // Sous-écrans mobiles : titre + introduction, puis une carte chacun.
-const sub = useMobileSubscreens(method.cards.length + 1)
+const sub = useMobileSubscreens(method.cards.length + 1, 2)
 const subscreenNav = useSubscreenNav()
 
 onMounted(() => subscreenNav.register('method', sub))
@@ -49,7 +53,7 @@ const rootRef = ref<HTMLElement | null>(null)
 useSplitReveal(rootRef, {
   index: 2,
   titles: '.method__title',
-  lines: '.method__intro, .method__number, .method__card-title, .method__card-text',
+  lines: '.method__scene',
 })
 </script>
 
@@ -57,12 +61,16 @@ useSplitReveal(rootRef, {
 .method {
   height: 100%;
   width: 100%;
-  max-width: 72rem;
+  max-width: 64rem;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 0 var(--scrim-x);
+  padding: 0 var(--pad-x);
+}
+
+.method__scene {
+  flex: 1;
+  min-height: 0;
 }
 
 .method__head,
@@ -72,102 +80,72 @@ useSplitReveal(rootRef, {
   justify-content: center;
 }
 
-.method__head-inner {
+.method__head-inner,
+.method__card-inner {
+  width: 100%;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .method__title {
   font-size: clamp(1.15rem, 0.95rem + 0.9vw, 1.9rem);
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
   text-wrap: balance;
 }
 
 .method__intro {
   max-width: 31rem;
-  margin: 0 auto;
 }
 
-.method__card-inner {
-  max-width: 28rem;
-  border-top: 1px solid var(--color-line);
-  padding-top: 0.9rem;
-  /* Le numéro se pose sur la ligne du titre, le texte occupe toute la largeur. */
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: 0.9rem;
-  align-items: baseline;
-}
-
+/* Grand chiffre de plan, puis un filet de 1 px : le carton d'un chapitre. */
 .method__number {
-  grid-column: 1;
   font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 0.8125rem;
-  letter-spacing: 0.3em;
-  color: var(--color-accent);
+  font-weight: 300;
+  font-size: clamp(3.5rem, 2rem + 5vh, 5.5rem);
+  line-height: 1;
+  letter-spacing: 0.12em;
+  padding-left: 0.12em;
+  color: var(--color-ink-dim);
+}
+
+.method__number::after {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  /* Sous la boîte de texte du chiffre, pas dans son emprise : le filet ne passe jamais derrière un glyphe. */
+  margin: 0.4em auto 0;
+  background: var(--color-accent);
 }
 
 .method__card-title {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: 0.9375rem;
+  font-size: clamp(1rem, 0.85rem + 0.35vw, 1.2rem);
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.2em;
   line-height: 1.5;
   color: var(--color-ink);
-  grid-column: 2;
-  margin-bottom: 0.6rem;
+  margin-top: 1rem;
+  max-width: 30rem;
+  text-wrap: balance;
 }
 
 .method__card-text {
-  grid-column: 1 / -1;
-  color: var(--color-ink-dim);
+  max-width: 27rem;
+  margin-top: 1.1rem;
 }
 
-@media (min-width: 768px) {
-  .method__scene {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: center;
-    row-gap: clamp(0.9rem, 2.2vh, 1.5rem);
-  }
-
-  .method__head {
-    margin-bottom: clamp(0.5rem, 2vh, 1.5rem);
-  }
-
-  .method__card {
-    width: 100%;
-    max-width: 34rem;
-    justify-content: flex-start;
-  }
-
-  .method__card-inner {
-    max-width: none;
-    width: 100%;
-    padding-top: 0.7rem;
+@media (max-width: 767.98px) {
+  .method__number {
+    font-size: 3.25rem;
   }
 
   .method__card-title {
-    margin-bottom: 0.4rem;
-  }
-}
-
-/* >= 1024px : deux colonnes de deux plans, chacune une colonne de texte de 45 à 60 signes. */
-@media (min-width: 1024px) {
-  .method__scene {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: clamp(2rem, 5vw, 5rem);
-    justify-items: stretch;
-    align-items: start;
-  }
-
-  .method__head {
-    grid-column: 1 / -1;
-  }
-
-  .method__card {
-    max-width: none;
+    margin-top: 1.1rem;
+    letter-spacing: 0.16em;
   }
 }
 </style>

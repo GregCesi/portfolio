@@ -1,5 +1,5 @@
 <template>
-  <div class="subnav scrim" role="group" aria-label="Navigation entre les sous-écrans">
+  <div class="subnav" :class="{ 'subnav--persistent': persistent }" role="group" aria-label="Navigation entre les sous-écrans">
     <button
       type="button"
       class="subnav__btn"
@@ -23,14 +23,12 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{ index: number; total: number }>()
+defineProps<{ index: number; total: number; persistent?: boolean }>()
 defineEmits<{ prev: []; next: [] }>()
 </script>
 
 <style scoped>
-/* Visible uniquement sur mobile (< 768px) : au-delà, tout le contenu de la
-   section tient dans l'écran d'un coup (§2.3 de la spec). Chiffres en Jost,
-   flèches sans cadre ni fond : le voile du layout porte le contraste. */
+/* Chiffres en Jost, flèches sans cadre ni fond. */
 .subnav {
   display: flex;
   align-items: center;
@@ -75,8 +73,10 @@ defineEmits<{ prev: []; next: [] }>()
   text-align: center;
 }
 
+/* Desktop : masquée, sauf pour les sections en scène (`persistent`) où elle
+   est la seule façon de passer d'un plan au suivant. */
 @media (min-width: 768px) {
-  .subnav {
+  .subnav:not(.subnav--persistent) {
     display: none;
   }
 }

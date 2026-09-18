@@ -3,10 +3,10 @@
     <div ref="rootRef" class="hero">
       <!--
         Carton de générique, centré : un titre, deux lignes de texte, deux
-        liens. Le voile noir à bords fondus (`.scrim`) protège le contraste
-        AA sur le champ d'étoiles, sans former de carte ni de cadre.
+        liens. Le contraste AA est tenu par le fond lui-même : les étoiles
+        s'éteignent derrière le texte (voir ReadingZones).
       -->
-      <div class="hero__block scrim">
+      <div class="hero__block">
         <h1 class="hero__title t-title rv">{{ hero.title }}</h1>
 
         <div class="hero__text">
@@ -53,7 +53,7 @@ useSplitReveal(rootRef, {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 var(--scrim-x);
+  padding: 0 var(--pad-x);
 }
 
 .hero__block {

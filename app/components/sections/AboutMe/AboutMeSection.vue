@@ -5,11 +5,12 @@
         <!--
           Mobile : le titre et l'introduction forment le premier sous-écran,
           puis une entrée de frise par sous-écran (§2.3). Au-delà de 768px la
-          piste s'efface (`display: contents`) et tout se lit d'un coup.
+          piste s'efface (`display: contents`) : la frise se lit d'un coup, sur
+          deux ou trois colonnes, un carton de dates.
         -->
         <SubscreenTrack :index="sub.index.value" :total="sub.total.value" @update:index="sub.goTo">
           <header class="about__head">
-            <div class="about__head-inner scrim">
+            <div class="about__head-inner">
               <h2 class="about__title t-title rv">{{ about.title }}</h2>
               <p class="about__intro t-body rv">{{ about.intro }}</p>
             </div>
@@ -19,8 +20,9 @@
             v-for="(entry, index) in about.timeline"
             :key="entry.period"
             class="about__entry"
+            :class="{ 'about__entry--e2': index % 2 === 1, 'about__entry--e3': index % 3 === 2 }"
           >
-            <div class="about__entry-inner scrim">
+            <div class="about__entry-inner">
               <div class="about__marker" aria-hidden="true">
                 <span :ref="(el) => setCircleRef(el as HTMLElement, index)" class="about__circle" />
                 <span v-if="index < about.timeline.length - 1" class="about__connector">
@@ -62,7 +64,7 @@ const circles = ref<HTMLElement[]>([])
 const lines = ref<HTMLElement[]>([])
 
 // Sous-écrans mobiles : titre + introduction, puis une entrée de frise chacun.
-const sub = useMobileSubscreens(about.timeline.length + 1)
+const sub = useMobileSubscreens(about.timeline.length + 1, 1)
 const subscreenNav = useSubscreenNav()
 
 onMounted(() => subscreenNav.register('about', sub))
@@ -76,10 +78,11 @@ function setLineRef(el: HTMLElement | null, index: number) {
   if (el) lines.value[index] = el
 }
 
-// À partir de 1024px la frise passe d'une colonne à une rangée : seule cette
-// variable pilote l'axe de la ligne qui se trace, la mise en page reste 100% CSS.
+// À partir de 768px chaque entrée porte sa ligne à l'horizontale (carton de
+// dates) : seule cette fonction pilote l'axe de la ligne qui se trace, la mise
+// en page reste 100 % CSS.
 function isRow(): boolean {
-  return window.matchMedia('(min-width: 1024px)').matches
+  return window.matchMedia('(min-width: 768px)').matches
 }
 
 function hideExtra() {
@@ -102,10 +105,10 @@ function extra(tl: gsap.core.Timeline | null) {
   gsap.set(lines.value, { [prop]: 0, [other]: 1, transformOrigin: origin })
 
   about.timeline.forEach((_, index) => {
-    const at = 1.2 + index * 0.55
-    tl.to(circles.value[index]!, { opacity: 1, duration: 0.9, ease: 'power2.out' }, at)
+    const at = 0.9 + index * 0.36
+    tl.to(circles.value[index]!, { opacity: 1, duration: 0.8, ease: 'power2.out' }, at)
     if (lines.value[index]) {
-      tl.to(lines.value[index]!, { [prop]: 1, duration: 0.9, ease: 'power2.inOut' }, at + 0.25)
+      tl.to(lines.value[index]!, { [prop]: 1, duration: 0.8, ease: 'power2.inOut' }, at + 0.2)
     }
   })
 }
@@ -132,10 +135,18 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 var(--scrim-x);
+  padding: 0 var(--pad-x);
 }
 
-/* Mobile : la piste glisse, chaque sous-écran centre son contenu. */
+/* Mobile : la piste glisse, chaque sous-écran centre son contenu, la
+   navigation reste en bas. */
+@media (max-width: 767.98px) {
+  .about__scene {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
 .about__head,
 .about__entry {
   display: flex;
@@ -214,75 +225,54 @@ onBeforeUnmount(() => {
 }
 
 .about__place {
-  font-size: 1rem;
+  font-size: var(--fs-body);
   line-height: 1.4;
   color: var(--color-ink);
 }
 
 .about__role {
-  font-size: 0.9375rem;
+  font-size: var(--fs-body);
   line-height: 1.4;
   color: var(--color-ink-dim);
   margin-top: 0.15rem;
 }
 
 .about__detail {
-  font-size: 0.875rem;
+  font-size: var(--fs-body);
   line-height: 1.45;
   color: var(--color-ink-dim);
   margin-top: 0.3rem;
 }
 
 /*
- * >= 768px : la piste s'efface, la scène devient une grille. Tablette
- * portrait : frise verticale sous le titre et l'introduction.
+ * >= 768px : la piste s'efface, la scène devient une grille de deux colonnes
+ * (tablette portrait) puis de trois (>= 1024px), trois dates sur deux rangées.
+ * Chaque entrée porte sa ligne : un point, un filet qui se trace.
  */
 @media (min-width: 768px) {
   .about__scene {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: center;
-  }
-
-  .about__head {
-    margin-bottom: clamp(1rem, 3vh, 2.25rem);
-  }
-
-  .about__entry {
-    width: 100%;
-    max-width: 24rem;
-    justify-content: flex-start;
-  }
-
-  .about__entry-inner {
-    width: 100%;
-    max-width: none;
-  }
-}
-
-/*
- * >= 1024px : la frise passe en rangée, un carton de dates de six colonnes,
- * les points reliés par un filet qui se trace de gauche à droite.
- */
-@media (min-width: 1024px) {
-  .about__scene {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    column-gap: clamp(1rem, 2vw, 2rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(1.25rem, 3vw, 3rem);
+    row-gap: clamp(1rem, 3.5vh, 2.75rem);
     justify-items: stretch;
     align-items: start;
   }
 
   .about__head {
     grid-column: 1 / -1;
-    margin-bottom: clamp(1.5rem, 6vh, 3.5rem);
+    margin-bottom: clamp(0.75rem, 3.5vh, 2.5rem);
   }
 
   .about__entry {
     max-width: none;
     align-items: flex-start;
+    justify-content: flex-start;
   }
 
   .about__entry-inner {
+    width: 100%;
+    max-width: none;
     flex-direction: column;
     gap: 0.75rem;
   }
@@ -306,6 +296,25 @@ onBeforeUnmount(() => {
 
   .about__body {
     padding-bottom: 0;
+  }
+
+  /* Deux colonnes : la fin de chaque rangée n'a pas de filet vers le vide. */
+  .about__entry--e2 .about__connector {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .about__scene {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .about__entry--e2 .about__connector {
+    display: block;
+  }
+
+  .about__entry--e3 .about__connector {
+    display: none;
   }
 }
 </style>

@@ -25,9 +25,10 @@ const paddedIndex = computed(() => String(props.index + 1).padStart(2, '0'))
 /*
  * Libellé toujours visible, Jost capitales espacées, précédé du numéro
  * (§2.3 bis). Actif : pleine opacité, accent glacier, trait fin devant.
- * Inactifs : opacité réduite (0.6 : la valeur qui garde le texte petit
- * au-dessus de 4,5:1 sur le noir, même derrière une étoile ; la spec cible
- * 35 % mais 35 % ne donne que ~2,8:1 et casse le contraste AA), 0.85 au survol.
+ * Inactifs : opacité réduite (0.55 : la valeur qui garde le texte petit
+ * au-dessus de 4,5:1 sur le noir, même derrière une étoile éteinte par les
+ * zones de lecture ; la spec cible 35 % mais 35 % ne donne que ~2,8:1 et casse
+ * le contraste AA), 0.85 au survol.
  * Le numéro hérite de la même opacité que le libellé (pas d'opacité
  * imbriquée, qui ferait retomber sous le seuil AA).
  */
@@ -44,7 +45,7 @@ const paddedIndex = computed(() => String(props.index + 1).padStart(2, '0'))
   background: transparent;
   border: none;
   padding: 0.5rem 0;
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: pointer;
   transition: opacity 0.6s var(--ease-slow), color 0.6s var(--ease-slow);
   white-space: nowrap;
@@ -80,5 +81,17 @@ const paddedIndex = computed(() => String(props.index + 1).padStart(2, '0'))
 .menu-item__number {
   color: inherit;
   min-width: 1.4rem;
+}
+
+/* Tablette portrait : menu compact (sans chiffre, trait court) pour laisser
+   la largeur au contenu. */
+@media (max-width: 1023.98px) {
+  .menu-item__number {
+    display: none;
+  }
+
+  .menu-item::before {
+    width: 1rem;
+  }
 }
 </style>

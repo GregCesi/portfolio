@@ -1,4 +1,124 @@
-# Generator State — Run 3, itération 1
+# Generator State — Run 3, itération 2
+
+## Ce qui change (réponse au feedback-1, P9 à 5,0/10)
+
+- **P9, suppression de tout voile.** `.scrim` (classe, CSS, `--scrim-x` renommé
+  `--pad-x`) et les trois voiles fixes du layout (`veil--top/menu/bar`) sont
+  supprimés. Le fond est un noir continu. Le contraste AA est obtenu par le
+  canvas : `app/graphics/background/ReadingZones.ts` mesure dans le DOM les
+  boîtes des blocs de texte visibles (`h1, h2, h3, p, li, a, button,
+  .subnav__indicator`, toutes les 40 ms, à chaque image pendant les 3 s qui
+  suivent un warp) et `StarsField` éteint chaque étoile et chaque tronçon de
+  traînée (24 px, luminosité de l'extrémité la plus sombre) selon sa distance
+  au texte : luminosité 0,07 contre le texte, retour à 1 sur 130 px (smoothstep,
+  aucune arête). Aucun rectangle : le noir de fond est partout identique, les
+  étoiles s'éclaircissent seulement quand on s'éloigne du texte.
+- **Bug mobile du voisin.** Disparu avec le scrim (plus de `::before` qui
+  déborde). Contrôle : plus aucun mot grisé en bout de ligne.
+- **Tailles.** `--fs-body` plancher 16 px (18 px à 1080 de haut, 17 px à 900).
+  Parcours (lieu, rôle, détail) passe à `--fs-body` (16 px et plus, y compris
+  à 375 et 768). Étiquettes Jost (période, tags, liens) 12 à 13 px, ce sont des
+  repères. Mesuré : 16/17/18 px partout sur le texte courant.
+- **Mise en scène (spec §2.3 bis).**
+  - Méthode et Projets sont joués en plans successifs sur desktop aussi :
+    `SubscreenTrack` a un mode `stage` (>= 768 px : un plan à la fois, fondu
+    0,9 s + léger glissement vertical, plans non actifs `visibility: hidden`
+    et `aria-hidden`), `SubscreenNav` a un mode `persistent` (flèches et
+    « N / M » visibles sur desktop pour ces deux sections ; clavier gauche/droite
+    déjà câblé). Méthode : titre + introduction, puis un carton par plan
+    (grand chiffre Jost 300, filet 1 px, titre, texte centré, 27 rem). Projets :
+    titre + introduction, un plan par projet (chiffre, nom, accroche, texte,
+    tags, lien), puis le contact. Colonnes déséquilibrées : sans objet (plus de
+    colonnes). Les plans ne se recouvrent jamais : rien ne défile, rien ne
+    se coupe (tenue vérifiée, voir plus bas). Les plans se remettent au premier
+    plan 1,3 s après avoir quitté la section (retour comme au début d'un film) ;
+    une arrivée ciblée (« Me contacter » va au plan Contact) annule le retour.
+  - Parcours : carton de dates sur 3 colonnes x 2 rangées (>= 1024 px), 2 x 3
+    à 768 px, chaque entrée porte son point et son filet qui se trace (plus de
+    six colonnes de 160 px). Frise complète en ~4 s au lieu de ~6,5 s.
+  - Menu : 55 % au repos au lieu de 60 % (le seuil AA le permet maintenant :
+    pire pixel 5,38:1 avec étoile éteinte). 35 % reste impossible (2,8:1 même
+    sur noir pur). À 768 px le menu est compact (sans chiffres, trait court,
+    marge 16 px) : la colonne de contenu gagne 70 px (510 -> 580 px).
+- **Rythme.** Délai de départ des révélations 0,55 -> 0,4 s, cascade resserrée.
+- **Timeline Projet phare.** Chaque jalon (point + « Étape N » + titre) est un
+  vrai `<button>` : clic ou clavier va à l'étape.
+- **Hygiène.** `.eslintignore` (obsolète, provoquait l'avertissement ESLint)
+  remplacé par `ignores: ['.history']` dans `eslint.config.mjs`. README mis à jour
+  (plus de mention de voile ; « aucune carte ni voile » est désormais vrai).
+- **Typecheck littéral.** `npx nuxi typecheck` reste rouge : nuxi ne trouve pas
+  `vue-tsc` dans le dépôt (ce n'est pas une dépendance, `resolveModulePath` de
+  `vue-tsc/bin/vue-tsc.js` échoue) et retombe sur `npx -p vue-tsc -p typescript`
+  dont le cache `~/.npm/_npx` (hors dépôt) contient un `typescript` incompatible
+  (`ERR_PACKAGE_PATH_NOT_EXPORTED`). `typescript` 5.9 est présent dans le dépôt
+  (dépendance transitive), pas `vue-tsc`. Seule issue propre : ajouter `vue-tsc`
+  en devDependency, ce que la spec n'autorise pas ; non fait, à trancher par
+  Grégoire. Substitut équivalent : `vue-tsc@3` + `typescript@5.9` installés dans
+  le dossier temporaire de session (hors dépôt), lancés sur
+  `.nuxt/tsconfig.{app,server,shared,node}.json` : 0 erreur sur les quatre.
+
+## Choix et points de doute
+
+1. **Plans successifs sur desktop.** Choix de mise en scène assumé pour tenir
+   « une idée par écran » et 16 px partout ; le contenu reste tout dans le DOM.
+   Doute : un évaluateur qui compte la lecture « d'un coup » pourrait juger que
+   Méthode et Projets ne « tiennent » plus dans l'écran (ils tiennent, plan par
+   plan, comme la roadmap).
+2. **Texte en cours de fondu.** Pendant le warp, le texte qui apparaît a une
+   opacité < 1 (fondu depuis le noir voulu par la spec) : sa mesure de contraste
+   instantanée est basse (0,07 à 0,6 d'opacité) avant de converger. Menu et
+   repères, eux, restent >= 5,4:1 à +350 ms et +800 ms.
+3. **Étoiles éteintes autour du texte.** Effet visible seulement comme une
+   absence progressive d'étoiles (halo de 130 px), sans arête. Sur Parcours à
+   768 px, une bonne part du centre est vide d'étoiles.
+4. Planète : inchangée (étape 6 = texture 4, autorisé).
+
+## Vérifications (résultats)
+
+- `npm run build` : 0 ; `npm run generate` : 0 ; `npm run lint` : 0 erreur, 0
+  avertissement ; vue-tsc (substitut) : 0 erreur x 4 ; `npx nuxi typecheck`
+  littéral : rouge (cf. plus haut).
+- Console (Chrome headless, 1440, 375 tactile, mouvement réduit, parcours de
+  toutes les sections et sous-écrans) : aucune erreur, aucun warning Vue.
+- Tenue à l'écran (`section.section-viewport` scrollHeight/clientHeight ;
+  `.section-inner` idem ; largeur idem) : 1920x1080 1080/1080, 963/963 ;
+  1440x900 900/900, 783/783 ; 1280x720 720/720, 603/603 ; 768x1024 1024/1024,
+  915/915 ; 375x667 667/667, 516/516 ; identique sur les 5 sections, aucun
+  débord horizontal. Chaque plan Méthode/Projets aux 4 tailles desktop et
+  chaque sous-écran mobile (Parcours 7, Méthode 5, Projet phare 7, Projets 5) :
+  aucun bloc de texte hors fenêtre ou sous la barre mobile.
+- Contraste au pire pixel réel (texte rendu transparent, fond échantillonné sous
+  chaque nœud de texte, mélangé à son opacité effective, transitions CSS
+  neutralisées, 3 échantillons par écran, toutes sections et tous les plans) :
+  1920x1080 5,38:1 ; 1440x900 5,39:1 ; 1280x720 5,38:1 ; 768x1024 5,38:1 ;
+  375x667 5,38:1 ; 0 nœud sous 4,5:1 (3:1 pour le texte large). Le minimum est
+  toujours un libellé de menu à 55 % derrière un pixel d'étoile éteinte (18/255).
+- Warp (1440, +350 ms et +800 ms, `warp-*.png` dans le dossier de session) :
+  aucun rectangle ni bord, stars éteintes autour du texte ; menu 5,4:1 ou plus.
+- Fonctionnel : « Me contacter » -> plan Contact (5 / 5) ; « Voir mes projets »
+  -> plan 1 / 5 ; « Voir le détail » -> section 4 ; « Voir la méthode » ->
+  section 3 ; clic sur un jalon de la timeline -> étape ; flèches gauche/droite,
+  Home/End, molette ; swipe tactile (haut = section, gauche/droite = sous-écran).
+- Polices chargées : Hanken Grotesk 400, Jost 300, Jost 400. Aucune teinte 10 à
+  60 degrés, aucun `box-shadow`/`text-shadow`/`filter`, seuls éléments arrondis :
+  les points de frise. Titres 25 à 34 px, graisse 300.
+
+## Known Issues
+
+- `npx nuxi typecheck` littéral (voir plus haut).
+- Marge verticale de Projets/Méthode à 1280x720 : plan RAG à ~65 px de la
+  navigation ; correct mais serré.
+- Les libellés « E-MAIL » et tags Jost font 12-13 px (repères, pas du texte courant).
+
+## Dev Server
+
+- URL : http://localhost:3000
+- Status : en cours d'exécution (relancé après `build` et `generate`)
+- Commande : `npm run dev -- --port 3000`
+
+---
+
+# Generator State — Run 3, itération 1 (archive)
 
 ## Contexte
 

@@ -75,7 +75,7 @@ function selectSlide(i: number) {
   font-size: 0.75rem;
   letter-spacing: 0.2em;
   color: var(--color-ink);
-  opacity: 0.6;
+  opacity: 0.55;
   background: transparent;
   border: none;
   padding: 0.35rem 0.45rem;
@@ -125,7 +125,7 @@ function selectSlide(i: number) {
     flex-direction: column;
     gap: 0.35rem;
     position: fixed;
-    left: 1.5rem;
+    left: 1rem;
     top: 50%;
     transform: translateY(-50%);
     z-index: 50;
@@ -136,6 +136,12 @@ function selectSlide(i: number) {
 
   .mobile-nav {
     display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .desktop-nav {
+    left: 1.5rem;
   }
 }
 

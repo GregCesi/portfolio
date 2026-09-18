@@ -3,6 +3,8 @@ import { onMounted, onUnmounted } from 'vue'
 const MOBILE_BREAKPOINT = 768
 /** Marge (px) entre le nav desktop et le bord gauche du contenu de section. */
 const DESKTOP_NAV_GAP = 24
+/** Marge réduite sous 1024 px (menu compact de la tablette portrait). */
+const COMPACT_NAV_GAP = 16
 
 /**
  * Mesure la hauteur réelle du Header, la largeur du nav desktop et la
@@ -28,7 +30,8 @@ export function useLayoutDimensions() {
     } else {
       const desktopNav = document.querySelector('[data-desktop-nav]')
       const navWidth = desktopNav
-        ? Math.ceil(desktopNav.getBoundingClientRect().right) + DESKTOP_NAV_GAP
+        ? Math.ceil(desktopNav.getBoundingClientRect().right) +
+          (window.innerWidth < 1024 ? COMPACT_NAV_GAP : DESKTOP_NAV_GAP)
         : 0
       root.style.setProperty('--slidemenu-width', `${navWidth}px`)
       root.style.setProperty('--mobile-bar-height', '0px')

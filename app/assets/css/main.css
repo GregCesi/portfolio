@@ -24,22 +24,19 @@
 }
 
 :root {
-  /* Noir bleuté de fond, utilisé aussi par le canvas hyperspace et les voiles. */
+  /* Noir bleuté de fond, aussi la couleur de fond du canvas hyperspace. */
   --bg-rgb: 5 7 10;
   /* Durées et courbes du mouvement lent : aucun rebond, aucun effet élastique. */
   --ease-slow: cubic-bezier(0.22, 0.61, 0.36, 1);
-  /* Texte courant : 16 px à 720 de haut, 18 px à 1080 (spec : 16 à 18 px) ;
-     15 px seulement sur les fenêtres étroites (tablette portrait, mobile), où
-     la largeur limite la hauteur utile et où rien ne doit ni défiler ni se couper. */
-  /* Débord horizontal du voile derrière un bloc de texte : égal au retrait
-     latéral des sections, pour que le voile ne fasse jamais déborder la section. */
-  --scrim-x: 1.25rem;
-  --fs-body: clamp(0.9375rem, min(0.75rem + 0.556vh, 0.5rem + 0.9vw), 1.125rem);
+  /* Texte courant : 16 px minimum partout, 18 px sur les grands écrans (spec : 16 à 18 px). */
+  --fs-body: clamp(1rem, min(0.75rem + 0.556vh, 0.5rem + 0.9vw), 1.125rem);
+  /* Retrait latéral des sections. */
+  --pad-x: 1.25rem;
 }
 
 @media (min-width: 1024px) {
   :root {
-    --scrim-x: 2rem;
+    --pad-x: 2rem;
   }
 }
 
@@ -115,52 +112,6 @@
 }
 
 @layer utilities {
-  /*
-   * Voile noir à bords fondus, posé derrière un bloc de texte : protège le
-   * contraste WCAG AA sur le champ d'étoiles sans former ni carte, ni cadre,
-   * ni bordure (le bord se dissout dans le noir, comme un vignettage de film).
-   * Usage : classe sur un conteneur STATIQUE (pas sur l'élément animé en
-   * opacité, pour que le voile reste en place pendant les fondus du texte).
-   */
-  .scrim {
-    position: relative;
-    isolation: isolate;
-  }
-
-  .scrim::before {
-    content: '';
-    position: absolute;
-    inset: -0.5rem calc(var(--scrim-x) * -1);
-    z-index: -1;
-    pointer-events: none;
-    background-color: rgb(var(--bg-rgb) / 86%);
-    /* Bords en dégradé lent (courbe en S), pour que le voile se dissolve sans arête. */
-    --fade-x: linear-gradient(
-      to right,
-      transparent 0,
-      rgb(0 0 0 / 0.2) calc(var(--scrim-x) * 0.3),
-      rgb(0 0 0 / 0.65) calc(var(--scrim-x) * 0.65),
-      #000 var(--scrim-x),
-      #000 calc(100% - var(--scrim-x)),
-      rgb(0 0 0 / 0.65) calc(100% - var(--scrim-x) * 0.65),
-      rgb(0 0 0 / 0.2) calc(100% - var(--scrim-x) * 0.3),
-      transparent 100%
-    );
-    --fade-y: linear-gradient(
-      to bottom,
-      transparent 0,
-      rgb(0 0 0 / 0.5) 0.25rem,
-      #000 0.5rem,
-      #000 calc(100% - 0.5rem),
-      rgb(0 0 0 / 0.5) calc(100% - 0.25rem),
-      transparent 100%
-    );
-    -webkit-mask-image: var(--fade-x), var(--fade-y);
-    -webkit-mask-composite: source-in;
-    mask-image: var(--fade-x), var(--fade-y);
-    mask-composite: intersect;
-  }
-
   /* Titre de générique : Jost, capitales, graisse 300, interlettrage large. */
   .t-title {
     font-family: var(--font-display);

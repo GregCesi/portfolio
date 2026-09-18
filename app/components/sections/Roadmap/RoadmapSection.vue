@@ -2,7 +2,7 @@
   <BaseSection :index="4">
     <div ref="rootRef" class="roadmap" :class="{ 'is-intro': introVisible }">
       <header class="roadmap__head">
-        <div ref="headRef" class="roadmap__head-inner scrim">
+        <div ref="headRef" class="roadmap__head-inner">
           <p class="roadmap__kicker t-label rv">{{ roadmap.kicker }}</p>
           <h2 class="roadmap__title t-title rv">{{ roadmap.title }}</h2>
           <p class="roadmap__subtitle t-body rv">{{ roadmap.subtitle }}</p>
@@ -10,17 +10,15 @@
       </header>
 
       <div class="roadmap__stage rv">
-        <RoadmapTimeline class="roadmap__timeline scrim" />
-        <div ref="contentRef" class="roadmap__content scrim">
+        <RoadmapTimeline class="roadmap__timeline" />
+        <div ref="contentRef" class="roadmap__content">
           <RoadmapContent />
         </div>
-        <!-- Pas de scrim sur la planète : elle est le spectacle, elle ne doit
-             jamais être voilée. -->
         <RoadmapPlanet class="roadmap__planet" />
       </div>
 
       <!-- Mobile, introduction seule : passe à la première étape. -->
-      <button type="button" class="roadmap__intro-next scrim" aria-label="Suivant" @click="introVisible = false">
+      <button type="button" class="roadmap__intro-next" aria-label="Suivant" @click="introVisible = false">
         ›
       </button>
     </div>
@@ -138,7 +136,7 @@ useSplitReveal(rootRef, {
   flex-direction: column;
   justify-content: center;
   gap: clamp(0.75rem, 3vh, 2rem);
-  padding: 0 var(--scrim-x);
+  padding: 0 var(--pad-x);
 }
 
 .roadmap__head {

@@ -3,15 +3,18 @@
 Site vitrine en une page : cinq sections plein écran (Start, Parcours, Méthode,
 Projet phare, Projets), fond hyperspace animé et planète 3D à textures
 changeantes. Chaque section tient entièrement dans la fenêtre, sans
-défilement interne ; sur mobile (< 768px), une section trop dense se
-découpe en sous-écrans navigables (flèches, glissement horizontal, indicateur
-« N / M »).
+défilement interne. Méthode et Projets se jouent en plans successifs (fondu
+d'un plan à l'autre, flèches, clavier gauche/droite, indicateur « N / M ») ;
+sur mobile (< 768px), les autres sections trop denses se découpent aussi en
+sous-écrans navigables (glissement horizontal).
 
 Direction artistique « générique de film » (référence : Interstellar) : fond
 noir bleuté, titres en capitales espacées en Jost, texte courant en Hanken
 Grotesk, un seul accent bleu glacier, mouvement lent (fondus depuis le noir,
 interlettrage qui se resserre à la révélation des titres). Aucune teinte
-chaude dans l'interface, aucune lueur, aucune carte à fond. Tous les textes
+chaude dans l'interface, aucune lueur, aucune carte ni voile derrière le texte :
+le contraste est tenu par le fond lui-même, les étoiles du canvas s'éteignent à
+l'approche des blocs de texte (`ReadingZones`). Tous les textes
 visibles viennent de `content/portfolio.md`, repris à l'identique dans
 `app/data/content.ts`.
 
@@ -34,27 +37,17 @@ npm run lint     # ESLint
 npx nuxi typecheck # vérification TypeScript (vue-tsc)
 ```
 
-### Limitation connue : `npx nuxi typecheck` en local
+### Limitation connue : `npx nuxi typecheck`
 
-Sur certains environnements de développement locaux, `npx nuxi typecheck`
-échoue avec :
-
-```
-Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './lib/tsc' is not
-defined by "exports" in
-~/.npm/_npx/<hash>/node_modules/typescript/package.json
-    at resolveTscPath (.../vue-tsc/index.js:73:43)
-```
-
-C'est un problème de résolution de module entre la version de `typescript`
-mise en cache par `npx` (hors de ce dépôt, sous `~/.npm/_npx/`) et
-`vue-tsc` — aucun fichier de ce projet n'apparaît dans la trace. Reproduit
-à l'identique sur plusieurs itérations et par plusieurs agents indépendants
-sans qu'aucune modification de code n'y change quoi que ce soit. Le build
-(`npm run build`, `npm run generate`) et le lint (`npm run lint`) ne sont
-pas affectés. Si ce problème apparaît, vider le cache npx
-(`npx clear-npx-cache` ou suppression manuelle de `~/.npm/_npx/`) avant de
-relancer la commande le résout généralement.
+`nuxi typecheck` lance `vue-tsc`, qui n'est pas une dépendance du projet (la
+spec interdit d'en ajouter). Sans `vue-tsc` local, nuxi retombe sur
+`npx -p vue-tsc -p typescript`, dont le cache (`~/.npm/_npx/`, hors dépôt) peut
+mélanger des versions incompatibles et échouer avec
+`ERR_PACKAGE_PATH_NOT_EXPORTED` (`./lib/tsc`). La trace ne contient aucun
+fichier du projet. Contrôle équivalent : installer `vue-tsc` et `typescript`
+hors du dépôt, puis lancer `vue-tsc --noEmit -p .nuxt/tsconfig.app.json` (et
+`server`, `shared`, `node`) ; ajouter `vue-tsc` en devDependency rendrait la
+commande `npx nuxi typecheck` fonctionnelle telle quelle.
 
 ## Structure
 
@@ -65,6 +58,6 @@ relancer la commande le résout généralement.
 - `app/components/subscreen/*` : piste glissante et navigation des sous-écrans mobile (`SubscreenTrack`, `SubscreenNav`).
 - `app/composables/useMobileSubscreens.ts`, `useSubscreenNav.ts` : état et registre des sous-écrans (clavier gauche/droite).
 - `app/composables/useSplitReveal.ts` : révélation lente de chaque section (fondu, interlettrage, cascade).
-- `app/assets/css/main.css` : jetons de couleur et de police, voile `.scrim`, styles de texte.
-- `app/graphics/background/*` : fond hyperspace (canvas 2D).
+- `app/assets/css/main.css` : jetons de couleur et de police, styles de texte.
+- `app/graphics/background/*` : fond hyperspace (canvas 2D) ; `ReadingZones.ts` mesure les blocs de texte visibles et éteint les étoiles derrière eux.
 - `app/composables/3d/*` : scène Three.js réutilisable (planète, fondu de textures).

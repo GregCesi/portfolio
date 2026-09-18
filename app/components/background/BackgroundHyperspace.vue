@@ -16,17 +16,21 @@ import { useNuxtApp } from '#app'
 import Renderer from '@/graphics/background/Renderer'
 import StarsField from '@/graphics/background/StarsField'
 import WarpEffect from '@/graphics/background/WarpEffect'
+import ReadingZones from '@/graphics/background/ReadingZones'
 import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
 
 const canvas = ref<HTMLCanvasElement | null>(null)
 let renderer: Renderer
 let starsField: StarsField
 let warpEffect: WarpEffect
+let zones: ReadingZones
 
 const { $emitter } = useNuxtApp()
 const prefersReducedMotion = usePrefersReducedMotion()
 
 const accelerate = (duration?: number) => {
+  // Le texte bouge pendant la transition : les zones de lecture suivent à chaque image.
+  zones.boost(3000)
   // `prefers-reduced-motion` : warp atténué et raccourci (§2.3 de la spec).
   if (prefersReducedMotion.value) {
     warpEffect.start(0.25, 2)
@@ -44,6 +48,8 @@ onMounted(() => {
   renderer.init()
 
   starsField = new StarsField()
+  zones = new ReadingZones()
+  starsField.setZones(zones)
   warpEffect = new WarpEffect(starsField)
 
   renderer.register(starsField)

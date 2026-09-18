@@ -5,24 +5,29 @@
        tenir, elle est remplacée par la frise compacte ci-dessous (numéros
        seuls). Aucun texte n'est perdu : le titre complet de l'étape active
        reste affiché en entier par RoadmapContent. -->
-  <!-- Racine unique (Vue n'hérite `class`/`$attrs` automatiquement que sur un
-       composant à racine unique) : c'est ce noeud qui reçoit
-       `class="roadmap__timeline scrim"` posé par RoadmapSection.vue, donc le
-       voile de contraste AA s'applique quelle que soit la frise affichée à
-       l'intérieur (liste complète ou compacte). -->
+  <!-- Racine unique : elle reçoit `class="roadmap__timeline"` posé par
+       RoadmapSection.vue, quelle que soit la frise affichée à l'intérieur. -->
   <div class="rt-root">
     <ol class="rt-list">
       <li v-for="(step, index) in steps" :key="index" class="rt-item">
-        <span
-          :ref="(el) => setCircleRef(el as HTMLElement, index)"
-          class="rt-circle"
-          :class="getCircleClass(index)"
-        />
+        <!-- Chaque jalon est un vrai bouton : clic ou clavier, on va à l'étape. -->
+        <button
+          type="button"
+          class="rt-hit"
+          :aria-current="stepsStatus[index]?.active ? 'step' : undefined"
+          @click="selectCompact(index + 1)"
+        >
+          <span
+            :ref="(el) => setCircleRef(el as HTMLElement, index)"
+            class="rt-circle"
+            :class="getCircleClass(index)"
+          />
 
-        <span class="rt-label" :class="getTitleClass(index)">
-          <span class="rt-label__step">Étape {{ index + 1 }}</span>
-          <span class="rt-label__title">{{ step.title }}</span>
-        </span>
+          <span class="rt-label" :class="getTitleClass(index)">
+            <span class="rt-label__step">Étape {{ index + 1 }}</span>
+            <span class="rt-label__title">{{ step.title }}</span>
+          </span>
+        </button>
 
         <span v-if="index < steps.length - 1" class="rt-connector">
           <span class="rt-connector__track" />
@@ -114,7 +119,23 @@ const getTitleClass = (index: number) => {
   position: relative;
   display: flex;
   align-items: center;
+}
+
+.rt-hit {
+  display: flex;
+  align-items: center;
   gap: 0.9rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rt-hit:hover .rt-label {
+  color: var(--color-ink);
 }
 
 .rt-circle {

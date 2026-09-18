@@ -29,7 +29,7 @@ export interface SectionRevealOptions {
 const TITLE_DURATION = 1.6
 const LINE_DURATION = 1.2
 const LINE_STAGGER = 0.24
-const ENTER_DELAY = 0.55
+const ENTER_DELAY = 0.4
 
 export function useSplitReveal(rootRef: Ref<HTMLElement | null>, options: SectionRevealOptions) {
   const { $emitter } = useNuxtApp()
@@ -107,7 +107,7 @@ export function useSplitReveal(rootRef: Ref<HTMLElement | null>, options: Sectio
           stagger: LINE_STAGGER,
           clearProps: 'transform',
         },
-        titles.length > 0 ? 0.55 : 0,
+        titles.length > 0 ? 0.45 : 0,
       )
     }
 
