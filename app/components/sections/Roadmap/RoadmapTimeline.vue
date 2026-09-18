@@ -62,13 +62,11 @@ import { computed } from 'vue'
 import type { StepStatus } from '~/types/roadmap'
 import { useRoadmapState } from '~/composables/useRoadmapState'
 
-const { currentStep, steps, registerCircle, registerLine, goToStep, introVisible, introActive } = useRoadmapState()
+const { currentStep, steps, registerCircle, registerLine, selectStep, introActive } = useRoadmapState()
 
-// Un segment de la frise compacte quitte l'introduction mobile, puis va à l'étape.
-const selectCompact = (stepNumber: number) => {
-  introVisible.value = false
-  goToStep(stepNumber)
-}
+// Jalon ou segment : quitte l'introduction mobile, puis va à l'étape avec le
+// même fondu (texte, ligne, texture de la planète) que les flèches.
+const selectCompact = (stepNumber: number) => selectStep(stepNumber)
 
 const setCircleRef = (el: HTMLElement | null, index: number) => {
   if (el) registerCircle(el, index)
@@ -169,7 +167,7 @@ const getTitleClass = (index: number) => {
 .rt-label__step {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.3em;
   line-height: 1.4;

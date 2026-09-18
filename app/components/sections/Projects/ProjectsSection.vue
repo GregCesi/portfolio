@@ -15,24 +15,50 @@
             </div>
           </header>
 
-          <article v-for="(card, index) in projects.cards" :key="card.id" class="projects__card">
-            <div class="projects__card-inner">
-              <p class="projects__number">{{ String(index + 1).padStart(2, '0') }}</p>
-              <h3 class="projects__card-title">{{ card.title }}</h3>
-              <p class="projects__card-tagline t-body">{{ card.tagline }}</p>
-              <p class="projects__card-text t-body">{{ card.text }}</p>
-              <p class="projects__tags">{{ card.tags.join(' · ') }}</p>
-
-              <div class="projects__card-actions">
-                <a v-if="card.href" :href="card.href" target="_blank" rel="noopener noreferrer" class="projects__link">
-                  Voir le code
-                </a>
-                <button v-if="card.cta" type="button" class="projects__link" @click="goToSection(card.cta.section)">
-                  {{ card.cta.label }}
-                </button>
+          <template v-for="card in projects.cards" :key="card.id">
+            <!-- Plan complet : un projet par plan. -->
+            <article v-if="!isSplit(card.id)" class="projects__card">
+              <div class="projects__card-inner">
+                <h3 class="projects__card-title">{{ card.title }}</h3>
+                <p class="projects__card-tagline t-body">{{ card.tagline }}</p>
+                <p class="projects__card-text t-body">{{ card.text }}</p>
+                <p class="projects__tags">{{ card.tags.join(' · ') }}</p>
+                <div class="projects__card-actions">
+                  <a v-if="card.href" :href="card.href" target="_blank" rel="noopener noreferrer" class="projects__link">
+                    Voir le code
+                  </a>
+                  <button v-if="card.cta" type="button" class="projects__link" @click="goToSection(card.cta.section)">
+                    {{ card.cta.label }}
+                  </button>
+                </div>
               </div>
-            </div>
-          </article>
+            </article>
+
+            <!-- Écran trop court pour ce projet (petit téléphone) : on découpe, on ne tronque pas.
+                 Premier plan : titre, accroche, tags, liens. Second plan : le texte. -->
+            <template v-else>
+              <article class="projects__card">
+                <div class="projects__card-inner">
+                  <h3 class="projects__card-title">{{ card.title }}</h3>
+                  <p class="projects__card-tagline t-body">{{ card.tagline }}</p>
+                  <p class="projects__tags">{{ card.tags.join(' · ') }}</p>
+                  <div class="projects__card-actions">
+                  <a v-if="card.href" :href="card.href" target="_blank" rel="noopener noreferrer" class="projects__link">
+                    Voir le code
+                  </a>
+                  <button v-if="card.cta" type="button" class="projects__link" @click="goToSection(card.cta.section)">
+                    {{ card.cta.label }}
+                  </button>
+                </div>
+                </div>
+              </article>
+              <article class="projects__card">
+                <div class="projects__card-inner">
+                  <p class="projects__card-text projects__card-text--solo t-body">{{ card.text }}</p>
+                </div>
+              </article>
+            </template>
+          </template>
 
           <div id="contact" class="contact">
             <div class="contact__inner">
@@ -70,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import BaseSection from '~/components/sections/BaseSection.vue'
 import SubscreenTrack from '~/components/subscreen/SubscreenTrack.vue'
 import SubscreenNav from '~/components/subscreen/SubscreenNav.vue'
@@ -85,13 +111,67 @@ const contact = siteContent.projects.contact
 const { goToSection } = useAppNavigation()
 
 // Sous-écrans mobiles : titre + introduction, un projet par écran, puis le contact (§2.3).
-const sub = useMobileSubscreens(projects.cards.length + 2, 4)
+const rootRef = ref<HTMLElement | null>(null)
+
+// Un projet trop long pour un écran très court (petit téléphone) est découpé en deux plans (voir `measure`).
+const splitIds = ref<string[]>([])
+const isSplit = (id: string) => splitIds.value.includes(id)
+const total = computed(() => projects.cards.length + 2 + splitIds.value.length)
+const sub = useMobileSubscreens(total, 4)
 const subscreenNav = useSubscreenNav()
 
-onMounted(() => subscreenNav.register('projects', sub))
-onBeforeUnmount(() => subscreenNav.unregister('projects'))
+// Marge minimale de 14 px au-dessus et au-dessous d'un plan mobile.
+const FRAME_MARGIN = 28
+let measureTimer: ReturnType<typeof setTimeout> | null = null
+let lastSize = ''
 
-const rootRef = ref<HTMLElement | null>(null)
+/** Mesure chaque projet entier dans son cadre ; ceux qui ne tiennent pas sont découpés en deux plans. */
+async function measure() {
+  const root = rootRef.value
+  if (!root) return
+  const mobile = window.matchMedia('(max-width: 767.98px)').matches
+  const frame = root.querySelector<HTMLElement>('.subtrack')
+  if (!mobile || !frame) {
+    if (splitIds.value.length) splitIds.value = []
+    return
+  }
+  // Mesure à l'état entier : tout est remis en un plan par projet, puis rendu.
+  splitIds.value = []
+  await nextTick()
+  const cards = Array.from(root.querySelectorAll<HTMLElement>('.projects__card'))
+  const tooTall: string[] = []
+  projects.cards.forEach((card, i) => {
+    const inner = cards[i]?.querySelector<HTMLElement>('.projects__card-inner')
+    if (inner && inner.offsetHeight > frame.clientHeight - FRAME_MARGIN) tooTall.push(card.id)
+  })
+  splitIds.value = tooTall
+}
+
+function scheduleMeasure() {
+  const size = `${window.innerWidth}x${window.innerHeight}`
+  if (size === lastSize) return
+  lastSize = size
+  if (measureTimer) clearTimeout(measureTimer)
+  measureTimer = setTimeout(() => void measure(), 200)
+}
+
+onMounted(() => {
+  subscreenNav.register('projects', sub)
+  lastSize = `${window.innerWidth}x${window.innerHeight}`
+  void measure()
+  // Les polices changent la hauteur du texte : on mesure de nouveau une fois chargées.
+  void document.fonts?.ready.then(() => {
+    lastSize = ''
+    scheduleMeasure()
+  })
+  window.addEventListener('resize', scheduleMeasure)
+})
+onBeforeUnmount(() => {
+  subscreenNav.unregister('projects')
+  window.removeEventListener('resize', scheduleMeasure)
+  if (measureTimer) clearTimeout(measureTimer)
+})
+
 useSplitReveal(rootRef, {
   index: 4,
   titles: '.projects__title',
@@ -115,11 +195,12 @@ useSplitReveal(rootRef, {
   min-height: 0;
 }
 
+/* `safe` : un contenu plus haut que le cadre s'aligne en haut au lieu de déborder des deux côtés. */
 .projects__head,
 .projects__card,
 .contact {
   display: flex;
-  align-items: center;
+  align-items: safe center;
   justify-content: center;
 }
 
@@ -142,27 +223,6 @@ useSplitReveal(rootRef, {
   max-width: 30rem;
 }
 
-/* Grand chiffre de plan, puis un filet de 1 px : le carton d'un plan. */
-.projects__number {
-  font-family: var(--font-display);
-  font-weight: 300;
-  font-size: clamp(3rem, 1.5rem + 5vh, 5rem);
-  line-height: 1;
-  letter-spacing: 0.12em;
-  padding-left: 0.12em;
-  color: var(--color-ink-dim);
-}
-
-.projects__number::after {
-  content: '';
-  display: block;
-  width: 2.5rem;
-  height: 1px;
-  /* Sous la boîte de texte du chiffre, pas dans son emprise : le filet ne passe jamais derrière un glyphe. */
-  margin: 0.4em auto 0;
-  background: var(--color-accent);
-}
-
 .projects__card-title,
 .contact__title {
   font-family: var(--font-display);
@@ -172,7 +232,17 @@ useSplitReveal(rootRef, {
   letter-spacing: 0.2em;
   line-height: 1.4;
   color: var(--color-ink);
-  margin-top: 1rem;
+}
+
+/* Un filet de 1 px ouvre le carton d'un plan (ornement, aucun texte). */
+.projects__card-title::before,
+.contact__title::before {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  margin: 0 auto 1.1rem;
+  background: var(--color-accent);
 }
 
 .projects__card-tagline {
@@ -185,6 +255,11 @@ useSplitReveal(rootRef, {
   color: var(--color-ink-dim);
   margin-top: 0.7rem;
   max-width: 30rem;
+}
+
+/* Texte seul sur son plan (projet découpé) : pas de marge au-dessus. */
+.projects__card-text--solo {
+  margin-top: 0;
 }
 
 .contact__text {
@@ -272,14 +347,35 @@ useSplitReveal(rootRef, {
 }
 
 @media (max-width: 767.98px) {
-  .projects__number {
-    font-size: 3rem;
-  }
-
   .projects__card-title,
   .contact__title {
-    margin-top: 1rem;
     letter-spacing: 0.16em;
+  }
+
+  .projects__card-title::before,
+  .contact__title::before {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Le plus long plan (rag-eval-scifact) doit tenir dans le cadre avec de l'air autour du lien. */
+  .projects__card-inner .t-body {
+    line-height: 1.5;
+  }
+
+  .projects__card-tagline {
+    margin-top: 0.7rem;
+  }
+
+  .projects__card-text {
+    margin-top: 0.4rem;
+  }
+
+  .projects__tags {
+    margin-top: 0.7rem;
+  }
+
+  .projects__card-actions {
+    margin-top: 0.4rem;
   }
 }
 </style>

@@ -15,9 +15,8 @@
             </div>
           </header>
 
-          <article v-for="(card, index) in method.cards" :key="card.title" class="method__card">
+          <article v-for="card in method.cards" :key="card.title" class="method__card">
             <div class="method__card-inner">
-              <p class="method__number">{{ String(index + 1).padStart(2, '0') }}</p>
               <h3 class="method__card-title">{{ card.title }}</h3>
               <p class="method__card-text t-body">{{ card.text }}</p>
             </div>
@@ -73,10 +72,11 @@ useSplitReveal(rootRef, {
   min-height: 0;
 }
 
+/* `safe` : un contenu plus haut que le cadre s'aligne en haut au lieu de déborder des deux côtés. */
 .method__head,
 .method__card {
   display: flex;
-  align-items: center;
+  align-items: safe center;
   justify-content: center;
 }
 
@@ -99,27 +99,6 @@ useSplitReveal(rootRef, {
   max-width: 31rem;
 }
 
-/* Grand chiffre de plan, puis un filet de 1 px : le carton d'un chapitre. */
-.method__number {
-  font-family: var(--font-display);
-  font-weight: 300;
-  font-size: clamp(3.5rem, 2rem + 5vh, 5.5rem);
-  line-height: 1;
-  letter-spacing: 0.12em;
-  padding-left: 0.12em;
-  color: var(--color-ink-dim);
-}
-
-.method__number::after {
-  content: '';
-  display: block;
-  width: 2.5rem;
-  height: 1px;
-  /* Sous la boîte de texte du chiffre, pas dans son emprise : le filet ne passe jamais derrière un glyphe. */
-  margin: 0.4em auto 0;
-  background: var(--color-accent);
-}
-
 .method__card-title {
   font-family: var(--font-display);
   font-weight: 400;
@@ -128,9 +107,18 @@ useSplitReveal(rootRef, {
   letter-spacing: 0.2em;
   line-height: 1.5;
   color: var(--color-ink);
-  margin-top: 1rem;
   max-width: 30rem;
   text-wrap: balance;
+}
+
+/* Un filet de 1 px ouvre le carton d'un plan (ornement, aucun texte). */
+.method__card-title::before {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  margin: 0 auto 1.1rem;
+  background: var(--color-accent);
 }
 
 .method__card-text {
@@ -139,13 +127,12 @@ useSplitReveal(rootRef, {
 }
 
 @media (max-width: 767.98px) {
-  .method__number {
-    font-size: 3.25rem;
+  .method__card-title {
+    letter-spacing: 0.16em;
   }
 
-  .method__card-title {
-    margin-top: 1.1rem;
-    letter-spacing: 0.16em;
+  .method__card-title::before {
+    margin-bottom: 0.9rem;
   }
 }
 </style>

@@ -1,4 +1,4 @@
-import { computed, onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import { useNuxtApp } from '#app'
 
 /**
@@ -16,6 +16,11 @@ export function useMobileSubscreens(count: Ref<number> | number, sectionIndex?: 
   const total = computed(() => (typeof count === 'number' ? count : count.value))
   const index = ref(0)
 
+  // Si le nombre de plans diminue (redécoupage), l'index reste dans les bornes.
+  watch(total, (t) => {
+    if (index.value > t - 1) index.value = t - 1
+  })
+
   const canPrev = computed(() => index.value > 0)
   const canNext = computed(() => index.value < total.value - 1)
 
@@ -27,8 +32,9 @@ export function useMobileSubscreens(count: Ref<number> | number, sectionIndex?: 
     if (canPrev.value) index.value -= 1
   }
 
+  /** `target` au-delà du dernier plan : va au dernier (le nombre de plans peut varier selon l'écran). */
   function goTo(target: number) {
-    if (target >= 0 && target < total.value) index.value = target
+    if (target >= 0) index.value = Math.min(target, total.value - 1)
   }
 
   if (sectionIndex !== undefined) {

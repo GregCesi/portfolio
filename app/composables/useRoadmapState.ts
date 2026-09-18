@@ -39,27 +39,19 @@ const fadeIn = async (element: HTMLElement): Promise<void> => {
   })
 }
 
-const animateLineGrow = async (line: HTMLElement): Promise<void> => {
-  return new Promise((resolve) => {
+// Verrou de la phase critique d'un changement d'étape (fade-out du texte) et
+// dernière étape demandée pendant ce temps.
+let stepLocked = false
+let queuedStep: number | null = null
+
+const animateLine = (line: HTMLElement, grow: boolean, duration: number, delay: number): Promise<void> =>
+  new Promise((resolve) => {
     gsap.fromTo(
       line,
-      { scaleY: 0, transformOrigin: 'top center' },
-      { scaleY: 1, duration: 1.5, ease: 'power2.inOut', onComplete: resolve },
+      { scaleY: grow ? 0 : 1, transformOrigin: 'top center' },
+      { scaleY: grow ? 1 : 0, duration, delay, ease: 'power2.inOut', onComplete: resolve },
     )
   })
-}
-
-const animateLineShrink = async (line: HTMLElement): Promise<void> => {
-  return new Promise((resolve) => {
-    gsap.to(line, {
-      scaleY: 0,
-      transformOrigin: 'top center',
-      duration: 1.5,
-      ease: 'power2.inOut',
-      onComplete: resolve,
-    })
-  })
-}
 
 export const useRoadmapState = () => {
   // Computed : récupère l'étape active
@@ -122,73 +114,107 @@ export const useRoadmapState = () => {
     }
   }
 
-  // Navigation animée avec GSAP.
+  // Navigation animée avec GSAP, seul point d'entrée des changements d'étape
+  // (flèches, clavier, jalon de la frise, segment mobile).
   //
-  // Les deux sens (next/prev) suivent désormais exactement la même séquence,
-  // dans le même ordre, pour éliminer l'asymétrie relevée à l'itération 4
-  // (feedback-4.md) : `currentStep.value` n'est mis à jour qu'une fois le
-  // texte totalement invisible (après le fade-out), jamais avant — donc
-  // aucun flash de contenu n'est possible dans aucun des deux sens.
+  // Les deux sens (next/prev) suivent la même séquence : `currentStep.value`
+  // n'est mis à jour qu'une fois le texte totalement invisible (après le
+  // fade-out), jamais avant, donc aucun flash de contenu. Le fondu de texture
+  // de la planète démarre dès l'appel, quel que soit le déclencheur.
   //
-  // Le texte réapparaît dès que possible : le fade-in du contenu démarre
-  // juste après la mise à jour du modèle, sans attendre la fin de
-  // l'animation de ligne (1,5s). La ligne continue d'animer en arrière-plan
-  // (langage visuel inchangé, même durée, même easing) mais elle ne bloque
-  // plus la lisibilité du texte — la fonction attend malgré tout sa fin
-  // avant de résoudre, pour que les appelants (navigation clavier en file
-  // d'attente notamment) restent synchronisés sur l'état final réel.
-  const goToStepAnimated = async (newStep: number): Promise<void> => {
-    if (newStep === currentStep.value) return
+  // Une demande reçue pendant le fade-out (phase critique, ~0,45 s) est mise
+  // en file : la dernière l'emporte et s'exécute dès que le texte est masqué,
+  // sans réafficher l'étape intermédiaire. Après cette phase, l'animation de
+  // ligne (1,5 s) continue en arrière-plan sans bloquer la navigation.
+  //
+  // Un saut de plusieurs étapes (clic sur un jalon) recale toutes les lignes
+  // intermédiaires : celles qui précèdent la nouvelle étape se remplissent,
+  // les suivantes se vident.
+  const goToStepAnimated = async (newStep: number, options: { contentHidden?: boolean } = {}): Promise<void> => {
     if (newStep < 1 || newStep > steps.value.length) return
+    if (stepLocked) {
+      queuedStep = newStep
+      return
+    }
+    if (newStep === currentStep.value) return
 
+    stepLocked = true
     const direction = newStep > currentStep.value ? 'next' : 'prev'
     const oldStep = currentStep.value
     const circles = timelineElements.value.circles
     const lines = timelineElements.value.lines
     const content = timelineElements.value.content
 
-    // 🪐 Lancer le morphing planète en parallèle (commence maintenant, finit à la fin)
+    // Morphing planète en parallèle (commence maintenant, finit à la fin).
     const planetMorphPromise = animatePlanetTexture(steps.value[newStep - 1]?.planetTexture || '')
 
-    // 1. FADE-OUT du texte (identique dans les deux sens)
-    if (content) await fadeOut(content)
-
-    // 2. Mettre à jour le modèle au même point du cycle dans les deux sens :
-    // le texte est déjà invisible, donc aucun flash de contenu possible.
-    currentStep.value = newStep
-
-    // 3. Mise à jour visuelle des cercles + démarrage de l'animation de
-    // ligne, en arrière-plan (ne bloque pas la réapparition du texte).
-    let linePromise: Promise<void> = Promise.resolve()
-    if (direction === 'next') {
-      const newCircle = circles[newStep - 1]
-      if (newCircle) newCircle.classList.add('pulse')
-      const line = lines[oldStep - 1]
-      if (line) linePromise = animateLineGrow(line)
-    } else {
-      const oldCircle = circles[oldStep - 1]
-      if (oldCircle) oldCircle.classList.remove('pulse')
-      const line = lines[newStep - 1]
-      if (line) linePromise = animateLineShrink(line)
+    // 1. FADE-OUT du texte (sauf s'il est déjà masqué : sortie d'introduction mobile).
+    if (content) {
+      if (options.contentHidden) gsap.set(content, { opacity: 0 })
+      else await fadeOut(content)
     }
 
-    // 4. FADE-IN du texte immédiatement (le contenu redevient lisible en
-    // ~0,6s au lieu de ~2s) + attendre la fin de la ligne et du morphing
-    // planète avant de résoudre, pour la synchronisation des appelants.
+    // 2. Mettre à jour le modèle : le texte est invisible, aucun flash possible.
+    currentStep.value = newStep
+    stepLocked = false
+
+    // Une demande plus récente attend : on l'enchaîne, le texte reste masqué.
+    const queued = queuedStep
+    queuedStep = null
+    if (queued !== null && queued !== newStep) {
+      void planetMorphPromise
+      await goToStepAnimated(queued, { contentHidden: true })
+      return
+    }
+
+    // 3. Cercles et lignes, en arrière-plan (ne bloque pas le texte).
+    circles.forEach((circle, i) => circle?.classList.toggle('pulse', i === newStep - 1))
+    const linePromises: Promise<void>[] = []
+    const first = Math.min(oldStep, newStep) - 1
+    const last = Math.max(oldStep, newStep) - 1
+    const span = last - first
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      if (!line) continue
+      if (i >= first && i < last) {
+        // Ligne située entre l'ancienne et la nouvelle étape : elle se trace ou s'efface en cascade.
+        const order = direction === 'next' ? i - first : last - 1 - i
+        linePromises.push(animateLine(line, direction === 'next', 1.5 / span, (1.5 / span) * order))
+      } else {
+        gsap.set(line, { scaleY: i < newStep - 1 ? 1 : 0, transformOrigin: 'top center' })
+      }
+    }
+
+    // 4. FADE-IN du texte immédiatement, puis attente de la fin de la ligne et
+    // du morphing planète pour la synchronisation des appelants.
     const fadeInPromise = content ? fadeIn(content) : Promise.resolve()
-    await Promise.all([fadeInPromise, planetMorphPromise, linePromise])
+    await Promise.all([fadeInPromise, planetMorphPromise, ...linePromises])
+  }
+
+  // Sélection directe d'une étape (jalon de la frise, segment mobile, flèches
+  // gauche/droite en sous-écran) : même fondu que les flèches, y compris de
+  // texture. Sur mobile, quitter l'introduction masque d'abord le texte pour
+  // ne jamais montrer l'ancienne étape.
+  const selectStep = (stepNumber: number): void => {
+    const leavingIntro = introVisible.value && isMobileViewport.value
+    introVisible.value = false
+    if (stepNumber === currentStep.value && !stepLocked) return
+    void goToStepAnimated(stepNumber, { contentHidden: leavingIntro })
   }
 
   // Fonctions de navigation animées
+  // Pendant un fade-out en cours, le point de départ est la cible déjà demandée.
+  const effectiveStep = () => queuedStep ?? currentStep.value
+
   const nextStepAnimated = async () => {
-    if (canGoNext.value) {
-      await goToStepAnimated(currentStep.value + 1)
+    if (effectiveStep() < steps.value.length) {
+      await goToStepAnimated(effectiveStep() + 1)
     }
   }
 
   const prevStepAnimated = async () => {
-    if (canGoPrev.value) {
-      await goToStepAnimated(currentStep.value - 1)
+    if (effectiveStep() > 1) {
+      await goToStepAnimated(effectiveStep() - 1)
     }
   }
 
@@ -205,6 +231,8 @@ export const useRoadmapState = () => {
     canGoNext,
     canGoPrev,
     goToStepAnimated,
+    selectStep,
+    isStepTransitioning: () => stepLocked,
     nextStepAnimated,
     prevStepAnimated,
     registerCircle,

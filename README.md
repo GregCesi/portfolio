@@ -37,17 +37,18 @@ npm run lint     # ESLint
 npx nuxi typecheck # vérification TypeScript (vue-tsc)
 ```
 
-### Limitation connue : `npx nuxi typecheck`
+### Remarque : `npx nuxi typecheck`
 
 `nuxi typecheck` lance `vue-tsc`, qui n'est pas une dépendance du projet (la
-spec interdit d'en ajouter). Sans `vue-tsc` local, nuxi retombe sur
-`npx -p vue-tsc -p typescript`, dont le cache (`~/.npm/_npx/`, hors dépôt) peut
-mélanger des versions incompatibles et échouer avec
-`ERR_PACKAGE_PATH_NOT_EXPORTED` (`./lib/tsc`). La trace ne contient aucun
-fichier du projet. Contrôle équivalent : installer `vue-tsc` et `typescript`
-hors du dépôt, puis lancer `vue-tsc --noEmit -p .nuxt/tsconfig.app.json` (et
-`server`, `shared`, `node`) ; ajouter `vue-tsc` en devDependency rendrait la
-commande `npx nuxi typecheck` fonctionnelle telle quelle.
+spec interdit d'en ajouter). Sans `vue-tsc` local, nuxi le récupère avec
+`npx -p vue-tsc -p typescript`, donc la commande dépend du cache npx
+(`~/.npm/_npx/`, hors dépôt) ou du réseau : elle passe quand ce cache est sain,
+et peut échouer avec `ERR_PACKAGE_PATH_NOT_EXPORTED` (`./lib/tsc`) quand il
+mélange des versions incompatibles (la trace ne contient alors aucun fichier du
+projet). Contrôle équivalent en cas d'échec : installer `vue-tsc` et
+`typescript` hors du dépôt, puis lancer `vue-tsc --noEmit -p
+.nuxt/tsconfig.app.json` (et `server`, `shared`, `node`). Ajouter `vue-tsc` en
+devDependency rendrait la commande fiable ; c'est une décision de Grégoire.
 
 ## Structure
 

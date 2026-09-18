@@ -1,3 +1,96 @@
+# Generator State — Run 3, itération 3 (dernière)
+
+## Ce qui change (réponse au feedback-2 : P4/P7 en échec, P5 conditionnel)
+
+- **P4/P7, sous-écran Projets 3/5 (rag-eval-scifact).** Cause : le grand chiffre
+  « 02 » et son filet. Décision P1 : les chiffres 01-04 (Méthode) et 01-03
+  (Projets) ne figurent pas dans la liste des libellés d'interface autorisés,
+  ils sont **supprimés partout** (mobile et desktop). Un filet de 1 px (ornement,
+  aucun texte) ouvre chaque carton à la place. `align-items: safe center` sur les
+  plans (un contenu trop haut s'aligne en haut, jamais coupé des deux côtés),
+  interlignes et espacements resserrés sur mobile (texte toujours à 16 px).
+  RAG à 375x667 : contenu y=107..545 dans un cadre y=90..562 (marge 17 px),
+  « Voir le code » cliquable (`elementFromPoint` renvoie le lien).
+- **Découpage automatique des petits écrans (Projets).** Un projet dont le
+  contenu dépasse le cadre moins 28 px est découpé en deux plans (titre, accroche,
+  tags, lien / puis le texte), mesuré au montage, au chargement des polices et au
+  redimensionnement. À 360x640 et 375x568, 320x568 : RAG en deux plans (« N / 6 »),
+  rien n'est réduit ni tronqué. « Me contacter » vise le dernier plan
+  (`goTo` borne l'index ; `Number.POSITIVE_INFINITY` côté Hero). Le nombre de
+  plans peut donc varier, l'index reste borné.
+- **Projet phare sur écran < 620 px de haut.** La planète est masquée pendant
+  les étapes (elle reste sur l'introduction) : sinon le texte de l'étape 3
+  passait sous la barre de menu à 375x568 et 320x568.
+- **P5, fondu au clic.** `useRoadmapState.selectStep` (jalon desktop, segment
+  mobile, flèches gauche/droite en sous-écran) appelle `goToStepAnimated` : fondu
+  du texte, de la ligne et de la texture de la planète. Verrou pendant le fade-out
+  (~0,45 s) avec file d'une entrée (la dernière demande gagne, texte laissé masqué
+  entre les deux). Un saut de plusieurs étapes recale toutes les lignes de la
+  frise (cascade). Depuis l'introduction mobile, le texte est masqué avant
+  l'étape (aucun flash de l'ancienne). `RoadmapPlanet` : une demande reçue pendant
+  un fondu de 2 s est retenue et enchaînée (avant : ignorée avec un
+  `console.warn` et nom de texture désynchronisé).
+- **Plans découvrables (desktop).** Choix le plus sûr : molette, PageDown et
+  flèches haut/bas continuent de changer de section (spec §2.3, tests). Ajouts :
+  indicateur « N / M » en pleine lumière et flèches plus grandes, flèche suivante
+  qui respire lentement (opacité 1 à 0,7, coupée en mouvement réduit), glissement
+  horizontal de la molette / du pavé tactile = plan suivant/précédent (délai 0,8 s).
+  Aucun texte ajouté.
+- **P6.** `ReadingZones.ts` (reformatage Prettier) et `feedback-2.md` commités.
+- **Autres.** Lien Google Fonts : Hanken Grotesk 500 retiré (inutilisé).
+  « Étape N » de la frise 11 -> 12 px. README : `nuxi typecheck` documenté comme
+  dépendant du cache npx (fragile), pas comme cassé.
+- Non fait : auto-hébergement des polices (hors dépôt, réseau), ajustement de
+  `FADE` / `MIN_LIGHT` de ReadingZones (marge de contraste trop faible : menu à
+  0,55 mesure 5,41:1, monter `MIN_LIGHT` le ferait passer sous 4,5:1).
+
+## Vérifications (résultats)
+
+- `npm run lint` 0 erreur, 0 avertissement ; `npm run build` 0 ; `npm run generate` 0
+  (relancés après le dernier changement de code).
+- `npx nuxi typecheck` : **rouge dans cet environnement** (`ERR_PACKAGE_PATH_NOT_EXPORTED`,
+  cache `~/.npm/_npx/cb6709e40eb1fb08`, hors dépôt, vue-tsc/typescript non déclarés).
+  Substitut : `vue-tsc@3` + `typescript@5.9` hors dépôt sur `.nuxt/tsconfig.{app,server,shared,node}.json` :
+  0 erreur x 4 (il a détecté un vrai type en cours de route dans SlideContainer, corrigé).
+- Console : 0 erreur, 0 warning Vue (1440 clavier, roadmap, molette latérale,
+  375 tactile, tous les sous-écrans). Un warning d'hydratation vu une fois venait
+  d'un serveur de dev périmé après édition de gabarit : disparu après relance.
+- Sous-écrans mobiles vérifiés un par un (script : chaque élément textuel contre le
+  cadre `.subtrack`, le haut de la navigation, l'en-tête, la fenêtre, et
+  `elementFromPoint`) : 375x667 (25 sous-écrans : Hero 1, Parcours 7, Méthode 5,
+  Projet phare 7, Projets 5), puis 375x568, 360x640, 320x568 (Projets à 6 plans) :
+  0 débordement, 0 élément recouvert, 0 coupé. Marge basse minimale du RAG
+  à 375x667 : 17 px au-dessus, 17 px au-dessous.
+- Tenue à l'écran (`section-viewport` / `section-inner`, scrollHeight/clientHeight) :
+  1920x1080 1080/1080, 963/963 ; 1440x900 900/900, 783/783 ; 1280x720 720/720,
+  603/603 ; 768x1024 1024/1024, 915/915 ; 375x667 667/667, 516/516 ; largeur
+  identique, chaque plan Méthode/Projets aux 4 tailles desktop, aucun bloc hors
+  fenêtre, aucun recouvert. Plan RAG à 1280x720 : 83 px libres avant la navigation
+  (65 avant).
+- Contraste au pire pixel (texte transparent, fond échantillonné) : 1920, 1440,
+  1280, 768, 375 : **5,41:1** minimum sur les cinq (libellés de menu à 55 % et
+  flèche désactivée), 0 rectangle sous le seuil.
+- Roadmap (1440x900 et 375x667) : clic jalon/segment 1->4->2->6->1, clics rapides
+  3 puis 5, trois flèches gauche rapides : à chaque fois le texte et la texture
+  suivent (couleur moyenne du disque : rouge 54,25,11 / ocre 58,41,19 / vert
+  50,56,25 / vert-bleu 30,55,21), lignes de la frise recalées.
+
+## Points de doute
+
+1. Le `nuxi typecheck` littéral reste rouge chez le générateur (vert chez
+   l'evaluator, cache npx différent).
+2. Découpage dynamique : un contenu dont la hauteur est mesurée dépend des polices ;
+   remesuré au chargement des polices.
+3. Plans desktop : la molette ne change pas de plan, seulement de section
+   (invite visuelle plutôt que comportement, conforme à §2.3).
+
+## Dev Server
+
+- URL : http://localhost:3000, en cours d'exécution (relancé après build/generate).
+- Commande : `npm run dev -- --port 3000`
+
+---
+
 # Generator State — Run 3, itération 2
 
 ## Ce qui change (réponse au feedback-1, P9 à 5,0/10)

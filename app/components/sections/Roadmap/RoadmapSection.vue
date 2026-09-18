@@ -41,7 +41,8 @@ const roadmap = siteContent.roadmap
 const {
   nextStepAnimated,
   prevStepAnimated,
-  goToStep,
+  selectStep,
+  isStepTransitioning,
   canGoPrev,
   introVisible,
   isMobileViewport,
@@ -82,8 +83,7 @@ onMounted(() => {
       void prevStepAnimated()
     },
     goTo: (index: number) => {
-      introVisible.value = false
-      goToStep(index + 1)
+      selectStep(index + 1)
     },
   })
 })
@@ -96,6 +96,8 @@ onBeforeUnmount(() => {
 // Fondu lent entre l'introduction mobile et les étapes.
 watch(introVisible, async (isIntro) => {
   await nextTick()
+  // Un changement d'étape en cours (clic sur un segment depuis l'introduction) gère lui-même le fondu du texte.
+  if (!isIntro && isStepTransitioning()) return
   const target = isIntro ? headRef.value : contentRef.value
   if (target) gsap.fromTo(target, { opacity: 0 }, { opacity: 1, duration: 0.9, ease: 'power1.out' })
 })
@@ -225,6 +227,13 @@ useSplitReveal(rootRef, {
 
   .roadmap.is-intro .roadmap__intro-next {
     display: flex;
+  }
+}
+
+/* Très petit écran (iPhone SE, 568 px) : la planète cède la place au texte des étapes, elle reste sur l'introduction. */
+@media (max-width: 767.98px) and (max-height: 620px) {
+  .roadmap:not(.is-intro) .roadmap__planet {
+    display: none;
   }
 }
 

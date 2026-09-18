@@ -144,22 +144,32 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
     }
     
     // 3. Créer la fonction de changement de texture avec crossfade
+    // Une demande reçue pendant un fondu (2 s) est retenue : la dernière cible
+    // l'emporte, enchaînée dès la fin du fondu en cours, sans jamais ignorer
+    // ni désynchroniser le nom de texture courant.
+    let targetTextureName = currentTextureName
+    let fading = false
     const changePlanetTexture = async (textureName: string) => {
-      if (textureName === currentTextureName) return
-      
-      const fromTexture = textureMap[currentTextureName]
-      const toTexture = textureMap[textureName]
-      
-      if (fromTexture && toTexture && planetMesh) {
-        try {
+      if (!textureName) return
+      targetTextureName = textureName
+      if (fading) return
+      fading = true
+      try {
+        while (currentTextureName !== targetTextureName) {
+          const nextName = targetTextureName
+          const fromTexture = textureMap[currentTextureName]
+          const toTexture = textureMap[nextName]
+          if (!fromTexture || !toTexture || !planetMesh) break
           await crossfadeToTexture(planetMesh, fromTexture, toTexture, 2.0)
-          currentTextureName = textureName
-        } catch (error) {
-          console.error('Erreur de fondu de texture planète :', error)
+          currentTextureName = nextName
         }
+      } catch (error) {
+        console.error('Erreur de fondu de texture planète :', error)
+      } finally {
+        fading = false
       }
     }
-    
+
     // 4. Enregistrer la fonction dans useRoadmapState
     registerPlanetMaterial(changePlanetTexture)
   }

@@ -19,7 +19,7 @@
           <button type="button" class="hero__btn hero__btn--primary" @click="goToSection('projects')">
             {{ hero.ctaProjects }}
           </button>
-          <button type="button" class="hero__btn" @click="goToAnchor('projects', siteContent.projects.cards.length + 1)">
+          <button type="button" class="hero__btn" @click="goToAnchor('projects', Number.POSITIVE_INFINITY)">
             {{ hero.ctaContact }}
           </button>
         </div>

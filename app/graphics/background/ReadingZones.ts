@@ -56,7 +56,8 @@ export default class ReadingZones {
     for (let i = 0; i < nodes.length; i++) {
       const r = nodes[i]!.getBoundingClientRect()
       if (r.width <= 0 || r.height <= 0) continue
-      if (r.right < -reach || r.left > vw + reach || r.bottom < -reach || r.top > vh + reach) continue
+      if (r.right < -reach || r.left > vw + reach || r.bottom < -reach || r.top > vh + reach)
+        continue
       boxes.push({ left: r.left, top: r.top, right: r.right, bottom: r.bottom })
     }
     this.boxes = boxes

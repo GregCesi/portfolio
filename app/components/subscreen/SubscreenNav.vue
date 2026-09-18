@@ -79,5 +79,41 @@ defineEmits<{ prev: []; next: [] }>()
   .subnav:not(.subnav--persistent) {
     display: none;
   }
+
+  /* Seule invite à parcourir les plans : indicateur et flèches en pleine lumière, un peu plus grands. */
+  .subnav--persistent {
+    gap: 1.25rem;
+  }
+
+  .subnav--persistent .subnav__indicator {
+    color: var(--color-ink);
+    font-size: 0.8125rem;
+  }
+
+  .subnav--persistent .subnav__btn {
+    font-size: 1.6rem;
+    width: 3rem;
+  }
+
+  /* La flèche suivante respire lentement tant qu'il reste des plans à voir. */
+  .subnav--persistent .subnav__btn:not(:disabled):last-of-type {
+    animation: subnav-breathe 3.2s ease-in-out infinite;
+  }
+}
+
+@keyframes subnav-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .subnav__btn {
+    animation: none !important;
+  }
 }
 </style>

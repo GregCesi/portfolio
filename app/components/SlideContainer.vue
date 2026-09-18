@@ -136,8 +136,22 @@ function goTo(index: number) {
 // Gestion du wheel : chaque section tient entièrement dans l'écran, sans
 // défilement interne (§2.3 de la spec) — la molette ne fait donc que changer
 // de section, dès le premier seuil franchi.
+// Glissement horizontal au pavé tactile ou à la molette latérale : change de
+// plan (sous-écran) dans la section active, comme les flèches gauche/droite.
+// Délai de 0,8 s entre deux plans pour absorber l'inertie du pavé.
+let lastHorizontalAt = 0
+
 function onWheel(e: WheelEvent) {
   e.preventDefault()
+  if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+    const now = performance.now()
+    if (Math.abs(e.deltaX) >= props.scrollThreshold && now - lastHorizontalAt > 800) {
+      lastHorizontalAt = now
+      if (e.deltaX > 0) emit('subscreen-next')
+      else emit('subscreen-prev')
+    }
+    return
+  }
   if (state.isAnimating) return
 
   state.wheelDelta += e.deltaY

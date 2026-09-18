@@ -45,7 +45,7 @@ function markActive() {
 }
 
 onMounted(markActive)
-watch(() => props.index, markActive, { flush: 'post' })
+watch(() => [props.index, props.total], markActive, { flush: 'post' })
 const emit = defineEmits<{ 'update:index': [number] }>()
 
 let startX = 0

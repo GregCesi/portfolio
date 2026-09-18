@@ -22,7 +22,7 @@ export default defineNuxtConfig({
           href:
             'https://fonts.googleapis.com/css2?' +
             'family=Jost:wght@300;400&' +
-            'family=Hanken+Grotesk:wght@400;500&' +
+            'family=Hanken+Grotesk:wght@400&' +
             'display=swap',
         },
       ],
