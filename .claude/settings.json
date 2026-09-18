@@ -1,0 +1,12 @@
+{
+  "includeCoAuthoredBy": true,
+  "permissions": {
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git checkout main:*)",
+      "Bash(git checkout develop:*)",
+      "Bash(git switch main:*)",
+      "Bash(git switch develop:*)"
+    ]
+  }
+}
