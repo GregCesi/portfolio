@@ -1,5 +1,5 @@
 <template>
-  <div ref="container" class="h-screen overflow-hidden">
+  <div ref="container" class="overflow-hidden">
     <div ref="wrapper">
       <slot />
     </div>
@@ -25,6 +25,7 @@ const container = ref<HTMLElement | null>(null)
 const wrapper = ref<HTMLElement | null>(null)
 const slides = ref<HTMLElement[]>([])
 const current = ref(0)
+const fixedSlideHeight = ref(0)
 
 // État centralisé
 const state = {
@@ -62,7 +63,7 @@ function goTo(index: number) {
 
   tl.to(slides.value[current.value]!, { autoAlpha: 0, duration: 0.3 })
     .add(() => emit('section-change', index))
-    .to(wrapper.value, { y: -index * window.innerHeight, duration: props.transitionDuration })
+    .to(wrapper.value, { y: -index * fixedSlideHeight.value, duration: props.transitionDuration })
     .fromTo(slides.value[index]!, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 })
 }
 
@@ -117,6 +118,30 @@ function removeEventListeners() {
   container.value?.removeEventListener('touchmove', onTouchMove)
 }
 
+// Fonction pour fixer les hauteurs au chargement initial
+function initializeFixedHeights() {
+  if (!container.value) return
+  
+  fixedSlideHeight.value = window.innerHeight
+  container.value.style.height = fixedSlideHeight.value + 'px'
+}
+
+// Fonction pour mettre à jour seulement la slide active
+function resizeActiveSlide() {
+  if (!container.value) return
+  
+  const newHeight = window.innerHeight
+  
+  // Mettre à jour le container à la nouvelle hauteur
+  container.value.style.height = newHeight + 'px'
+  
+  // Recalculer la position du wrapper pour la slide active
+  if (wrapper.value) {
+    fixedSlideHeight.value = newHeight
+    gsap.set(wrapper.value, { y: -current.value * newHeight })
+  }
+}
+
 /* Lifecycle */
 onMounted(async () => {
   if (!wrapper.value) return
@@ -131,15 +156,22 @@ onMounted(async () => {
     return
   }
 
+  // Initialiser les hauteurs fixes
+  initializeFixedHeights()
+
   // Configuration GSAP initiale
   gsap.set(slides.value, { autoAlpha: 0 })
   gsap.set(slides.value[0]!, { autoAlpha: 1 })
+
+  // Ajouter le listener de resize
+  window.addEventListener('resize', resizeActiveSlide)
 
   addEventListeners()
 })
 
 onBeforeUnmount(() => {
   removeEventListeners()
+  window.removeEventListener('resize', resizeActiveSlide)
   // Cleanup GSAP si nécessaire
   gsap.killTweensOf([wrapper.value, ...slides.value])
 })
