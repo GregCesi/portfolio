@@ -155,4 +155,4 @@ Bloc Contact :
 
 ## Libellés d'interface autorisés
 
-Seuls textes visibles autorisés en dehors de ce qui précède : « Étape N » dans la frise, flèches ou libellés « Précédent » / « Suivant », « Voir le détail », « Voir la méthode », « Voir le code », « Télécharger mon CV », « E-mail », « GitHub », « LinkedIn », attributs aria et textes alternatifs descriptifs.
+Seuls textes visibles autorisés en dehors de ce qui précède : repères de section « 01 / 05 » et numéros du menu, indicateurs de sous-écran « 2 / 6 », « Étape N » dans la frise, flèches ou libellés « Précédent » / « Suivant », « Voir le détail », « Voir la méthode », « Voir le code », « Télécharger mon CV », « E-mail », « GitHub », « LinkedIn », attributs aria et textes alternatifs descriptifs.
