@@ -17,8 +17,7 @@
     <button
         :disabled="!canGoPrev"
         aria-label="Étape précédente"
-        class="text-4xl sm:text-5xl lg:text-6xl transition-all duration-300 focus-visible:scale-110"
-        :class="canGoPrev ? 'text-white hover:text-gray-300' : 'text-gray-600'"
+        class="roadmap-nav-btn"
         @click="prevStepAnimated">
         ←
     </button>
@@ -26,8 +25,7 @@
     <button
         :disabled="!canGoNext"
         aria-label="Étape suivante"
-        class="text-4xl sm:text-5xl lg:text-6xl transition-all duration-300 focus-visible:scale-110"
-        :class="canGoNext ? 'text-white hover:text-gray-300' : 'text-gray-600'"
+        class="roadmap-nav-btn"
         @click="nextStepAnimated">
         →
     </button>
@@ -37,7 +35,7 @@
 
 <script setup lang="ts">
     import type { ComponentPublicInstance } from 'vue'
-    
+
     const { activeStep, nextStepAnimated, prevStepAnimated, canGoNext, canGoPrev, registerContent } = useRoadmapState()
 
     // Fonction pour enregistrer l'élément de contenu dans le composable
@@ -51,5 +49,64 @@
   background: rgba(0, 0, 0, 0.4);
   border-radius: 1rem;
   padding: 1rem 1.25rem;
+}
+
+/*
+ * Flèches Précédent/Suivant de la Roadmap : un vrai contour de bouton
+ * (fond + bordure plats, pas de dégradé) pour donner des états
+ * survol/appui/désactivé nettement distincts, au-delà du seul contour de
+ * focus générique du site.
+ */
+.roadmap-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background-color: rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .roadmap-nav-btn {
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .roadmap-nav-btn {
+    width: 4rem;
+    height: 4rem;
+    font-size: 2.25rem;
+  }
+}
+
+.roadmap-nav-btn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+.roadmap-nav-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.roadmap-nav-btn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.roadmap-nav-btn:disabled {
+  border-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
 }
 </style>

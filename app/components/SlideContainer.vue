@@ -96,10 +96,18 @@ function goTo(index: number) {
     }
   })
 
-  tl.to(slides.value[current.value]!, { autoAlpha: 0, duration: 0.3 })
-    .add(() => emit('section-change', index))
-    .to(wrapper.value, { y: -index * fixedSlideHeight.value, duration: props.transitionDuration })
-    .fromTo(slides.value[index]!, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 })
+  // Fondu de sortie et fondu d'entrée superposés au déplacement du wrapper
+  // (plutôt qu'enchaînés en série) : la durée totale perçue passe de
+  // ~1,4s à ~`transitionDuration` (0,8s en temps normal), sans raccourcir le
+  // déplacement lui-même. Gain notable sur mobile où ce délai s'ajoutait à
+  // celui du défilement interne vers une ancre (ex. bouton « Me contacter »).
+  const fadeDuration = 0.25
+  const fadeInStart = Math.max(props.transitionDuration - fadeDuration, 0)
+
+  tl.to(slides.value[current.value]!, { autoAlpha: 0, duration: fadeDuration }, 0)
+    .add(() => emit('section-change', index), 0)
+    .to(wrapper.value, { y: -index * fixedSlideHeight.value, duration: props.transitionDuration }, 0)
+    .fromTo(slides.value[index]!, { autoAlpha: 0 }, { autoAlpha: 1, duration: fadeDuration }, fadeInStart)
 }
 
 // Gestion du wheel : le contenu interne défile d'abord, la section ne change

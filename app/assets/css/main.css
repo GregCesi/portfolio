@@ -40,6 +40,21 @@
     touch-action: pan-x pan-y;
   }
 
+  /*
+   * Exception ciblée à `user-select: none` : le bloc Contact contient
+   * l'adresse e-mail, que la personne doit pouvoir sélectionner et copier
+   * à la main. Le reste du site garde la sélection désactivée (nécessaire
+   * pour un défilement tactile propre sur les slides plein écran).
+   */
+  #contact,
+  #contact * {
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+
   /* Focus clavier toujours visible, quel que soit l'élément (§2.3 de la spec) */
   :focus-visible {
     outline: 2px solid #ffffff;

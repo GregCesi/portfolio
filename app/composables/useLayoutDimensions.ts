@@ -69,7 +69,6 @@ export function useLayoutDimensions() {
     }
   }
 
-
   const resizeHandler = () => {
     // Mesurer header et slidemenu
     const header = document.querySelector('header')
@@ -104,7 +103,7 @@ export function useLayoutDimensions() {
     const slideContainer = document.querySelector('.overflow-hidden') as HTMLElement
     if (slideContainer) {
       slideContainer.style.height = window.innerHeight + 'px'
-      
+
       // Repositionner le wrapper pour la slide active
       const wrapper = slideContainer.querySelector('div') as HTMLElement
       if (wrapper) {
@@ -128,6 +127,6 @@ export function useLayoutDimensions() {
   return {
     headerHeight,
     slidemenuWidth,
-    measureDimensions
+    measureDimensions,
   }
 }

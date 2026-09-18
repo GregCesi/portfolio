@@ -1,11 +1,13 @@
 <template>
   <Universal3DModel
+    v-if="ready"
     model="/3d/models/Planet-1.glb"
     :width="planetSize"
     :height="planetSize"
     :auto-rotate="!prefersReducedMotion"
     @model-loaded="handleModelLoaded"
   />
+  <div v-else :style="{ width: planetSize, height: planetSize }" aria-hidden="true" />
 </template>
 
 <script setup lang="ts">
@@ -33,17 +35,47 @@ function updatePlanetSize() {
   else planetSize.value = '460px'
 }
 
+// Chargement différé après le premier rendu (spec §4 Performance) : le GLB
+// et les textures (~6,6 Mo au total) ne commencent à être demandés qu'une
+// fois que le navigateur a eu l'occasion de peindre la première frame, pour
+// ne jamais retarder l'affichage initial de la page.
+const ready = ref(false)
+let idleHandle: number | null = null
+
+function scheduleModelLoad(callback: () => void) {
+  const win = window as Window & {
+    requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+    cancelIdleCallback?: (handle: number) => void
+  }
+  if (typeof win.requestIdleCallback === 'function') {
+    idleHandle = win.requestIdleCallback(callback, { timeout: 1500 })
+  } else {
+    idleHandle = window.setTimeout(callback, 200)
+  }
+}
+
 onMounted(() => {
   updatePlanetSize()
   window.addEventListener('resize', updatePlanetSize)
+  scheduleModelLoad(() => {
+    ready.value = true
+  })
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updatePlanetSize)
+  if (idleHandle !== null) {
+    const win = window as Window & { cancelIdleCallback?: (handle: number) => void }
+    if (typeof win.cancelIdleCallback === 'function') {
+      win.cancelIdleCallback(idleHandle)
+    } else {
+      window.clearTimeout(idleHandle)
+    }
+  }
 })
 
 let planetMesh: THREE.Mesh | null = null
-let textureMap: Record<string, THREE.Texture> = {}
+let textureMap: Record<string, THREE.Texture | null> = {}
 let currentTextureName = 'planet-bake-1'
 
 const handleModelLoaded = async (model: THREE.Object3D) => {
@@ -70,25 +102,28 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
       return texture
     }
     
-    // Charger toutes les textures
+    // Charger toutes les textures (WebP compressé, ~1 Mo au total contre
+    // ~15 Mo en PNG source — voir spec §4 Performance). 'planet-bake-5'
+    // n'a pas de fichier dédié : la texture d'origine intégrée au GLB sert
+    // pour la dernière étape (Décision), conformément à content/portfolio.md.
     textureMap = {
       'planet-bake-1': correctTextureProperties(
-        textureLoader.load('/3d/models/textures/planet-1/planet-bake-1.png'), 
+        textureLoader.load('/3d/models/textures/planet-1/planet-bake-1.webp'),
         originalTexture
       ),
       'planet-bake-2': correctTextureProperties(
-        textureLoader.load('/3d/models/textures/planet-2/planet-bake-2.png'), 
+        textureLoader.load('/3d/models/textures/planet-2/planet-bake-2.webp'),
         originalTexture
       ),
       'planet-bake-3': correctTextureProperties(
-        textureLoader.load('/3d/models/textures/planet-3/planet-bake-3.png'), 
+        textureLoader.load('/3d/models/textures/planet-3/planet-bake-3.webp'),
         originalTexture
       ),
       'planet-bake-4': correctTextureProperties(
-        textureLoader.load('/3d/models/textures/planet-4/planet-bake-4.png'), 
+        textureLoader.load('/3d/models/textures/planet-4/planet-bake-4.webp'),
         originalTexture
       ),
-      'planet-bake-5': originalTexture || textureLoader.load('/3d/models/textures/planet-5/planet-bake-5.png')
+      'planet-bake-5': originalTexture,
     }
     
     // 3. Créer la fonction de changement de texture avec crossfade

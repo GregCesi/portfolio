@@ -17,6 +17,7 @@
 <script setup lang="ts">
 import { computed, nextTick, provide, ref } from 'vue'
 import { useNuxtApp, useSeoMeta } from '#app'
+import gsap from 'gsap'
 
 import SlideContainer from '@/components/SlideContainer.vue'
 import SlideMenu from '@/components/navigation/SlideMenu.vue'
@@ -90,7 +91,17 @@ function scrollToAnchor(anchorId: string) {
 
   const targetTop = scrollArea.scrollTop + (el.getBoundingClientRect().top - scrollArea.getBoundingClientRect().top)
 
-  scrollArea.scrollTo({ top: targetTop, behavior: prefersReducedMotion.value ? 'auto' : 'smooth' })
+  if (prefersReducedMotion.value) {
+    scrollArea.scrollTo({ top: targetTop, behavior: 'auto' })
+    return
+  }
+
+  // Défilement interne animé par GSAP (durée fixe et courte) plutôt que
+  // `Element.scrollTo({ behavior: 'smooth' })` : ce dernier n'offre aucun
+  // contrôle de durée et peut s'étirer sur mobile, ajoutant à la latence
+  // perçue après le clic sur « Me contacter ». `scrollTop` reste une
+  // propriété DOM ordinaire, animable directement par GSAP sans plugin.
+  gsap.to(scrollArea, { scrollTop: targetTop, duration: 0.45, ease: 'power2.out' })
 }
 
 function goToAnchor(section: SectionId, anchorId: string) {
