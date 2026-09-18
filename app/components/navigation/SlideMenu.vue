@@ -1,6 +1,6 @@
 <template>
   <!-- Desktop : liste verticale à gauche, libellés toujours visibles (§2.3 bis). -->
-  <nav data-desktop-nav class="desktop-nav" aria-label="Navigation entre les sections">
+  <nav data-desktop-nav class="desktop-nav" aria-label="Navigation entre les sections, menu latéral">
     <SlideMenuItem
       v-for="(label, idx) in labels"
       :key="idx"
@@ -12,7 +12,7 @@
   </nav>
 
   <!-- Mobile : barre compacte en bas, numéros visibles, libellé de l'actif seul (§2.3 bis). -->
-  <nav data-mobile-bar class="mobile-nav" aria-label="Navigation entre les sections">
+  <nav data-mobile-bar class="mobile-nav" aria-label="Navigation entre les sections, barre mobile">
     <div class="mobile-nav__numbers">
       <button
         v-for="(label, idx) in labels"
@@ -73,7 +73,9 @@ function selectSlide(i: number) {
   font-size: 0.68rem;
   letter-spacing: 0.05em;
   color: var(--color-ink);
-  opacity: 0.4;
+  /* 0.62 d'opacité : même marge de sécurité AA que le menu desktop
+     (>= 6.5:1 mesuré sur pixels réels), au lieu de 0.4 (~3.2-3.75:1). */
+  opacity: 0.62;
   background: transparent;
   border: none;
   padding: 0.35rem 0.4rem;
@@ -82,7 +84,7 @@ function selectSlide(i: number) {
 }
 
 .mobile-nav__num:hover {
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .mobile-nav__num.is-active {

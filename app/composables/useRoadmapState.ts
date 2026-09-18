@@ -75,7 +75,9 @@ export const useRoadmapState = () => {
   }
 
   // Fonction pour enregistrer le changement de texture planète
-  const registerPlanetMaterial = (changeTextureFunction: (textureName: string) => Promise<void> | void) => {
+  const registerPlanetMaterial = (
+    changeTextureFunction: (textureName: string) => Promise<void> | void,
+  ) => {
     planetTextureChanger = changeTextureFunction
   }
 

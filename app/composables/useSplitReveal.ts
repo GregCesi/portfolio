@@ -50,7 +50,7 @@ export function useSplitReveal(rootRef: Ref<HTMLElement | null>, selector: strin
       (entries) => {
         if (entries[0]?.isIntersecting) play()
       },
-      { threshold: 0.2 }
+      { threshold: 0.2 },
     )
     observer.observe(rootRef.value)
   })

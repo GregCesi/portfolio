@@ -24,8 +24,11 @@ const paddedIndex = computed(() => String(props.index + 1).padStart(2, '0'))
 <style scoped>
 /*
  * Libellé toujours visible, mono capitales, précédé du numéro (§2.3 bis).
- * Inactif : 40% d'opacité, 70% au survol. Actif : pleine opacité, accent,
- * trait à gauche.
+ * Inactif : 0.62 d'opacité (mesuré >= 6.5:1 sur fond noir, pixels réels,
+ * marge de sécurité au-dessus du seuil AA 4.5:1 — voir gan-harness pour la
+ * mesure), 0.8 au survol. Actif : pleine opacité, accent, trait à gauche.
+ * Le numéro hérite de la même opacité que le libellé (pas de multiplication
+ * d'opacité imbriquée, qui ferait retomber sous le seuil AA).
  */
 .menu-item {
   display: flex;
@@ -40,14 +43,14 @@ const paddedIndex = computed(() => String(props.index + 1).padStart(2, '0'))
   border: none;
   border-left: 2px solid transparent;
   padding: 0.35rem 0 0.35rem 0.75rem;
-  opacity: 0.4;
+  opacity: 0.62;
   cursor: pointer;
   transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   white-space: nowrap;
 }
 
 .menu-item:hover {
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .menu-item.is-active {
@@ -58,6 +61,6 @@ const paddedIndex = computed(() => String(props.index + 1).padStart(2, '0'))
 
 .menu-item__number {
   color: inherit;
-  opacity: 0.8;
+  opacity: 1;
 }
 </style>

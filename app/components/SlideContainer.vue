@@ -1,8 +1,16 @@
 <template>
-  <div ref="container" class="overflow-hidden">
+  <div ref="container" class="overflow-hidden relative">
     <div ref="wrapper">
       <slot />
     </div>
+    <!--
+      Accusé de réception d'un appui clavier reçu pendant une transition
+      (§Craft, feedback run 2 itération 1) : sans ce signal, un appui rapide
+      pendant les ~0,65s de transition GSAP était silencieusement absorbé
+      par la file d'attente d'une seule entrée ci-dessous, sans qu'aucun
+      retour ne le montre à l'écran.
+    -->
+    <p v-if="isQueued" class="queued-hint" aria-hidden="true">···</p>
   </div>
 </template>
 
@@ -32,6 +40,31 @@ const state = {
   isAnimating: false,
   wheelDelta: 0,
   touchStartY: 0
+}
+
+// File d'attente d'une seule entrée clavier (§Craft) : si une touche de
+// navigation est pressée pendant la transition GSAP en cours, on ne la perd
+// pas silencieusement — on retient la dernière intention et on l'exécute dès
+// que la transition en cours se termine. `isQueued` pilote le petit accusé
+// de réception visuel affiché pendant ce court délai.
+const isQueued = ref(false)
+let pendingAction: (() => void) | null = null
+
+function requestNavigate(action: () => void) {
+  if (state.isAnimating) {
+    pendingAction = action
+    isQueued.value = true
+    return
+  }
+  action()
+}
+
+function runPendingAction() {
+  if (!pendingAction) return
+  const action = pendingAction
+  pendingAction = null
+  isQueued.value = false
+  action()
 }
 
 /* Emits */
@@ -69,16 +102,20 @@ function goTo(index: number) {
   if (!isValidIndex(index)) return
 
   state.isAnimating = true
-  removeEventListeners()
 
+  // Les écouteurs (molette, tactile, clavier) restent attachés pendant toute
+  // la transition : chaque gestionnaire porte déjà son propre garde-fou
+  // (`state.isAnimating`), et le clavier a en plus besoin de rester à
+  // l'écoute pour mettre en file d'attente un appui reçu pendant l'anim
+  // plutôt que de le perdre (voir `requestNavigate`).
   const tl = gsap.timeline({
     onComplete: () => {
       current.value = index
       state.isAnimating = false
       state.wheelDelta = 0
       updateInertSlides()
-      addEventListeners()
       emit('section-settled', index)
+      runPendingAction()
     }
   })
 
@@ -141,22 +178,22 @@ const NEXT_KEYS = new Set(['ArrowDown', 'PageDown'])
 const PREV_KEYS = new Set(['ArrowUp', 'PageUp'])
 
 function onKeydown(e: KeyboardEvent) {
+  // Les quatre touches de changement de section passent par la file
+  // d'attente d'une entrée (`requestNavigate`) : un appui pendant la
+  // transition GSAP en cours n'est plus perdu silencieusement, il est rejoué
+  // dès que la transition se termine (voir plus haut).
   if (NEXT_KEYS.has(e.key)) {
-    if (state.isAnimating) return
     e.preventDefault()
-    goTo(current.value + 1)
+    requestNavigate(() => goTo(current.value + 1))
   } else if (PREV_KEYS.has(e.key)) {
-    if (state.isAnimating) return
     e.preventDefault()
-    goTo(current.value - 1)
+    requestNavigate(() => goTo(current.value - 1))
   } else if (e.key === 'Home') {
-    if (state.isAnimating) return
     e.preventDefault()
-    goTo(0)
+    requestNavigate(() => goTo(0))
   } else if (e.key === 'End') {
-    if (state.isAnimating) return
     e.preventDefault()
-    goTo(slides.value.length - 1)
+    requestNavigate(() => goTo(slides.value.length - 1))
   } else if (e.key === 'ArrowRight') {
     e.preventDefault()
     emit('subscreen-next')
@@ -254,3 +291,49 @@ defineExpose({
   canGoPrevious
 })
 </script>
+
+<style scoped>
+/*
+ * Accusé de réception discret pour un appui clavier reçu pendant une
+ * transition : trois points mono, couleur accent, qui apparaissent le temps
+ * que la file d'attente d'une entrée se vide (§Craft). Ni glow, ni
+ * glassmorphism — juste un repère texte, dans le même langage que les
+ * autres libellés mono du site.
+ */
+.queued-hint {
+  position: fixed;
+  bottom: 4.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+  color: var(--color-accent);
+  animation: queued-pulse 0.6s ease-in-out infinite;
+}
+
+@media (min-width: 768px) {
+  .queued-hint {
+    bottom: 1.75rem;
+  }
+}
+
+@keyframes queued-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .queued-hint {
+    animation: none;
+    opacity: 1;
+  }
+}
+</style>

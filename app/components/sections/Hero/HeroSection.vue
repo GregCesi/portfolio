@@ -1,21 +1,31 @@
 <template>
   <BaseSection :index="1">
     <div ref="rootRef" class="hero">
-      <h1 class="hero__title">{{ hero.title }}</h1>
+      <!--
+        Scrim opaque derrière le titre et le texte (§2.3, contraste WCAG AA) :
+        le Hero est posé directement sur le canvas hyperspace animé, où des
+        étoiles quasi blanches peuvent traverser un glyphe. Un fond plat à
+        93% (pas de flou, pas de glow, pas de coin arrondi — même langage
+        visuel que `.panel`) garantit >= 4,5:1 même quand une étoile blanche
+        pleine est exactement derrière le texte, marge de sécurité incluse.
+      -->
+      <div class="hero__scrim">
+        <h1 class="hero__title">{{ hero.title }}</h1>
 
-      <div class="hero__text">
-        <p v-for="paragraph in hero.paragraphs" :key="paragraph">
-          {{ paragraph }}
-        </p>
-      </div>
+        <div class="hero__text">
+          <p v-for="paragraph in hero.paragraphs" :key="paragraph">
+            {{ paragraph }}
+          </p>
+        </div>
 
-      <div class="hero__actions">
-        <button type="button" class="hero__btn hero__btn--primary" @click="goToSection('projects')">
-          {{ hero.ctaProjects }}
-        </button>
-        <button type="button" class="hero__btn" @click="goToAnchor('projects', siteContent.projects.cards.length)">
-          {{ hero.ctaContact }}
-        </button>
+        <div class="hero__actions">
+          <button type="button" class="hero__btn hero__btn--primary" @click="goToSection('projects')">
+            {{ hero.ctaProjects }}
+          </button>
+          <button type="button" class="hero__btn" @click="goToAnchor('projects', siteContent.projects.cards.length)">
+            {{ hero.ctaContact }}
+          </button>
+        </div>
       </div>
     </div>
   </BaseSection>
@@ -44,8 +54,16 @@ useSplitReveal(rootRef, '.hero__title, .hero__text p')
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(1.25rem, 3vh, 2rem);
   padding: 0 1.25rem;
+}
+
+.hero__scrim {
+  background-color: rgb(8 7 6 / 93%);
+  border: 1px solid var(--color-line);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 3vh, 2rem);
+  padding: clamp(1.1rem, 2vh + 0.5rem, 1.85rem) clamp(1.25rem, 3vw, 2.25rem);
 }
 
 .hero__title {
