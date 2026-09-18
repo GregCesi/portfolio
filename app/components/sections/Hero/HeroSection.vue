@@ -1,45 +1,34 @@
 <template>
   <BaseSection>
-    <div class="w-full max-w-7xl text-center mx-auto flex flex-col gap-6 sm:gap-12 h-full items-center justify-center px-4 sm:px-6 lg:px-8">
-      <h1 class="text-2xl sm:text-5xl md:text-[50px] lg:text-[68px] font-bold leading-tight light-shadow-text text-white text-balance">
-        Booster votre activité avec des solutions sur-mesure
+    <div
+      class="w-full max-w-5xl text-center mx-auto flex flex-col gap-6 sm:gap-10 h-full items-center justify-center px-4 sm:px-6 lg:px-8"
+    >
+      <h1
+        class="text-3xl sm:text-5xl md:text-[50px] lg:text-[64px] font-bold leading-tight light-shadow-text text-white text-balance"
+      >
+        {{ hero.title }}
       </h1>
 
-      <!-- Texte desktop -->
-      <div class="hidden sm:flex flex-col gap-8 text-lg sm:text-xl md:text-2xl text-white pb-4">
-        <div>
-          <p>Je conçois des solutions sur-mesure, pensées pour s'adapter</p>
-          <p class="font-bold">à votre activité, à vos objectifs, et à votre budget.</p>
-        </div>
-        <div>
-          <p>Mon rôle : vous accompagner à chaque étape,</p>
-          <p>en créant un outil qui <span class="font-bold">évolue avec vous.</span></p>
-        </div>
-      </div>
-
-      <!-- Texte mobile -->
-      <div class="sm:hidden text-sm sm:text-xl md:text-2xl text-white space-y-4 text-balance pb-2">
-        <p>
-          Je conçois des solutions sur-mesure, pensées pour s'adapter
-          <span class="font-bold">à votre activité, à vos objectifs, et à votre budget.</span>
-        </p>
-        <p>
-          Mon rôle : vous accompagner à chaque étape,
-          en créant un outil qui <span class="font-bold">évolue avec vous.</span>
+      <div class="hero__panel flex flex-col gap-3 text-base sm:text-xl md:text-2xl text-white">
+        <p v-for="paragraph in hero.paragraphs" :key="paragraph">
+          {{ paragraph }}
         </p>
       </div>
 
-      <!-- Boutons -->
-      <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center w-full max-w-xs sm:max-w-3xl lg:max-w-4xl mx-auto">
-        <button 
-          class="w-full sm:w-auto flex-1 rounded-full bg-white light-shadow light-shadow-text-black text-base sm:text-xl lg:text-2xl text-black font-bold px-6 py-2 sm:py-6 hover:scale-105 transition-transform"
+      <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center w-full max-w-xs sm:max-w-2xl mx-auto pt-2">
+        <button
+          type="button"
+          class="w-full sm:w-auto flex-1 rounded-full bg-white light-shadow light-shadow-text-black text-base sm:text-lg lg:text-xl text-black font-bold px-6 py-3 sm:py-4 hover:scale-105 focus-visible:scale-105 transition-transform"
+          @click="goToSection('projects')"
         >
-          Discutons de votre projet
+          {{ hero.ctaProjects }}
         </button>
-        <button 
-          class="w-full sm:w-auto flex-1 rounded-full border-2 sm:border-4 border-white light-shadow text-base sm:text-xl lg:text-2xl text-white bg-transparent px-6 py-2 sm:py-6 hover:scale-105 transition-transform"
+        <button
+          type="button"
+          class="w-full sm:w-auto flex-1 rounded-full border-2 sm:border-3 border-white light-shadow text-base sm:text-lg lg:text-xl text-white bg-transparent px-6 py-3 sm:py-4 hover:scale-105 focus-visible:scale-105 transition-transform"
+          @click="goToAnchor('projects', 'contact')"
         >
-          Comment je vous accompagne ?
+          {{ hero.ctaContact }}
         </button>
       </div>
     </div>
@@ -48,4 +37,23 @@
 
 <script setup lang="ts">
 import BaseSection from '~/components/sections/BaseSection.vue'
+import { siteContent } from '~/data/content'
+import { useAppNavigation } from '~/composables/useAppNavigation'
+
+const hero = siteContent.hero
+const { goToSection, goToAnchor } = useAppNavigation()
 </script>
+
+<style scoped>
+.hero__panel {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 1.25rem;
+  padding: 1rem 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .hero__panel {
+    padding: 1.5rem 2rem;
+  }
+}
+</style>

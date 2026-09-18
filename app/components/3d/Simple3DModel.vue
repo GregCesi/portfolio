@@ -2,8 +2,7 @@
   <div 
     ref="containerRef"
     :style="{ height: props.height, width: props.width }"
-  >
-  </div>
+  />
 </template>
 
 <script setup lang="ts">

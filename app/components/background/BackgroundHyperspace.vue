@@ -16,6 +16,7 @@ import { useNuxtApp } from '#app'
 import Renderer from '@/graphics/background/Renderer'
 import StarsField from '@/graphics/background/StarsField'
 import WarpEffect from '@/graphics/background/WarpEffect'
+import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
 
 const canvas = ref<HTMLCanvasElement | null>(null)
 let renderer: Renderer
@@ -23,9 +24,15 @@ let starsField: StarsField
 let warpEffect: WarpEffect
 
 const { $emitter } = useNuxtApp()
+const prefersReducedMotion = usePrefersReducedMotion()
 
 const accelerate = (duration?: number) => {
-  warpEffect.start(duration)
+  // `prefers-reduced-motion` : warp atténué et raccourci (§2.3 de la spec).
+  if (prefersReducedMotion.value) {
+    warpEffect.start(0.25, 2)
+  } else {
+    warpEffect.start(duration ?? 0.8, 10)
+  }
 }
 
 onMounted(() => {
@@ -33,7 +40,7 @@ onMounted(() => {
 
   renderer = new Renderer(canvas.value)
   renderer.init()
-  
+
   starsField = new StarsField()
   warpEffect = new WarpEffect(starsField)
 
@@ -69,4 +76,3 @@ canvas {
   height: 100%;
 }
 </style>
-*/

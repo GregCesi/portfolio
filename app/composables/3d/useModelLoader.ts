@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { ref, shallowRef, type Ref } from 'vue'
 
 export function useModelLoader(scene: Ref<THREE.Scene | undefined>) {
@@ -27,7 +27,7 @@ export function useModelLoader(scene: Ref<THREE.Scene | undefined>) {
     
     try {
       // Charger le modèle avec GLTFLoader
-      const gltf = await new Promise<any>((resolve, reject) => {
+      const gltf = await new Promise<GLTF>((resolve, reject) => {
         loader.load(
           path,
           resolve, // Succès

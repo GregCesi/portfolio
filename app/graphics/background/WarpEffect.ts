@@ -9,11 +9,11 @@ export default class WarpEffect {
     this.starsField = starsField
   }
 
-  start(duration: number = 0.8) {
+  start(duration: number = 0.8, speed: number = 10) {
     // Logique identique à l'original
     if (this.normalizeTimeout) clearTimeout(this.normalizeTimeout)
-    
-    this.starsField.setWarpSpeed(10)
+
+    this.starsField.setWarpSpeed(speed)
     this.starsField.setWarpFactor(1)
     this.isWarping = true
     

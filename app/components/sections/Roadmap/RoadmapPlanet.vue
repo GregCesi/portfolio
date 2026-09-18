@@ -1,20 +1,46 @@
 <template>
-  <Universal3DModel 
-    model="/3d/models/Planet-1.glb" 
-    width="800px" 
-    height="800px"
-    @modelLoaded="handleModelLoaded"
-  />    
+  <Universal3DModel
+    model="/3d/models/Planet-1.glb"
+    :width="planetSize"
+    :height="planetSize"
+    :auto-rotate="!prefersReducedMotion"
+    @model-loaded="handleModelLoaded"
+  />
 </template>
 
 <script setup lang="ts">
 import * as THREE from 'three'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import Universal3DModel from '~/components/3d/Universal3DModel.vue'
 import { useRoadmapState } from '~/composables/useRoadmapState'
 import { useCrossfadeTexture } from '~/composables/3d/useCrossfadeTexture'
+import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
 
 const { registerPlanetMaterial } = useRoadmapState()
 const { crossfadeToTexture } = useCrossfadeTexture()
+const prefersReducedMotion = usePrefersReducedMotion()
+
+// Taille responsive : la planète ne doit chevaucher ni la timeline ni le
+// contenu, de 375 px à 1920 px (§2.2.4 de la spec).
+const planetSize = ref('220px')
+
+function updatePlanetSize() {
+  const w = window.innerWidth
+  if (w < 480) planetSize.value = '190px'
+  else if (w < 768) planetSize.value = '240px'
+  else if (w < 1024) planetSize.value = '300px'
+  else if (w < 1440) planetSize.value = '380px'
+  else planetSize.value = '460px'
+}
+
+onMounted(() => {
+  updatePlanetSize()
+  window.addEventListener('resize', updatePlanetSize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updatePlanetSize)
+})
 
 let planetMesh: THREE.Mesh | null = null
 let textureMap: Record<string, THREE.Texture> = {}

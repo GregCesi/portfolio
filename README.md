@@ -1,75 +1,34 @@
-# Nuxt Minimal Starter
+# Portfolio · Grégoire MARCHAND
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Site vitrine en une page : cinq sections plein écran (Start, Parcours, Méthode,
+Projet phare, Projets), fond hyperspace animé et planète 3D à textures
+changeantes. Tous les textes visibles viennent de `content/portfolio.md`,
+repris à l'identique dans `app/data/content.ts`.
 
-## Setup
+## Stack
 
-Make sure to install dependencies:
+- [Nuxt 4](https://nuxt.com/) / Vue 3 / TypeScript strict
+- [Tailwind CSS 4](https://tailwindcss.com/)
+- [GSAP](https://gsap.com/) pour les transitions de section et la timeline
+- [Three.js](https://threejs.org/) pour le fond étoilé et la planète 3D
 
-```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+## Commandes
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+npm install      # installer les dépendances
+npm run dev      # serveur de développement, http://localhost:3000
+npm run build    # build de production (SSR)
+npm run generate # build statique
+npm run preview  # prévisualiser le build
+npm run lint     # ESLint
+npx nuxi typecheck # vérification TypeScript (vue-tsc)
 ```
 
-## Production
+## Structure
 
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+- `content/portfolio.md` : source unique de tous les textes visibles.
+- `app/data/content.ts` : reprise typée de ce contenu, consommée par les composants.
+- `app/pages/index.vue` : assemble les cinq sections dans `SlideContainer`.
+- `app/components/sections/*` : une section par dossier (Hero, AboutMe, Method, Roadmap, Projects).
+- `app/graphics/background/*` : fond hyperspace (canvas 2D).
+- `app/composables/3d/*` : scène Three.js réutilisable (planète, fondu de textures).

@@ -1,60 +1,12 @@
-import type { Step } from '~/types/roadmap'
 import { gsap } from 'gsap'
+import { siteContent } from '~/data/content'
+import type { Step } from '~/types/roadmap'
 
 // État global partagé (singleton)
 const currentStep = ref(1)
 
-// Steps global partagé
-const steps = ref<Step[]>([
-        {
-            title: "Premier contact",
-            descriptions: [
-            "Discutons ensemble de votre projet.", 
-            "Un formulaire, un mail, un message : peu importe. Ce premier échange permet de fixer un rendez-vous pour faire connaissance et comprendre rapidement ce que vous cherchez."
-            ],
-            planetTexture: "planet-bake-1"
-        },
-        {
-            title: "Échange découverte",
-            descriptions: [
-            "Comprendre votre entreprise, vos enjeux et vos besoins.", 
-            "Ce call me permet de mieux cerner votre activité, vos objectifs, vos contraintes et vos idées. L'objectif ? Vous écouter et poser les bases d'un projet aligné avec vous."
-            ],
-            planetTexture: "planet-bake-1"
-        },
-        {
-            title: "Proposition personnalisée",
-            descriptions: [
-            "Je vous présente une solution sur-mesure, à ajuster ensemble.", 
-            "Je vous propose une structure claire, que l'on affine si besoin. Une fois la solution validée, on signe le devis et on se lance, avec un plan précis."
-            ],
-            planetTexture: "planet-bake-2"
-        },
-        {
-            title: "Conception et suivi agile",
-            descriptions: [
-            "Vous suivez l'avancement du projet en temps réel.",
-            "Je travaille en mode itératif, avec la possibilité de vous partager des maquettes, idées et avancements via Miro ou d'autres outils. Vous êtes impliqué(e) autant que vous le souhaitez."
-            ],
-            planetTexture: "planet-bake-3"
-        },
-        {
-            title: "Livraison et déploiement",
-            descriptions: [
-            "Une solution fonctionnelle, optimisée, prête à être utilisée.",
-            "Une fois le projet finalisé, je vous le livre dans les conditions définies. Je vous accompagne aussi pour le lancement si besoin."
-            ],
-            planetTexture: "planet-bake-4"
-        },
-        {
-            title: "Suivi & évolution",
-            descriptions: [
-            "Le projet ne s'arrête pas à la livraison.",
-            "Je reste disponible pour les mises à jour, ajustements ou évolutions futures. L'objectif est que vous puissiez faire grandir votre projet dans le temps, sans repartir de zéro."
-            ],
-            planetTexture: "planet-bake-4"
-        }
-])
+// Steps global partagé, alimentés par la source de contenu unique
+const steps = ref<Step[]>(siteContent.roadmap.steps)
 
 // Éléments DOM centralisés pour les animations
 const timelineElements = ref({

@@ -11,30 +11,12 @@
           <!-- bloc titre -->
           <div class="font-bold text-left">
             <div class="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl light-shadow-text">
-              Grégoire MARCHAND
+              {{ siteContent.global.name }}
             </div>
             <div class="text-[11px] sm:text-sm md:text-base lg:text-lg xl:text-xl pl-2 lg:pl-4 -mt-1 light-shadow-text">
-              Développeur Full-Stack
+              {{ siteContent.global.headerTitle }}
             </div>
           </div>
-
-          <!-- navigation -->
-          <nav class="pr-1 lg:pr-6 hidden">
-            <ul
-class="flex items-center gap-4 sm:gap-6 md:gap-8 lg:gap-10
-                       text-base sm:text-lg md:text-xl lg:text-2xl font-bold">
-              <li>
-                <a href="#" class="block py-1 light-shadow-text hover:scale-105 transition-transform">
-                  Projets
-                </a>
-              </li>
-              <li>
-                <a href="#" class="block py-1 light-shadow-text hover:scale-105 transition-transform">
-                  Lab
-                </a>
-              </li>
-            </ul>
-          </nav>
         </div>
       </div>
     </div>
@@ -42,5 +24,5 @@ class="flex items-center gap-4 sm:gap-6 md:gap-8 lg:gap-10
 </template>
 
 <script setup lang="ts">
-// aucun script nécessaire pour l’instant
+import { siteContent } from '~/data/content'
 </script>

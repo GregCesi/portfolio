@@ -1,23 +1,23 @@
 <template>
-  <div class="flex flex-col gap-16">
+  <div class="flex flex-col gap-8 sm:gap-10 lg:gap-8">
 
-    <div v-for="(step, index) in steps" :key="index" class="relative flex items-center gap-8">
+    <div v-for="(step, index) in steps" :key="index" class="relative flex items-center gap-4 sm:gap-6">
 
       <!-- Cercle vide -->
       <div
 :ref="(el) => setCircleRef(el as HTMLElement, index)"
-            class="w-10 h-10 rounded-full border-2 transition-all duration-300"
+            class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-all duration-300 shrink-0"
             :class="getCircleClass(index)"/>
 
       <!-- Titre -->
       <div
-class="transition-all duration-300 text-xl"
+class="transition-all duration-300 text-base sm:text-lg lg:text-xl"
             :class="getTitleClass(index)">
-        Etape {{ index + 1 }} : {{ step.title }}
+        Étape {{ index + 1 }} : {{ step.title }}
       </div>
 
       <!-- Ligne vers le bas (sauf pour le dernier) -->
-      <div v-if="index < steps.length - 1" class="absolute left-5 top-10 w-0.5 h-16">
+      <div v-if="index < steps.length - 1" class="absolute left-4 sm:left-5 top-8 sm:top-10 w-0.5 h-8 sm:h-10 lg:h-8">
         <!-- Ligne grise (toujours visible) -->
         <div class="w-full h-full bg-gray-600" />
 
