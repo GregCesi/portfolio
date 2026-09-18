@@ -4,7 +4,8 @@
     ref="slideRef"
     :transition-duration="transitionDuration"
     @section-change="onSectionChange"
-    @section-settled="onSectionSettled"
+    @subscreen-next="onSubscreenNext"
+    @subscreen-prev="onSubscreenPrev"
   >
     <section class="slide"><HeroSection /></section>
     <section class="slide"><AboutMeSection /></section>
@@ -15,9 +16,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, provide, ref } from 'vue'
+import { computed, provide, ref } from 'vue'
 import { useNuxtApp, useSeoMeta } from '#app'
-import gsap from 'gsap'
 
 import SlideContainer from '@/components/SlideContainer.vue'
 import SlideMenu from '@/components/navigation/SlideMenu.vue'
@@ -31,6 +31,7 @@ import { siteContent, SECTION_INDEX, SECTION_ORDER } from '~/data/content'
 import type { SectionId } from '~/types/content'
 import { appNavigationKey } from '~/composables/useAppNavigation'
 import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
+import { useSubscreenNav } from '~/composables/useSubscreenNav'
 
 import type { SlideContainerExposed } from '~/types/slides'
 
@@ -45,27 +46,15 @@ useSeoMeta({
 
 const { $emitter } = useNuxtApp()
 const prefersReducedMotion = usePrefersReducedMotion()
-const transitionDuration = computed(() => (prefersReducedMotion.value ? 0.2 : 0.8))
+const transitionDuration = computed(() => (prefersReducedMotion.value ? 0.2 : 0.65))
+const subscreenNav = useSubscreenNav()
 
 const slideRef = ref<SlideContainerExposed | null>(null)
 const currentIndex = ref(0)
-const pendingAnchor = ref<string | null>(null)
 
 function onSectionChange(index: number) {
   currentIndex.value = index
   $emitter.emit('accelerate-stars')
-}
-
-// Déclenché par SlideContainer une fois la transition GSAP totalement terminée
-// (onComplete du timeline, pas au milieu de l'animation) : c'est seulement à ce
-// moment que la géométrie de la section cible est stable et qu'on peut y faire
-// défiler un ancrage interne en toute sécurité.
-function onSectionSettled() {
-  if (!pendingAnchor.value) return
-
-  const anchorId = pendingAnchor.value
-  pendingAnchor.value = null
-  nextTick(() => scrollToAnchor(anchorId))
 }
 
 function onMenuSelect(index: number) {
@@ -77,41 +66,21 @@ function goToSection(section: SectionId) {
   slideRef.value?.goTo(SECTION_INDEX[section])
 }
 
-// Fait défiler la zone de défilement interne de la section (`.section-scroll-area`,
-// voir BaseSection.vue), jamais `Element.scrollIntoView()` : ce dernier remonte
-// aussi le conteneur `.overflow-hidden` piloté par transform GSAP dans
-// SlideContainer et additionne les deux décalages, poussant tout le contenu
-// hors de l'écran (bug « Me contacter »).
-function scrollToAnchor(anchorId: string) {
-  const el = document.getElementById(anchorId)
-  if (!el) return
-
-  const scrollArea = el.closest('.section-scroll-area') as HTMLElement | null
-  if (!scrollArea) return
-
-  const targetTop = scrollArea.scrollTop + (el.getBoundingClientRect().top - scrollArea.getBoundingClientRect().top)
-
-  if (prefersReducedMotion.value) {
-    scrollArea.scrollTo({ top: targetTop, behavior: 'auto' })
-    return
-  }
-
-  // Défilement interne animé par GSAP (durée fixe et courte) plutôt que
-  // `Element.scrollTo({ behavior: 'smooth' })` : ce dernier n'offre aucun
-  // contrôle de durée et peut s'étirer sur mobile, ajoutant à la latence
-  // perçue après le clic sur « Me contacter ». `scrollTop` reste une
-  // propriété DOM ordinaire, animable directement par GSAP sans plugin.
-  gsap.to(scrollArea, { scrollTop: targetTop, duration: 0.45, ease: 'power2.out' })
+// Sous-écran ciblé par bouton (ex. « Me contacter » → dernier sous-écran de
+// Projets sur mobile) : le contrôleur de sous-écrans de la section cible
+// (§2.3 de la spec) est piloté directement, sans défilement DOM — chaque
+// section tient déjà entièrement dans l'écran, il n'y a rien à faire défiler.
+function goToAnchor(section: SectionId, anchorIndex: number) {
+  goToSection(section)
+  subscreenNav.goTo(section, anchorIndex)
 }
 
-function goToAnchor(section: SectionId, anchorId: string) {
-  if (currentIndex.value === SECTION_INDEX[section]) {
-    scrollToAnchor(anchorId)
-    return
-  }
+function onSubscreenNext() {
+  subscreenNav.trigger(SECTION_ORDER[currentIndex.value], 'next')
+}
 
-  pendingAnchor.value = anchorId
-  goToSection(section)
+function onSubscreenPrev() {
+  subscreenNav.trigger(SECTION_ORDER[currentIndex.value], 'prev')
 }
 
 provide(appNavigationKey, { goToSection, goToAnchor })

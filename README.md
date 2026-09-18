@@ -2,8 +2,13 @@
 
 Site vitrine en une page : cinq sections plein écran (Start, Parcours, Méthode,
 Projet phare, Projets), fond hyperspace animé et planète 3D à textures
-changeantes. Tous les textes visibles viennent de `content/portfolio.md`,
-repris à l'identique dans `app/data/content.ts`.
+changeantes. Chaque section tient entièrement dans la fenêtre, sans
+défilement interne ; sur mobile (< 768px), une section trop dense se
+découpe en sous-écrans navigables (flèches, glissement horizontal, indicateur
+« N / M »). Direction artistique « instrument de bord » : serif/sans/mono,
+un seul accent ambre, pas de glow ni de dégradé. Tous les textes visibles
+viennent de `content/portfolio.md`, repris à l'identique dans
+`app/data/content.ts`.
 
 ## Stack
 
@@ -30,5 +35,7 @@ npx nuxi typecheck # vérification TypeScript (vue-tsc)
 - `app/data/content.ts` : reprise typée de ce contenu, consommée par les composants.
 - `app/pages/index.vue` : assemble les cinq sections dans `SlideContainer`.
 - `app/components/sections/*` : une section par dossier (Hero, AboutMe, Method, Roadmap, Projects).
+- `app/components/subscreen/*` : piste glissante et navigation des sous-écrans mobile (`SubscreenTrack`, `SubscreenNav`).
+- `app/composables/useMobileSubscreens.ts`, `useSubscreenNav.ts` : état et registre des sous-écrans (clavier gauche/droite).
 - `app/graphics/background/*` : fond hyperspace (canvas 2D).
 - `app/composables/3d/*` : scène Three.js réutilisable (planète, fondu de textures).

@@ -39,6 +39,9 @@ const emit = defineEmits<{
   'section-change': [index: number]
   /** Émis une fois la transition GSAP totalement terminée (layout stable). */
   'section-settled': [index: number]
+  /** Flèches gauche/droite (§2.3) : change de sous-écran dans la section active. */
+  'subscreen-next': []
+  'subscreen-prev': []
 }>()
 
 // Validation des limites
@@ -58,23 +61,6 @@ function updateInertSlides() {
       slide.setAttribute('aria-hidden', 'true')
     }
   })
-}
-
-/** Trouve la zone de défilement interne de la section active (voir BaseSection.vue). */
-function getActiveScrollEl(): HTMLElement | null {
-  return slides.value[current.value]?.querySelector('.section-scroll-area') ?? null
-}
-
-function isScrollable(el: HTMLElement): boolean {
-  return el.scrollHeight > el.clientHeight + 1
-}
-
-function atTop(el: HTMLElement): boolean {
-  return el.scrollTop <= 0
-}
-
-function atBottom(el: HTMLElement): boolean {
-  return el.scrollTop + el.clientHeight >= el.scrollHeight - 1
 }
 
 function goTo(index: number) {
@@ -110,35 +96,22 @@ function goTo(index: number) {
     .fromTo(slides.value[index]!, { autoAlpha: 0 }, { autoAlpha: 1, duration: fadeDuration }, fadeInStart)
 }
 
-// Gestion du wheel : le contenu interne défile d'abord, la section ne change
-// qu'une fois la butée haute ou basse atteinte (§2.3 de la spec).
+// Gestion du wheel : chaque section tient entièrement dans l'écran, sans
+// défilement interne (§2.3 de la spec) — la molette ne fait donc que changer
+// de section, dès le premier seuil franchi.
 function onWheel(e: WheelEvent) {
-  if (state.isAnimating) {
-    e.preventDefault()
-    return
-  }
-
-  const direction = e.deltaY > 0 ? 1 : -1
-  const scrollEl = getActiveScrollEl()
-
-  if (scrollEl && isScrollable(scrollEl)) {
-    const blocked = direction > 0 ? atBottom(scrollEl) : atTop(scrollEl)
-    if (!blocked) {
-      // Laisser le défilement natif de la section se produire.
-      state.wheelDelta = 0
-      return
-    }
-  }
-
   e.preventDefault()
+  if (state.isAnimating) return
+
   state.wheelDelta += e.deltaY
 
   if (Math.abs(state.wheelDelta) >= props.scrollThreshold) {
+    const direction = state.wheelDelta > 0 ? 1 : -1
     goTo(current.value + direction)
   }
 }
 
-// Touch handlers, avec la même logique de défilement interne d'abord.
+// Touch handlers : le tactile ne fait que changer de section (§2.3).
 function onTouchStart(e: TouchEvent) {
   const touch = e.touches[0]
   if (!touch) return
@@ -147,53 +120,49 @@ function onTouchStart(e: TouchEvent) {
 }
 
 function onTouchMove(e: TouchEvent) {
-  if (state.isAnimating) {
-    e.preventDefault()
-    return
-  }
+  e.preventDefault()
+  if (state.isAnimating) return
 
   const touch = e.touches[0]
   if (!touch) return
 
   const delta = state.touchStartY - touch.clientY
-  const direction = delta > 0 ? 1 : -1
-  const scrollEl = getActiveScrollEl()
-
-  if (scrollEl && isScrollable(scrollEl)) {
-    const blocked = direction > 0 ? atBottom(scrollEl) : atTop(scrollEl)
-    if (!blocked) {
-      // Laisser le défilement tactile natif de la section se produire.
-      return
-    }
-  }
-
-  e.preventDefault()
 
   if (Math.abs(delta) >= props.scrollThreshold) {
+    const direction = delta > 0 ? 1 : -1
     goTo(current.value + direction)
     state.touchStartY = touch.clientY // Reset pour éviter les répétitions
   }
 }
 
-// Clavier : flèches haut/bas, PageUp/PageDown, Home/End changent de section (§2.3).
+// Clavier : flèches haut/bas, PageUp/PageDown, Home/End changent de section ;
+// flèches gauche/droite changent de sous-écran dans la section active (§2.3).
 const NEXT_KEYS = new Set(['ArrowDown', 'PageDown'])
 const PREV_KEYS = new Set(['ArrowUp', 'PageUp'])
 
 function onKeydown(e: KeyboardEvent) {
-  if (state.isAnimating) return
-
   if (NEXT_KEYS.has(e.key)) {
+    if (state.isAnimating) return
     e.preventDefault()
     goTo(current.value + 1)
   } else if (PREV_KEYS.has(e.key)) {
+    if (state.isAnimating) return
     e.preventDefault()
     goTo(current.value - 1)
   } else if (e.key === 'Home') {
+    if (state.isAnimating) return
     e.preventDefault()
     goTo(0)
   } else if (e.key === 'End') {
+    if (state.isAnimating) return
     e.preventDefault()
     goTo(slides.value.length - 1)
+  } else if (e.key === 'ArrowRight') {
+    e.preventDefault()
+    emit('subscreen-next')
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault()
+    emit('subscreen-prev')
   }
 }
 

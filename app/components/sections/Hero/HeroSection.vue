@@ -1,33 +1,19 @@
 <template>
-  <BaseSection>
-    <div
-      class="w-full max-w-5xl text-center mx-auto flex flex-col gap-6 sm:gap-10 min-h-full items-center justify-center px-4 sm:px-6 lg:px-8 py-6"
-    >
-      <h1
-        class="text-3xl sm:text-5xl md:text-[50px] lg:text-[64px] font-bold leading-tight light-shadow-text text-white text-balance"
-      >
-        {{ hero.title }}
-      </h1>
+  <BaseSection :index="1">
+    <div ref="rootRef" class="hero">
+      <h1 class="hero__title">{{ hero.title }}</h1>
 
-      <div class="hero__panel flex flex-col gap-3 text-base sm:text-xl md:text-2xl text-white">
+      <div class="hero__text">
         <p v-for="paragraph in hero.paragraphs" :key="paragraph">
           {{ paragraph }}
         </p>
       </div>
 
-      <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center w-full max-w-xs sm:max-w-2xl mx-auto pt-2">
-        <button
-          type="button"
-          class="w-full sm:w-auto flex-1 rounded-full bg-white light-shadow light-shadow-text-black text-base sm:text-lg lg:text-xl text-black font-bold px-6 py-3 sm:py-4 hover:scale-105 focus-visible:scale-105 transition-transform"
-          @click="goToSection('projects')"
-        >
+      <div class="hero__actions">
+        <button type="button" class="hero__btn hero__btn--primary" @click="goToSection('projects')">
           {{ hero.ctaProjects }}
         </button>
-        <button
-          type="button"
-          class="w-full sm:w-auto flex-1 rounded-full border-2 sm:border-3 border-white light-shadow text-base sm:text-lg lg:text-xl text-white bg-transparent px-6 py-3 sm:py-4 hover:scale-105 focus-visible:scale-105 transition-transform"
-          @click="goToAnchor('projects', 'contact')"
-        >
+        <button type="button" class="hero__btn" @click="goToAnchor('projects', siteContent.projects.cards.length)">
           {{ hero.ctaContact }}
         </button>
       </div>
@@ -36,24 +22,81 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import BaseSection from '~/components/sections/BaseSection.vue'
 import { siteContent } from '~/data/content'
 import { useAppNavigation } from '~/composables/useAppNavigation'
+import { useSplitReveal } from '~/composables/useSplitReveal'
 
 const hero = siteContent.hero
 const { goToSection, goToAnchor } = useAppNavigation()
+
+const rootRef = ref<HTMLElement | null>(null)
+useSplitReveal(rootRef, '.hero__title, .hero__text p')
 </script>
 
 <style scoped>
-.hero__panel {
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: 1.25rem;
-  padding: 1rem 1.25rem;
+.hero {
+  height: 100%;
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(1.25rem, 3vh, 2rem);
+  padding: 0 1.25rem;
 }
 
-@media (min-width: 640px) {
-  .hero__panel {
-    padding: 1.5rem 2rem;
-  }
+.hero__title {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: clamp(1.9rem, 1.2rem + 3vw, 3.5rem);
+  line-height: 1.1;
+  max-width: 20ch;
+}
+
+.hero__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: clamp(0.95rem, 0.85rem + 0.4vw, 1.1rem);
+  line-height: 1.55;
+  color: var(--color-ink-dim);
+  max-width: 62ch;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.hero__btn {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: var(--color-ink);
+  background: transparent;
+  border: 1px solid var(--color-line);
+  padding: 0.7rem 1.4rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.hero__btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.hero__btn--primary {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.hero__btn--primary:hover {
+  background-color: var(--color-accent);
+  color: #0a0908;
 }
 </style>

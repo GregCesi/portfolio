@@ -1,24 +1,8 @@
 <template>
-  <!-- barre fixe 100% largeur, avec marge haute + latérales -->
-  <header class="fixed top-2 left-1/2 -translate-x-1/2 z-50 w-full">
-    <div class="mt-4 sm:mt-6 md:mt-8 mx-3 sm:mx-8 md:mx-16 lg:mx-32">
-      <!-- capsule arrondie avec bord + glow + padding interne -->
-      <div
-        class="rounded-full border-2 sm:border-3 lg:border-4 border-white light-shadow
-               px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4 bg-transparent"
-      >
-        <div class="flex items-center justify-between text-white">
-          <!-- bloc titre -->
-          <div class="font-bold text-left">
-            <div class="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl light-shadow-text">
-              {{ siteContent.global.name }}
-            </div>
-            <div class="text-[11px] sm:text-sm md:text-base lg:text-lg xl:text-xl pl-2 lg:pl-4 -mt-1 light-shadow-text">
-              {{ siteContent.global.headerTitle }}
-            </div>
-          </div>
-        </div>
-      </div>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <p class="site-header__name">{{ siteContent.global.name }}</p>
+      <p class="site-header__title">{{ siteContent.global.headerTitle }}</p>
     </div>
   </header>
 </template>
@@ -26,3 +10,49 @@
 <script setup lang="ts">
 import { siteContent } from '~/data/content'
 </script>
+
+<style scoped>
+/* Instrument de bord, sans capsule ni lueur (§2.3 bis de la spec) : un simple
+   bloc mono/serif posé en haut à gauche, souligné d'un filet fin. */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+}
+
+.site-header__inner {
+  padding: 1rem 1.25rem 0.85rem;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.site-header__name {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--color-ink);
+  letter-spacing: 0.01em;
+}
+
+.site-header__title {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-dim);
+  margin-top: 0.15rem;
+}
+
+@media (min-width: 768px) {
+  .site-header__inner {
+    padding: 1.5rem 2.5rem 1.1rem;
+  }
+
+  .site-header__name {
+    font-size: 1.15rem;
+  }
+
+  .site-header__title {
+    font-size: 0.72rem;
+  }
+}
+</style>

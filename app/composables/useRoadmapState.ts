@@ -16,7 +16,7 @@ const timelineElements = ref({
 })
 
 // Fonction de changement de texture planète (enregistrée par PlanetModel)
-let planetTextureChanger: ((textureName: string) => void) | null = null
+let planetTextureChanger: ((textureName: string) => Promise<void> | void) | null = null
 
 // === FONCTIONS UTILITAIRES D'ANIMATION ===
 
@@ -75,43 +75,20 @@ export const useRoadmapState = () => {
   }
 
   // Fonction pour enregistrer le changement de texture planète
-  const registerPlanetMaterial = (changeTextureFunction: (textureName: string) => void) => {
+  const registerPlanetMaterial = (changeTextureFunction: (textureName: string) => Promise<void> | void) => {
     planetTextureChanger = changeTextureFunction
   }
 
-  // Fonction d'animation de texture planète avec morphing fluide
-  const animatePlanetTexture = async (
-    textureName: string,
-    duration: number = 2.1,
-  ): Promise<void> => {
-    return new Promise((resolve) => {
-      if (planetTextureChanger) {
-        // Créer un morphing fluide avec GSAP
-        // 1. Fade out la planète actuelle
-        gsap.to('.planet-container', {
-          opacity: 0.3,
-          duration: duration * 0.3, // 30% du temps pour fade out
-          ease: 'power2.out',
-          onComplete: () => {
-            // 2. Changer la texture au milieu
-            if (planetTextureChanger) {
-              planetTextureChanger(textureName)
-            }
-
-            // 3. Fade in avec la nouvelle texture
-            gsap.to('.planet-container', {
-              opacity: 1,
-              duration: duration * 0.7, // 70% du temps pour fade in
-              ease: 'power2.inOut',
-              onComplete: resolve,
-            })
-          },
-        })
-      } else {
-        console.warn('Planet texture changer not registered')
-        resolve()
-      }
-    })
+  // Déclenche le fondu de texture de la planète. Le fondu lui-même (opacité
+  // du matériau WebGL) est géré par `useCrossfadeTexture`, appelé par la
+  // fonction enregistrée via `registerPlanetMaterial` (voir RoadmapPlanet.vue) :
+  // il n'y a pas de fondu DOM séparé à orchestrer ici, la classe
+  // `.planet-container` visée par une ancienne version de ce code n'a jamais
+  // existé dans le template (code mort, source de l'avertissement console
+  // « GSAP target .planet-container not found »).
+  const animatePlanetTexture = async (textureName: string): Promise<void> => {
+    if (!planetTextureChanger) return
+    await planetTextureChanger(textureName)
   }
 
   // Navigation avec limites
@@ -150,14 +127,8 @@ export const useRoadmapState = () => {
     if (direction === 'next') {
       // NEXT: Fade-out, ligne, cercle, fade-in + morphing planète en parallèle
 
-      // Calculer la durée totale: fadeOut(0.3) + lineGrow(1.5) + fadeIn(0.3) = 2.1s
-      const totalDuration = 2.1
-
       // 🪐 Lancer le morphing planète en parallèle (commence maintenant, finit à la fin)
-      const planetMorphPromise = animatePlanetTexture(
-        steps.value[newStep - 1]?.planetTexture || '',
-        totalDuration,
-      )
+      const planetMorphPromise = animatePlanetTexture(steps.value[newStep - 1]?.planetTexture || '')
 
       // 1. FADE-OUT du texte
       if (content) await fadeOut(content)
@@ -178,14 +149,8 @@ export const useRoadmapState = () => {
     } else {
       // PREV: Cercle, fade-out, ligne, fade-in + morphing planète en parallèle
 
-      // Calculer la durée totale: fadeOut(0.3) + lineShrink(1.5) + fadeIn(0.3) = 2.1s
-      const totalDuration = 2.1
-
       // 🪐 Lancer le morphing planète en parallèle
-      const planetMorphPromise = animatePlanetTexture(
-        steps.value[newStep - 1]?.planetTexture || '',
-        totalDuration,
-      )
+      const planetMorphPromise = animatePlanetTexture(steps.value[newStep - 1]?.planetTexture || '')
 
       // 1. Retirer le pulse + mise à jour currentStep
       const oldCircle = circles[oldStep - 1]

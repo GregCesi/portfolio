@@ -1,11 +1,11 @@
 <template>
-  <BaseSection>
+  <BaseSection :index="4">
     <div class="roadmap">
-      <div class="roadmap__intro panel px-4 py-4 sm:px-6 sm:py-5">
+      <header class="roadmap__head">
         <p class="roadmap__kicker">{{ roadmap.kicker }}</p>
-        <h2 class="roadmap__title light-shadow-text">{{ roadmap.title }}</h2>
+        <h2 class="roadmap__title">{{ roadmap.title }}</h2>
         <p class="roadmap__subtitle">{{ roadmap.subtitle }}</p>
-      </div>
+      </header>
 
       <div class="roadmap__grid">
         <RoadmapTimeline class="roadmap__timeline" />
@@ -17,55 +17,76 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted } from 'vue'
 import BaseSection from '../BaseSection.vue'
 import RoadmapTimeline from './RoadmapTimeline.vue'
 import RoadmapContent from './RoadmapContent.vue'
 import RoadmapPlanet from './RoadmapPlanet.vue'
 import { siteContent } from '~/data/content'
+import { useRoadmapState } from '~/composables/useRoadmapState'
+import { useSubscreenNav } from '~/composables/useSubscreenNav'
 
 const roadmap = siteContent.roadmap
+const { nextStepAnimated, prevStepAnimated, goToStep } = useRoadmapState()
+const subscreenNav = useSubscreenNav()
+
+// Les six étapes sont elles-mêmes des sous-écrans (§2.3 de la spec) :
+// flèches gauche/droite, comme sur les autres sections découpées.
+onMounted(() =>
+  subscreenNav.register('roadmap', {
+    next: () => nextStepAnimated(),
+    prev: () => prevStepAnimated(),
+    goTo: (index: number) => goToStep(index + 1),
+  })
+)
+onBeforeUnmount(() => subscreenNav.unregister('roadmap'))
 </script>
 
 <style scoped>
 .roadmap {
+  height: 100%;
   width: 100%;
-  max-width: 90rem;
+  max-width: 84rem;
   margin: 0 auto;
-  padding: 2rem 1rem 3rem;
-  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(1rem, 2.5vh, 1.75rem);
+  padding: 0 1.25rem;
 }
 
-.roadmap__intro {
+.roadmap__head {
   max-width: 46rem;
-  margin: 0 auto 2rem;
-  text-align: center;
 }
 
 .roadmap__kicker {
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.65);
-  margin-bottom: 0.5rem;
+  color: var(--color-accent);
+  margin-bottom: 0.4rem;
 }
 
 .roadmap__title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  line-height: 1.25;
-  margin-bottom: 0.75rem;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: clamp(1.25rem, 1rem + 1.1vw, 2rem);
+  line-height: 1.2;
+  margin-bottom: 0.4rem;
 }
 
 .roadmap__subtitle {
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  color: var(--color-ink-dim);
+  max-width: 60ch;
 }
 
 .roadmap__grid {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2.5rem;
+  gap: 1.5rem;
 }
 
 .roadmap__timeline {
@@ -85,12 +106,6 @@ const roadmap = siteContent.roadmap
   justify-content: center;
 }
 
-@media (min-width: 768px) {
-  .roadmap__title {
-    font-size: 2.1rem;
-  }
-}
-
 @media (min-width: 1024px) {
   .roadmap__grid {
     flex-direction: row;
@@ -101,13 +116,13 @@ const roadmap = siteContent.roadmap
 
   .roadmap__timeline {
     order: 1;
-    max-width: 18rem;
+    max-width: 17rem;
     flex-shrink: 0;
   }
 
   .roadmap__content {
     order: 2;
-    max-width: 24rem;
+    max-width: 22rem;
     flex-shrink: 0;
   }
 
@@ -120,11 +135,11 @@ const roadmap = siteContent.roadmap
 
 @media (min-width: 1440px) {
   .roadmap__timeline {
-    max-width: 20rem;
+    max-width: 19rem;
   }
 
   .roadmap__content {
-    max-width: 28rem;
+    max-width: 26rem;
   }
 }
 </style>

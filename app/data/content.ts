@@ -159,7 +159,11 @@ export const siteContent: SiteContent = {
           'Le système classe, je décide.',
           "Je lis les offres qui remontent et je retiens celles qui m'intéressent. Une vue opérateur me sert à vérifier que les filtres ne coupent pas ce qu'ils ne devraient pas.",
         ],
-        planetTexture: 'planet-bake-5',
+        // content/portfolio.md indique `planet-bake-5` pour cette étape, mais
+        // aucun fichier dédié n'existe (seuls -1 à -4 sont bakés, §3 de la
+        // spec autorise explicitement à pointer l'étape 6 sur `planet-bake-4`
+        // plutôt que de fournir une texture dédiée).
+        planetTexture: 'planet-bake-4',
       },
     ],
   },

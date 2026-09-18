@@ -11,7 +11,6 @@ export interface SlideMenuItemProps {
   label: string
   index: number
   active: boolean
-  horizontal?: boolean
 }
 
 export interface SlideMenuItemEmits {

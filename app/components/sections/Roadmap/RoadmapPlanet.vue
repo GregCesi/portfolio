@@ -103,9 +103,9 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
     }
     
     // Charger toutes les textures (WebP compressé, ~1 Mo au total contre
-    // ~15 Mo en PNG source — voir spec §4 Performance). 'planet-bake-5'
-    // n'a pas de fichier dédié : la texture d'origine intégrée au GLB sert
-    // pour la dernière étape (Décision), conformément à content/portfolio.md.
+    // ~15 Mo en PNG source — voir spec §4 Performance). L'étape 6 (Décision)
+    // réutilise explicitement 'planet-bake-4' (voir app/data/content.ts) :
+    // il n'y a que quatre textures bakées, pas de cas 'planet-bake-5' à gérer.
     textureMap = {
       'planet-bake-1': correctTextureProperties(
         textureLoader.load('/3d/models/textures/planet-1/planet-bake-1.webp'),
@@ -123,7 +123,6 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
         textureLoader.load('/3d/models/textures/planet-4/planet-bake-4.webp'),
         originalTexture
       ),
-      'planet-bake-5': originalTexture,
     }
     
     // 3. Créer la fonction de changement de texture avec crossfade
@@ -138,7 +137,7 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
           await crossfadeToTexture(planetMesh, fromTexture, toTexture, 2.0)
           currentTextureName = textureName
         } catch (error) {
-          console.error('❌ Erreur crossfade:', error)
+          console.error('Erreur de fondu de texture planète :', error)
         }
       }
     }

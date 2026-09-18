@@ -1,54 +1,63 @@
 <template>
   <button
-    :class="[
-      'relative group flex items-center',
-      horizontal 
-        ? 'h-8 justify-center flex-1' 
-        : 'h-24 w-48'
-    ]"
-    :aria-pressed="active"
-    @click="onClick"
+    type="button"
+    class="menu-item"
+    :class="{ 'is-active': active }"
+    :aria-current="active ? 'true' : undefined"
+    @click="emit('select', index)"
   >
-    <!-- Barre d'indication -->
-    <div
-      :class="[
-        'absolute bg-white transition-all duration-300 max-md:w-full',
-        horizontal
-          ? 'left-1/2 -translate-x-1/2 bottom-0 h-0.5 w-4 group-hover:translate-y-[1rem] group-hover:shadow-[0_0_15px_rgba(255,255,255,0.9)]'
-          : 'left-0 top-0 bottom-0 w-1 group-hover:translate-x-[3rem] group-hover:shadow-[0_0_15px_rgba(255,255,255,0.9)]',
-        horizontal && active 
-          ? 'translate-y-[1rem] shadow-[0_0_15px_rgba(255,255,255,0.9)]'
-          : '',
-        !horizontal && active 
-          ? 'translate-x-[3rem] shadow-[0_0_15px_rgba(255,255,255,0.9)]' 
-          : ''
-      ]"
-    />
-    
-    <!-- Texte du label -->
-    <div
-      :class="[
-        'relative z-10 text-white transition-opacity duration-300 uppercase text-wrap',
-        horizontal 
-          ? 'text-[8px] sm:text-[12px] text-center max-w-20' 
-          : 'pl-2 pb-24 rotate-90 max-w-20',
-        horizontal 
-          ? 'opacity-100'  
-          : active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-      ]"
-    >
-      {{ label }}
-    </div>
+    <span class="menu-item__number">{{ paddedIndex }}</span>
+    <span class="menu-item__label">{{ label }}</span>
   </button>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { SlideMenuItemProps, SlideMenuItemEmits } from '~/types/navigation'
 
 const props = defineProps<SlideMenuItemProps>()
 const emit = defineEmits<SlideMenuItemEmits>()
 
-function onClick() {
-  emit('select', props.index)
-}
+const paddedIndex = computed(() => String(props.index + 1).padStart(2, '0'))
 </script>
+
+<style scoped>
+/*
+ * Libellé toujours visible, mono capitales, précédé du numéro (§2.3 bis).
+ * Inactif : 40% d'opacité, 70% au survol. Actif : pleine opacité, accent,
+ * trait à gauche.
+ */
+.menu-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  padding: 0.35rem 0 0.35rem 0.75rem;
+  opacity: 0.4;
+  cursor: pointer;
+  transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+
+.menu-item:hover {
+  opacity: 0.7;
+}
+
+.menu-item.is-active {
+  opacity: 1;
+  color: var(--color-accent);
+  border-left-color: var(--color-accent);
+}
+
+.menu-item__number {
+  color: inherit;
+  opacity: 0.8;
+}
+</style>

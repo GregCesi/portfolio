@@ -1,112 +1,95 @@
 <template>
-<div :ref="setContentRef" class="text-center text-white px-2">
-    <!-- Titre de l'étape active -->
-    <h3 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6 light-shadow-text">
-    {{ activeStep?.title }}
-    </h3>
+  <div :ref="setContentRef" class="rc">
+    <p class="rc__step">Étape {{ currentStep }} / {{ steps.length }}</p>
+    <h3 class="rc__title">{{ activeStep?.title }}</h3>
 
-    <!-- Descriptions de l'étape active -->
-    <div class="space-y-3 sm:space-y-4 mb-6 sm:mb-8 max-w-xl mx-auto content-panel">
-    <p v-for="desc in activeStep?.descriptions" :key="desc" class="text-base sm:text-lg lg:text-xl">
-        {{ desc }}
-    </p>
+    <div class="rc__text">
+      <p v-for="desc in activeStep?.descriptions" :key="desc">{{ desc }}</p>
     </div>
 
-    <!-- Navigation avec icônes -->
-    <div class="flex gap-6 sm:gap-8 justify-center items-center">
-    <button
-        :disabled="!canGoPrev"
-        aria-label="Étape précédente"
-        class="roadmap-nav-btn"
-        @click="prevStepAnimated">
-        ←
-    </button>
-
-    <button
-        :disabled="!canGoNext"
-        aria-label="Étape suivante"
-        class="roadmap-nav-btn"
-        @click="nextStepAnimated">
-        →
-    </button>
+    <div class="rc__nav">
+      <button :disabled="!canGoPrev" aria-label="Étape précédente" class="rc__btn" @click="prevStepAnimated">‹</button>
+      <button :disabled="!canGoNext" aria-label="Étape suivante" class="rc__btn" @click="nextStepAnimated">›</button>
     </div>
-</div>
+  </div>
 </template>
 
 <script setup lang="ts">
-    import type { ComponentPublicInstance } from 'vue'
+import type { ComponentPublicInstance } from 'vue'
+import { useRoadmapState } from '~/composables/useRoadmapState'
 
-    const { activeStep, nextStepAnimated, prevStepAnimated, canGoNext, canGoPrev, registerContent } = useRoadmapState()
+const { currentStep, steps, activeStep, nextStepAnimated, prevStepAnimated, canGoNext, canGoPrev, registerContent } =
+  useRoadmapState()
 
-    // Fonction pour enregistrer l'élément de contenu dans le composable
-    const setContentRef = (el: Element | ComponentPublicInstance | null) => {
-      if (el && el instanceof HTMLElement) registerContent(el)
-    }
+const setContentRef = (el: Element | ComponentPublicInstance | null) => {
+  if (el && el instanceof HTMLElement) registerContent(el)
+}
 </script>
 
 <style scoped>
-.content-panel {
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 1rem;
-  padding: 1rem 1.25rem;
+.rc {
+  text-align: left;
 }
 
-/*
- * Flèches Précédent/Suivant de la Roadmap : un vrai contour de bouton
- * (fond + bordure plats, pas de dégradé) pour donner des états
- * survol/appui/désactivé nettement distincts, au-delà du seul contour de
- * focus générique du site.
- */
-.roadmap-nav-btn {
+.rc__step {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+  margin-bottom: 0.35rem;
+}
+
+.rc__title {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: clamp(1.1rem, 0.95rem + 0.6vw, 1.6rem);
+  line-height: 1.2;
+  margin-bottom: 0.6rem;
+}
+
+.rc__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--color-ink-dim);
+  max-width: 42ch;
+}
+
+.rc__nav {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.rc__btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background-color: rgba(0, 0, 0, 0.35);
-  color: #ffffff;
-  font-size: 1.75rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-ink);
+  font-size: 1.2rem;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
 }
 
-@media (min-width: 640px) {
-  .roadmap-nav-btn {
-    width: 3.5rem;
-    height: 3.5rem;
-    font-size: 2rem;
-  }
+.rc__btn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
-@media (min-width: 1024px) {
-  .roadmap-nav-btn {
-    width: 4rem;
-    height: 4rem;
-    font-size: 2.25rem;
-  }
-}
-
-.roadmap-nav-btn:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.75);
-}
-
-.roadmap-nav-btn:active:not(:disabled) {
+.rc__btn:active:not(:disabled) {
   transform: scale(0.92);
 }
 
-.roadmap-nav-btn:focus-visible {
-  outline: 2px solid #ffffff;
-  outline-offset: 3px;
-}
-
-.roadmap-nav-btn:disabled {
-  border-color: rgba(255, 255, 255, 0.12);
-  background-color: rgba(0, 0, 0, 0.2);
-  color: rgba(255, 255, 255, 0.3);
+.rc__btn:disabled {
+  opacity: 0.3;
   cursor: not-allowed;
 }
 </style>
