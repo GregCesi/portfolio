@@ -13,7 +13,7 @@ Vérifie chaque porte avant de noter. **Si une seule porte échoue, chacun des q
 - **P5 Effet 3D.** Fond hyperspace ou planète absents, cassés, ou fondu de textures qui ne se déclenche plus entre les étapes.
 - **P7 Tenue à l'écran.** À 1920 × 1080, 1440 × 900, 1280 × 720 et 768 × 1024, une section qui déborde, défile en interne ou porte une barre de défilement. À 375 × 667, un texte coupé ou raccourci au lieu d'être découpé en sous-écrans. Mesure `scrollHeight` contre `clientHeight` de chaque section à chaque taille et donne les chiffres.
 - **P8 Menu.** Un libellé du menu latéral invisible au repos sur desktop, ou une section active qui ne se distingue pas des autres.
-- **P9 Direction artistique.** Baloo 2 encore chargée, une lueur blanche (`light-shadow`, `box-shadow` blanc) encore présente, un titre de Hero au-delà de 56 px ou de section au-delà de 40 px au rendu, du texte centré en bloc hors Hero.
+- **P9 Direction artistique.** Une police interdite par la spec §2.3 bis encore chargée (Fraunces ou toute serif, Inter, IBM Plex Mono ou toute mono, Baloo 2) ; une teinte chaude dans l'interface (teinte entre 10° et 60°, hors textures de la planète), donne les valeurs relevées ; une lueur (`box-shadow` ou `text-shadow` lumineux) ; un titre de section au-delà de 40 px ou en gras ; une carte à fond ou à bordure arrondie.
 - **P6 Périmètre.** Fichier créé ou modifié hors du dépôt, nouvelle dépendance non autorisée par la spec, commit sur une autre branche que `ia-refonte`.
 
 ## Critères notés
@@ -21,7 +21,7 @@ Vérifie chaque porte avant de noter. **Si une seule porte échoue, chacun des q
 La formule de pondération est celle de l'evaluator (design 0,3, originalité 0,2, craft 0,3, fonctionnalité 0,2). Ce qui suit précise ce que chaque critère mesure ici.
 
 - **Design Quality** : hiérarchie lisible dans chaque section, cohérence entre les cinq sections (la frise Parcours et la timeline Projet phare parlent le même langage), cartes Méthode et Projets équilibrées, rendu à 375, 768 et 1440 px.
-- **Originality** : l'effet wow tient et sert le contenu (la planète accompagne le pipeline job-search). Juge contre la direction « instrument de bord » de la spec §2.3 bis : sobriété, précision typographique, un seul accent. Pénalise les motifs génériques de portfolio IA : dégradés violets, cartes glassmorphism standard, icônes de cerveau ou de circuits.
+- **Originality** : l'effet wow tient et sert le contenu (la planète accompagne le pipeline job-search). Juge contre la direction « générique de film » de la spec §2.3 bis : est-ce que ça se vit comme l'ouverture d'un film de science-fiction, ou comme un portfolio de plus ? Un rendu qui ressemble à la charte d'un produit IA (serif fine, mono, accent cuivre) ne dépasse pas 5 en originalité. Pénalise les motifs génériques de portfolio IA : dégradés violets, cartes glassmorphism standard, icônes de cerveau ou de circuits.
 - **Craft** : transitions fluides sans saccade, focus visible, `prefers-reduced-motion` respecté, poids des assets 3D, aucun texte qui déborde.
 - **Functionality** : boutons Hero câblés, navigation molette, tactile et clavier, défilement interne des sections longues puis changement de section en butée, liens externes corrects, éléments à marqueur vide masqués, SEO présent dans le HTML généré.
 

@@ -32,3 +32,4 @@ logs
 # éphémères d'une session d'évaluation, pas du code ni des rapports durables.
 .playwright-mcp/
 gan-harness/screenshots/
+gan-harness/run-*/screenshots/
