@@ -37,6 +37,8 @@ const state = {
 /* Emits */
 const emit = defineEmits<{
   'section-change': [index: number]
+  /** Émis une fois la transition GSAP totalement terminée (layout stable). */
+  'section-settled': [index: number]
 }>()
 
 // Validation des limites
@@ -90,6 +92,7 @@ function goTo(index: number) {
       state.wheelDelta = 0
       updateInertSlides()
       addEventListeners()
+      emit('section-settled', index)
     }
   })
 

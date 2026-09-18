@@ -9,7 +9,7 @@ export function useCrossfadeTexture() {
     mesh: THREE.Mesh,
     fromTexture: THREE.Texture,
     toTexture: THREE.Texture,
-    duration: number = 2.0
+    duration: number = 2.0,
   ): Promise<void> => {
     return new Promise((resolve) => {
       if (isTransitioning.value) {
@@ -49,8 +49,8 @@ export function useCrossfadeTexture() {
         ease: 'power2.inOut',
         onUpdate: () => {
           // Opacités complémentaires pour éviter la transparence
-          material1.opacity = 1 - progress.value  // De 1 à 0
-          material2.opacity = progress.value       // De 0 à 1
+          material1.opacity = 1 - progress.value // De 1 à 0
+          material2.opacity = progress.value // De 0 à 1
         },
         onComplete: () => {
           // 4. Remplacer le matériau original par le nouveau (sans transparence)
@@ -67,13 +67,13 @@ export function useCrossfadeTexture() {
 
           isTransitioning.value = false
           resolve()
-        }
+        },
       })
     })
   }
 
   return {
     isTransitioning,
-    crossfadeToTexture
+    crossfadeToTexture,
   }
 }

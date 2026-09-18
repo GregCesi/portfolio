@@ -1,7 +1,7 @@
 <template>
   <BaseSection>
     <div
-      class="w-full max-w-5xl text-center mx-auto flex flex-col gap-6 sm:gap-10 h-full items-center justify-center px-4 sm:px-6 lg:px-8"
+      class="w-full max-w-5xl text-center mx-auto flex flex-col gap-6 sm:gap-10 min-h-full items-center justify-center px-4 sm:px-6 lg:px-8 py-6"
     >
       <h1
         class="text-3xl sm:text-5xl md:text-[50px] lg:text-[64px] font-bold leading-tight light-shadow-text text-white text-balance"

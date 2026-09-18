@@ -17,10 +17,18 @@ useLayoutDimensions()
 .section-viewport {
   height: 100vh;
   width: calc(100vw - var(--slidemenu-width, 0px));
-  padding-top: var(--header-height, 80px);
+  /* Repli avant hydratation : sur mobile, le nav horizontal (voir SlideMenu.vue)
+     s'ajoute au Header, `useLayoutDimensions` affine ensuite cette valeur. */
+  padding-top: 150px;
   margin-left: var(--slidemenu-width, 0px);
   box-sizing: border-box;
   position: relative;
+}
+
+@media (min-width: 768px) {
+  .section-viewport {
+    padding-top: var(--header-height, 80px);
+  }
 }
 
 /*

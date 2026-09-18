@@ -12,7 +12,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: {
-        lang: 'fr'
+        lang: 'fr',
       },
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -25,6 +25,6 @@ export default defineNuxtConfig({
             'display=swap',
         },
       ],
-    }
-  }
+    },
+  },
 })

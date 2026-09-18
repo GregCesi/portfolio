@@ -12,8 +12,16 @@
     />
   </nav>
   
-  <!-- Mobile: horizontal under header (TODO : modifier top-24 par la taille du Header) -->
-  <nav class="fixed top-24 sm:top-30 left-0 right-0 flex md:hidden flex-row gap-2 md:gap-4 z-50 mx-8 sm:mx-12"> 
+  <!--
+    Mobile: horizontal, sous le Header. `top-24`/`sm:top-30` ne servent que de
+    repli avant hydratation : `useLayoutDimensions` (voir BaseSection.vue)
+    mesure la hauteur réelle du Header et positionne ce nav via `style.top`
+    pour qu'il ne chevauche jamais ni le Header ni le contenu de section.
+  -->
+  <nav
+    data-mobile-nav
+    class="fixed top-24 sm:top-30 left-0 right-0 flex md:hidden flex-row gap-2 md:gap-4 z-50 mx-8 sm:mx-12"
+  >
     <SlideMenuItem
       v-for="(label, idx) in labels"
       :key="idx"

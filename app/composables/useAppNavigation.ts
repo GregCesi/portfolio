@@ -14,7 +14,9 @@ export const appNavigationKey: InjectionKey<AppNavigation> = Symbol('app-navigat
 export function useAppNavigation(): AppNavigation {
   const navigation = inject(appNavigationKey)
   if (!navigation) {
-    throw new Error('useAppNavigation() doit être appelé sous le fournisseur de navigation (app/pages/index.vue)')
+    throw new Error(
+      'useAppNavigation() doit être appelé sous le fournisseur de navigation (app/pages/index.vue)',
+    )
   }
   return navigation
 }

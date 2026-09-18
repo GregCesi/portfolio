@@ -16,14 +16,21 @@ export default class WarpEffect {
     this.starsField.setWarpSpeed(speed)
     this.starsField.setWarpFactor(1)
     this.isWarping = true
-    
+
     this.normalizeTimeout = setTimeout(() => {
       this.starsField.setWarpSpeed(1)
       this.isWarping = false
     }, duration * 1000)
   }
 
-  update(_deltaTime: number, _ctx: CanvasRenderingContext2D, _width: number, _height: number, _centerX: number, _centerY: number) {
+  update(
+    _deltaTime: number,
+    _ctx: CanvasRenderingContext2D,
+    _width: number,
+    _height: number,
+    _centerX: number,
+    _centerY: number,
+  ) {
     // WarpEffect ne fait que déclencher, la logique d'animation est dans StarsField
     // comme dans l'original
   }

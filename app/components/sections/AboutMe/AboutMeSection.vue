@@ -16,10 +16,10 @@
           </div>
 
           <div class="about__content">
-            <p class="about__period">{{ entry.period }}</p>
+            <p class="about__period light-shadow-text">{{ entry.period }}</p>
             <p class="about__place light-shadow-text">{{ entry.place }}</p>
             <p class="about__role">{{ entry.role }}</p>
-            <p v-if="entry.detail" class="about__detail">{{ entry.detail }}</p>
+            <p v-if="entry.detail" class="about__detail light-shadow-text">{{ entry.detail }}</p>
           </div>
         </li>
       </ol>
@@ -171,15 +171,27 @@ onBeforeUnmount(() => {
   background: white;
 }
 
+/*
+ * Contrairement au reste du texte de la page (protégé par `.panel`, fond
+ * rgba(0,0,0,0.4)), ce bloc n'avait aucune protection contre le fond
+ * hyperspace mouvant : une traînée d'étoile brillante croisant le texte
+ * pouvait faire chuter le contraste à ~1,10:1. Fond plus opaque ici
+ * (0.65 au lieu de 0.4) car ce texte est aussi en opacité réduite
+ * (voir .about__period / .about__detail) : la marge doit tenir même sur un
+ * pixel de fond proche du blanc pur, pas seulement sur la moyenne du fond.
+ */
 .about__content {
-  padding-bottom: 2.25rem;
+  background-color: rgba(0, 0, 0, 0.65);
+  border-radius: 1rem;
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 1.5rem;
 }
 
 .about__period {
   font-size: 0.85rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.85);
   margin-bottom: 0.15rem;
 }
 
@@ -195,7 +207,7 @@ onBeforeUnmount(() => {
 
 .about__detail {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.85);
   margin-top: 0.25rem;
 }
 

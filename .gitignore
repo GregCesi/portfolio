@@ -27,3 +27,8 @@ logs
 
 # Claude Code local
 .claude/settings.local.json
+
+# Artefacts d'évaluation (Playwright MCP, captures d'écran de test) : preuves
+# éphémères d'une session d'évaluation, pas du code ni des rapports durables.
+.playwright-mcp/
+gan-harness/screenshots/
