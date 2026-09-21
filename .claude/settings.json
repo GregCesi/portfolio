@@ -1,12 +1,41 @@
 {
   "includeCoAuthoredBy": true,
+  "enabledPlugins": {
+    "ecc@ecc": true
+  },
+  "env": {
+    "ECC_HOOK_PROFILE": "standard",
+    "ECC_DISABLED_HOOKS": "pre:bash:dispatcher,pre:edit-write:gateguard-fact-force,stop:desktop-notify"
+  },
   "permissions": {
+    "defaultMode": "dontAsk",
+    "allow": [
+      "Bash",
+      "Read(./**)",
+      "Edit(./**)",
+      "Skill",
+      "Task",
+      "mcp__claude_ai_Notion__notion-fetch",
+      "mcp__claude_ai_Notion__notion-query-data-sources",
+      "mcp__claude_ai_Notion__notion-update-page"
+    ],
     "deny": [
+      "mcp__claude_ai_Notion__notion-create-pages",
       "Bash(git push:*)",
-      "Bash(git checkout main:*)",
-      "Bash(git checkout develop:*)",
-      "Bash(git switch main:*)",
-      "Bash(git switch develop:*)"
+      "Bash(git merge:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git branch:*)",
+      "Bash(git worktree:*)",
+      "Bash(git reset:*)",
+      "Bash(git rebase:*)",
+      "Bash(git -C:*)",
+      "Edit(./scripts/**)",
+      "Edit(./.claude/rules/**)",
+      "Edit(./.claude/settings.json)",
+      "Edit(./.claude/agents/**)",
+      "Edit(./.claude/skills/**)",
+      "Edit(./CLAUDE.md)"
     ]
   }
 }

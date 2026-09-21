@@ -33,3 +33,7 @@ logs
 .playwright-mcp/
 gan-harness/screenshots/
 gan-harness/run-*/screenshots/
+
+# Boucle agent-codeloop
+.claude/worktrees/
+.claude/state*.bak
