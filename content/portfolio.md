@@ -134,7 +134,7 @@ Texte :
 Liens :
 - E-mail : gmarchand.pro1@gmail.com
 - GitHub : https://github.com/GregCesi
-- LinkedIn : {{LINKEDIN_URL}}
+- LinkedIn : https://www.linkedin.com/in/gr%C3%A9goire-marchand-5b8279203/
 - CV : {{CV_URL}} (bouton « Télécharger mon CV »)
 
 ---

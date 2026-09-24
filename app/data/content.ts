@@ -185,8 +185,7 @@ export const siteContent: SiteContent = {
     text: "Je cherche un poste d'AI engineer en Belgique ou à Strasbourg, et je suis disponible dès maintenant.",
     email: 'gmarchand.pro1@gmail.com',
     github: 'https://github.com/GregCesi',
-    // {{LINKEDIN_URL}} : valeur non fournie dans content/portfolio.md, laissée vide (élément masqué).
-    linkedin: '',
+    linkedin: 'https://www.linkedin.com/in/gr%C3%A9goire-marchand-5b8279203/',
     // {{CV_URL}} : valeur non fournie dans content/portfolio.md, laissée vide (élément masqué).
     cvUrl: '',
     cvLabel: 'Télécharger mon CV',

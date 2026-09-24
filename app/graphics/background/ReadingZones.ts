@@ -34,7 +34,7 @@ const MOVING_SELECTOR = '[data-depth]'
 /** Distance (px) au bloc de texte en deçà de laquelle l'étoile est au plus sombre. */
 const NEAR = 18
 /** Longueur (px) de la descente douce entre étoile éteinte et étoile pleine. */
-const FADE = 130
+const FADE = 12
 /** Luminosité minimale d'une étoile posée derrière le texte (0 à 1). */
 const MIN_LIGHT = 0.07
 /** Intervalle de mesure du DOM (ms) hors transition. */
