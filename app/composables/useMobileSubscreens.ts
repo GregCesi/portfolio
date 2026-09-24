@@ -10,7 +10,7 @@ import { useNuxtApp } from '#app'
  * Avec `sectionIndex` (0-based), la section repart de son premier plan une fois
  * quittée : on y revient comme au début d'un film. Le délai laisse la section
  * sortir de l'écran avant le retour au premier plan ; une nouvelle arrivée
- * l'annule (le bouton « Me contacter » vise un plan précis à l'arrivée).
+ * l'annule (un bouton qui vise un plan précis le pose à l'arrivée).
  */
 export function useMobileSubscreens(count: Ref<number> | number, sectionIndex?: number) {
   const total = computed(() => (typeof count === 'number' ? count : count.value))

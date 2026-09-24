@@ -12,8 +12,8 @@
     <section class="slide"><HeroSection /></section>
     <section class="slide"><AboutMeSection /></section>
     <section class="slide"><MethodSection /></section>
-    <section class="slide"><RoadmapSection /></section>
     <section class="slide"><ProjectsSection /></section>
+    <section class="slide"><ContactSection /></section>
   </SlideContainer>
 </template>
 
@@ -26,8 +26,8 @@ import SlideMenu from '@/components/navigation/SlideMenu.vue'
 import HeroSection from '@/components/sections/Hero/HeroSection.vue'
 import AboutMeSection from '@/components/sections/AboutMe/AboutMeSection.vue'
 import MethodSection from '@/components/sections/Method/MethodSection.vue'
-import RoadmapSection from '@/components/sections/Roadmap/RoadmapSection.vue'
 import ProjectsSection from '@/components/sections/Projects/ProjectsSection.vue'
+import ContactSection from '@/components/sections/Contact/ContactSection.vue'
 
 import { siteContent, SECTION_INDEX, SECTION_ORDER } from '~/data/content'
 import type { SectionId } from '~/types/content'
@@ -80,8 +80,7 @@ function goToSection(section: SectionId) {
   slideRef.value?.goTo(SECTION_INDEX[section])
 }
 
-// Sous-écran ciblé par bouton (ex. « Me contacter » → dernier sous-écran de
-// Projets sur mobile) : le contrôleur de sous-écrans de la section cible
+// Sous-écran ciblé par bouton : le contrôleur de sous-écrans de la section cible
 // (§2.3 de la spec) est piloté directement, sans défilement DOM — chaque
 // section tient déjà entièrement dans l'écran, il n'y a rien à faire défiler.
 function goToAnchor(section: SectionId, anchorIndex: number) {

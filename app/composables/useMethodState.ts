@@ -1,11 +1,11 @@
 import { gsap } from 'gsap'
 import { siteContent } from '~/data/content'
-import type { Step } from '~/types/roadmap'
+import type { Step } from '~/types/method'
 
 // État global partagé (singleton)
 const currentStep = ref(1)
 
-// Mobile (< 768px) : la section Projet phare se découpe en sous-écrans, le
+// Mobile (< 768px) : la section Méthode se découpe en sous-écrans, le
 // premier montre le surtitre, le titre et le sous-titre avec la planète, les
 // suivants une étape chacun. `introVisible` ne compte que sur mobile.
 const introVisible = ref(true)
@@ -13,7 +13,7 @@ const isMobileViewport = ref(false)
 const introActive = computed(() => introVisible.value && isMobileViewport.value)
 
 // Steps global partagé, alimentés par la source de contenu unique
-const steps = ref<Step[]>(siteContent.roadmap.steps)
+const steps = ref<Step[]>(siteContent.method.steps)
 
 // Éléments DOM centralisés pour les animations
 const timelineElements = ref({
@@ -53,7 +53,7 @@ const animateLine = (line: HTMLElement, grow: boolean, duration: number, delay: 
     )
   })
 
-export const useRoadmapState = () => {
+export const useMethodState = () => {
   // Computed : récupère l'étape active
   const activeStep = computed(() => steps.value[currentStep.value - 1])
 
@@ -82,7 +82,7 @@ export const useRoadmapState = () => {
 
   // Déclenche le fondu de texture de la planète. Le fondu lui-même (opacité
   // du matériau WebGL) est géré par `useCrossfadeTexture`, appelé par la
-  // fonction enregistrée via `registerPlanetMaterial` (voir RoadmapPlanet.vue) :
+  // fonction enregistrée via `registerPlanetMaterial` (voir MethodPlanet.vue) :
   // il n'y a pas de fondu DOM séparé à orchestrer ici, la classe
   // `.planet-container` visée par une ancienne version de ce code n'a jamais
   // existé dans le template (code mort, source de l'avertissement console

@@ -1,10 +1,10 @@
 <template>
-  <BaseSection :index="5">
+  <BaseSection :index="4">
     <div ref="rootRef" class="projects">
       <div class="projects__scene rv">
         <!--
-          Les projets comme des plans successifs : le titre et l'introduction, un
-          projet par plan, puis le contact. Mobile : la piste glisse ; desktop :
+          Les projets comme des plans successifs : le titre et l'introduction, puis
+          un projet par plan. Mobile : la piste glisse ; desktop :
           les plans se fondent l'un dans l'autre (§2.3, §2.3 bis).
         -->
         <SubscreenTrack stage :index="sub.index.value" :total="sub.total.value" @update:index="sub.goTo">
@@ -59,34 +59,6 @@
               </article>
             </template>
           </template>
-
-          <div id="contact" class="contact">
-            <div class="contact__inner">
-              <h3 class="contact__title">{{ contact.title }}</h3>
-              <p class="contact__text t-body">{{ contact.text }}</p>
-
-              <ul class="contact__list">
-                <li>
-                  <span class="contact__label">{{ contact.emailLabel }}</span>
-                  <a :href="`mailto:${contact.email}`" class="contact__value">{{ contact.email }}</a>
-                </li>
-                <li>
-                  <a :href="contact.github" target="_blank" rel="noopener noreferrer" class="contact__value">
-                    {{ contact.githubLabel }}
-                  </a>
-                </li>
-                <li v-if="contact.linkedin">
-                  <a :href="contact.linkedin" target="_blank" rel="noopener noreferrer" class="contact__value">
-                    {{ contact.linkedinLabel }}
-                  </a>
-                </li>
-              </ul>
-
-              <a v-if="contact.cvUrl" :href="contact.cvUrl" target="_blank" rel="noopener noreferrer" class="projects__link">
-                {{ contact.cvLabel }}
-              </a>
-            </div>
-          </div>
         </SubscreenTrack>
       </div>
 
@@ -107,17 +79,16 @@ import { useSubscreenNav } from '~/composables/useSubscreenNav'
 import { useSplitReveal } from '~/composables/useSplitReveal'
 
 const projects = siteContent.projects
-const contact = siteContent.projects.contact
 const { goToSection } = useAppNavigation()
 
-// Sous-écrans mobiles : titre + introduction, un projet par écran, puis le contact (§2.3).
+// Sous-écrans mobiles : titre + introduction, un projet par écran (§2.3).
 const rootRef = ref<HTMLElement | null>(null)
 
 // Un projet trop long pour un écran très court (petit téléphone) est découpé en deux plans (voir `measure`).
 const splitIds = ref<string[]>([])
 const isSplit = (id: string) => splitIds.value.includes(id)
-const total = computed(() => projects.cards.length + 2 + splitIds.value.length)
-const sub = useMobileSubscreens(total, 4)
+const total = computed(() => projects.cards.length + 1 + splitIds.value.length)
+const sub = useMobileSubscreens(total, 3)
 const subscreenNav = useSubscreenNav()
 
 // Marge minimale de 14 px au-dessus et au-dessous d'un plan mobile.
@@ -173,7 +144,7 @@ onBeforeUnmount(() => {
 })
 
 useSplitReveal(rootRef, {
-  index: 4,
+  index: 3,
   titles: '.projects__title',
   lines: '.projects__scene',
 })
@@ -197,16 +168,14 @@ useSplitReveal(rootRef, {
 
 /* `safe` : un contenu plus haut que le cadre s'aligne en haut au lieu de déborder des deux côtés. */
 .projects__head,
-.projects__card,
-.contact {
+.projects__card {
   display: flex;
   align-items: safe center;
   justify-content: center;
 }
 
 .projects__head-inner,
-.projects__card-inner,
-.contact__inner {
+.projects__card-inner {
   width: 100%;
   text-align: center;
   display: flex;
@@ -223,8 +192,7 @@ useSplitReveal(rootRef, {
   max-width: 30rem;
 }
 
-.projects__card-title,
-.contact__title {
+.projects__card-title {
   font-family: var(--font-display);
   font-weight: 400;
   font-size: clamp(1.05rem, 0.9rem + 0.5vw, 1.4rem);
@@ -235,8 +203,7 @@ useSplitReveal(rootRef, {
 }
 
 /* Un filet de 1 px ouvre le carton d'un plan (ornement, aucun texte). */
-.projects__card-title::before,
-.contact__title::before {
+.projects__card-title::before {
   content: '';
   display: block;
   width: 2.5rem;
@@ -250,8 +217,7 @@ useSplitReveal(rootRef, {
   max-width: 28rem;
 }
 
-.projects__card-text,
-.contact__text {
+.projects__card-text {
   color: var(--color-ink-dim);
   margin-top: 0.7rem;
   max-width: 30rem;
@@ -260,11 +226,6 @@ useSplitReveal(rootRef, {
 /* Texte seul sur son plan (projet découpé) : pas de marge au-dessus. */
 .projects__card-text--solo {
   margin-top: 0;
-}
-
-.contact__text {
-  color: var(--color-ink);
-  margin-top: 1.1rem;
 }
 
 .projects__tags {
@@ -309,51 +270,12 @@ useSplitReveal(rootRef, {
   border-bottom-color: var(--color-ink);
 }
 
-.contact__list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  margin: 1.4rem 0 0;
-  padding: 0;
-}
-
-.contact__label {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.28em;
-  color: var(--color-ink-dim);
-  margin-right: 0.9rem;
-}
-
-.contact__value {
-  color: var(--color-ink);
-  text-decoration: underline;
-  text-decoration-color: var(--color-line);
-  text-underline-offset: 5px;
-  transition: color 0.8s var(--ease-slow), text-decoration-color 0.8s var(--ease-slow);
-}
-
-.contact__value:hover {
-  color: var(--color-accent);
-  text-decoration-color: var(--color-accent);
-}
-
-.contact__inner .projects__link {
-  margin-top: 1.4rem;
-}
-
 @media (max-width: 767.98px) {
-  .projects__card-title,
-  .contact__title {
+  .projects__card-title {
     letter-spacing: 0.16em;
   }
 
-  .projects__card-title::before,
-  .contact__title::before {
+  .projects__card-title::before {
     margin-bottom: 0.75rem;
   }
 

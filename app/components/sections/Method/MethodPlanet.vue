@@ -16,12 +16,12 @@
 import * as THREE from 'three'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import Universal3DModel from '~/components/models3d/Universal3DModel.vue'
-import { useRoadmapState } from '~/composables/useRoadmapState'
+import { useMethodState } from '~/composables/useMethodState'
 import { useCrossfadeTexture } from '~/composables/3d/useCrossfadeTexture'
 import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
 import { useSiteLoad } from '~/composables/useSiteLoad'
 
-const { registerPlanetMaterial } = useRoadmapState()
+const { registerPlanetMaterial } = useMethodState()
 const { markLoaded } = useSiteLoad()
 const { crossfadeToTexture } = useCrossfadeTexture()
 const prefersReducedMotion = usePrefersReducedMotion()
@@ -92,9 +92,9 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
     }
     
     // Charger toutes les textures (WebP compressé, ~1 Mo au total contre
-    // ~15 Mo en PNG source — voir spec §4 Performance). L'étape 6 (Décision)
-    // réutilise explicitement 'planet-bake-4' (voir app/data/content.ts) :
-    // il n'y a que quatre textures bakées, pas de cas 'planet-bake-5' à gérer.
+    // ~15 Mo en PNG source — voir spec §4 Performance). Les étapes 2 et 6
+    // (Observer, Surveiller) réutilisent la texture de la précédente (voir
+    // app/data/content.ts) : il n'y a que quatre textures bakées.
     // Le sas d'entrée attend qu'elles soient toutes là (voir useSiteLoad) : une
     // texture qui échoue reste `null`, le voyant correspondant ne s'allume pas.
     const loadTexture = (path: string) =>
@@ -146,7 +146,7 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
       }
     }
 
-    // 4. Enregistrer la fonction dans useRoadmapState
+    // 4. Enregistrer la fonction dans useMethodState
     registerPlanetMaterial(changePlanetTexture)
   }
 }

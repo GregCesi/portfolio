@@ -4,9 +4,9 @@
        empile planète + contenu + frise : la liste complète n'a pas la place de
        tenir, elle est remplacée par la frise compacte ci-dessous (numéros
        seuls). Aucun texte n'est perdu : le titre complet de l'étape active
-       reste affiché en entier par RoadmapContent. -->
-  <!-- Racine unique : elle reçoit `class="roadmap__timeline"` posé par
-       RoadmapSection.vue, quelle que soit la frise affichée à l'intérieur. -->
+       reste affiché en entier par MethodContent. -->
+  <!-- Racine unique : elle reçoit `class="method__timeline"` posé par
+       MethodSection.vue, quelle que soit la frise affichée à l'intérieur. -->
   <div class="rt-root">
     <ol class="rt-list">
       <li v-for="(step, index) in steps" :key="index" class="rt-item">
@@ -38,9 +38,9 @@
 
     <!-- < 1024px : frise compacte, 6 segments numérotés, l'étape active en accent.
          Chaque segment reste un vrai bouton de navigation directe (même rôle que
-         les flèches ‹ › de RoadmapContent), avec le titre complet de l'étape en
+         les flèches ‹ › de MethodContent), avec le titre complet de l'étape en
          `aria-label` pour les lecteurs d'écran. -->
-    <ol class="rt-compact" aria-label="Étapes du projet phare">
+    <ol class="rt-compact" aria-label="Étapes de la méthode">
       <li v-for="(step, index) in steps" :key="`compact-${index}`" class="rt-compact__item">
         <button
           type="button"
@@ -59,10 +59,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { StepStatus } from '~/types/roadmap'
-import { useRoadmapState } from '~/composables/useRoadmapState'
+import type { StepStatus } from '~/types/method'
+import { useMethodState } from '~/composables/useMethodState'
 
-const { currentStep, steps, registerCircle, registerLine, selectStep, introActive } = useRoadmapState()
+const { currentStep, steps, registerCircle, registerLine, selectStep, introActive } = useMethodState()
 
 // Jalon ou segment : quitte l'introduction mobile, puis va à l'étape avec le
 // même fondu (texte, ligne, texture de la planète) que les flèches.

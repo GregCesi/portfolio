@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import { computed, type ComponentPublicInstance } from 'vue'
-import { useRoadmapState } from '~/composables/useRoadmapState'
+import { useMethodState } from '~/composables/useMethodState'
 
 const {
   currentStep,
@@ -29,7 +29,7 @@ const {
   registerContent,
   isMobileViewport,
   introVisible,
-} = useRoadmapState()
+} = useMethodState()
 
 // Sur mobile, « précédent » depuis la première étape revient à l'introduction
 // (surtitre, titre, sous-titre) ; ailleurs il est désactivé à l'étape 1.

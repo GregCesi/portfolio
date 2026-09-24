@@ -1,18 +1,13 @@
-import type { Step } from './roadmap'
+import type { Step } from './method'
 
 /** Identifiant stable de chacune des cinq sections plein écran. */
-export type SectionId = 'hero' | 'about' | 'method' | 'roadmap' | 'projects'
+export type SectionId = 'hero' | 'about' | 'method' | 'projects' | 'contact'
 
 export interface TimelineEntry {
   period: string
   place: string
   role: string
   detail: string
-}
-
-export interface MethodCard {
-  title: string
-  text: string
 }
 
 export interface SectionLink {
@@ -57,6 +52,7 @@ export interface SiteContent {
   hero: {
     title: string
     paragraphs: string[]
+    hook: string
     ctaProjects: string
     ctaContact: string
   }
@@ -66,11 +62,6 @@ export interface SiteContent {
     timeline: TimelineEntry[]
   }
   method: {
-    title: string
-    intro: string
-    cards: MethodCard[]
-  }
-  roadmap: {
     kicker: string
     title: string
     subtitle: string
@@ -80,6 +71,6 @@ export interface SiteContent {
     title: string
     intro: string
     cards: ProjectCard[]
-    contact: ContactBlock
   }
+  contact: ContactBlock
 }

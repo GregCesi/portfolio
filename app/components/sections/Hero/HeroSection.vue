@@ -2,7 +2,7 @@
   <BaseSection :index="1">
     <div ref="rootRef" class="hero">
       <!--
-        Carton de générique, centré : un titre, deux lignes de texte, deux
+        Carton de générique, centré : un titre, un texte, une accroche, deux
         liens. Le contraste AA est tenu par le fond lui-même : les étoiles
         s'éteignent derrière le texte (voir ReadingZones).
       -->
@@ -13,13 +13,14 @@
           <p v-for="paragraph in hero.paragraphs" :key="paragraph" class="t-body rv">
             {{ paragraph }}
           </p>
+          <p class="hero__hook t-body rv">{{ hero.hook }}</p>
         </div>
 
         <div class="hero__actions rv">
           <button type="button" class="hero__btn hero__btn--primary" @click="goToSection('projects')">
             {{ hero.ctaProjects }}
           </button>
-          <button type="button" class="hero__btn" @click="goToAnchor('projects', Number.POSITIVE_INFINITY)">
+          <button type="button" class="hero__btn" @click="goToSection('contact')">
             {{ hero.ctaContact }}
           </button>
         </div>
@@ -36,7 +37,7 @@ import { useAppNavigation } from '~/composables/useAppNavigation'
 import { useSplitReveal } from '~/composables/useSplitReveal'
 
 const hero = siteContent.hero
-const { goToSection, goToAnchor } = useAppNavigation()
+const { goToSection } = useAppNavigation()
 
 const rootRef = ref<HTMLElement | null>(null)
 useSplitReveal(rootRef, {
@@ -85,6 +86,10 @@ useSplitReveal(rootRef, {
   justify-content: center;
   gap: 0.5rem 2.75rem;
   margin-top: 0.25rem;
+}
+
+.hero__hook {
+  color: var(--color-ink-dim);
 }
 
 /* Liens de générique : Jost capitales espacées, un filet de 1 px dessous,

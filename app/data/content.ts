@@ -8,33 +8,33 @@ import type { SiteContent, SectionId } from '~/types/content'
  */
 
 /** Ordre des cinq sections plein écran, index correspondant dans SlideContainer. */
-export const SECTION_ORDER: SectionId[] = ['hero', 'about', 'method', 'roadmap', 'projects']
+export const SECTION_ORDER: SectionId[] = ['hero', 'about', 'method', 'projects', 'contact']
 
 export const SECTION_INDEX: Record<SectionId, number> = {
   hero: 0,
   about: 1,
   method: 2,
-  roadmap: 3,
-  projects: 4,
+  projects: 3,
+  contact: 4,
 }
 
 export const siteContent: SiteContent = {
   global: {
     name: 'Grégoire MARCHAND',
-    headerTitle: 'Ingénieur logiciel · IA',
-    pageTitle: 'Grégoire MARCHAND · Ingénieur logiciel, IA',
+    headerTitle: 'Développeur full-stack · AI Engineer',
+    pageTitle: 'Grégoire MARCHAND · Développeur full-stack, AI Engineer',
     metaDescription:
-      "Ingénieur en informatique, développeur full-stack de formation, je construis mes propres systèmes à base de LLM : extraction de données, bancs d'évaluation, boucles d'exécution avec des agents de code.",
-    menuLabels: ['Start', 'Parcours', 'Méthode', 'Projet phare', 'Projets'],
+      "Développeur full-stack et AI engineer. J'élimine les frictions en automatisant les process avec des LLM, mesurés pour qu'on puisse s'y fier.",
+    menuLabels: ['Start', 'Parcours', 'Méthode', 'Projets', 'Contact'],
     lang: 'fr',
   },
 
   hero: {
-    title: 'Je construis des outils qui mettent les modèles de langage au travail',
+    title: "J'élimine les frictions en automatisant les process avec des LLM.",
     paragraphs: [
-      'Ingénieur en informatique diplômé du CESI en 2024, développeur full-stack de formation.',
-      "Je construis mes propres systèmes à base de LLM : extraction de données, bancs d'évaluation, boucles d'exécution avec des agents de code.",
+      "Ingénieur en informatique, développeur full-stack de formation. Je construis des systèmes à base de LLM : extraction de données, RAG, agents de code, et les évaluations qui montrent s'ils tiennent.",
     ],
+    hook: 'Quatre escales vous attendent avant de repartir : mon parcours, ma méthode, mes projets, et une fréquence pour me joindre.',
     ctaProjects: 'Voir mes projets',
     ctaContact: 'Me contacter',
   },
@@ -42,7 +42,7 @@ export const siteContent: SiteContent = {
   about: {
     title: 'Parcours',
     intro:
-      "J'ai appris le métier en entreprise, au fil de quatre stages, puis en indépendant. Je me spécialise aujourd'hui en ingénierie IA en autodidacte, en construisant mes propres projets.",
+      "Cinq ans d'école d'ingénieur, quatre stages en entreprise dont un à l'étranger, puis développeur indépendant depuis fin 2024. En parallèle, je me spécialise en ingénierie IA en construisant mes propres systèmes.",
     timeline: [
       {
         period: '2019 – 2024',
@@ -54,115 +54,91 @@ export const siteContent: SiteContent = {
         period: 'Avr. – août 2021',
         place: 'Agile Business, Geudertheim',
         role: 'Intégrateur web · stage',
-        detail: '',
+        detail: 'Sites WordPress : intégration, thèmes, mise en production',
       },
       {
         period: 'Janv. – avr. 2022',
         place: 'Europe Tech Group, Haguenau',
         role: 'Développeur back-end · stage',
-        detail: '',
+        detail:
+          "API C# .NET pour une application de portage salarial, maintenance de l'ERP Microsoft Dynamics NAV",
       },
       {
         period: 'Sept. 2022 – janv. 2023',
         place: 'IT Selecta, Cracovie (Pologne)',
         role: 'Développeur full-stack · stage',
-        detail: '',
+        detail: "CRM et workflows d'automatisation sur mesure pour une startup, en anglais",
       },
       {
         period: 'Févr. – août 2024',
         place: 'Ippon Technologies, Strasbourg',
         role: 'Développeur full-stack · stage',
-        detail: "L'équipe produit est passée de 4 à 11 personnes pendant le stage",
+        detail:
+          "Calculateur d'empreinte carbone en Java Spring Boot et Nuxt. L'équipe produit est passée de 4 à 11 personnes pendant le stage",
       },
       {
         period: "Déc. 2024 – aujourd'hui",
-        place: 'Indépendant',
-        role: 'Développeur',
-        detail: 'Sites et applications pour des clients, dont CATRA et P.A.R.C',
+        place: 'Indépendant, Strasbourg',
+        role: 'Développeur freelance',
+        detail:
+          "Sites et applications pour des clients, dont CATRA et P.A.R.C, puis une application B2B conçue à deux, menée jusqu'au prototype",
       },
     ],
   },
 
   method: {
-    title: 'Travailler avec des agents de code',
-    intro:
-      "Je fais exécuter mon code par Claude Code, dans un cadre que je construis moi-même : des tickets, des règles, des contrôles automatiques et un journal. Le terrain d'essai est la refonte en Nuxt 4 du site d'une association de jardins, parcpaysage.com.",
-    cards: [
-      {
-        title: 'Un ticket, un espace isolé',
-        text: "Chaque ticket s'exécute dans son propre worktree git. Les tickets s'enchaînent en mode non interactif, sans que j'aie à rester devant.",
-      },
-      {
-        title: "Vérifier l'environnement avant de lire le ticket",
-        text: "Un script de preflight contrôle l'environnement avant que l'agent commence. Un environnement cassé s'arrête en quelques secondes, au lieu de 31 minutes de travail perdu constatées avant sa mise en place.",
-      },
-      {
-        title: "La barre vient de l'extérieur",
-        text: "Un agent qui écrit ses propres critères d'acceptation ne peut pas échouer. Les critères viennent donc d'une source que l'agent ne contrôle pas, et ses règles comme ses réglages sont protégés en écriture.",
-      },
-      {
-        title: 'Tout finit au journal',
-        text: "Je planifie et je spécifie dans Notion avec un modèle de chat, Claude Code exécute et écrit ce qu'il a fait. Chaque échec devient une règle datée, avec le motif qui l'a fait naître.",
-      },
-    ],
-  },
-
-  roadmap: {
-    kicker: 'Projet phare',
-    title: "job-search : trier des milliers d'offres avec un LLM local",
-    subtitle:
-      'Plus de 2 500 offres en base en septembre 2026. Python, FastAPI, SQLite, Ollama, Nuxt, TypeScript.',
+    kicker: 'Méthode',
+    title: 'De la friction au système qui tient',
+    subtitle: 'Six étapes que je suis sur chaque projet, du premier constat à la surveillance après livraison.',
+    // Les textures vont du rouge-brun (étape 1) au vert (étapes 5 et 6) : il n'y a que
+    // quatre textures bakées, deux étapes voisines en partagent une.
     steps: [
       {
-        title: 'Collecte',
+        title: 'Repérer',
         descriptions: [
-          'Les offres arrivent de quatre sources.',
-          "France Travail, Indeed, Remotive et EURES, récupérées en une passe par une commande que je lance à la main. Pas de tâche planifiée, pas d'API payante.",
+          "Tout part d'une friction.",
+          "Une tâche répétée, lente ou pénible. Je la décris avant de choisir un modèle, et je vérifie qu'un LLM est la bonne réponse.",
         ],
         planetTexture: 'planet-bake-1',
       },
       {
-        title: 'Tri amont',
+        title: 'Observer',
         descriptions: [
-          "Ce qui n'est pas prenable sort avant le modèle.",
-          "Une offre publiée sur deux sources n'est gardée qu'une fois. Les stages et les alternances sont écartés avant tout appel au LLM.",
+          'Avant de corriger, je mesure.',
+          'Je trace chaque appel au modèle et je classe les erreurs, pour savoir où le système casse.',
         ],
         planetTexture: 'planet-bake-1',
       },
       {
-        title: 'Extraction',
+        title: 'Corriger',
         descriptions: [
-          'Un modèle local lit chaque offre, une seule fois.',
-          "Il tourne avec Ollama et ne répond que dans un vocabulaire fermé : séniorité sur quatre valeurs, domaine sur huit, technos avec trois niveaux d'importance, langues exigées. Chaque appel est tracé : prompts, réponse, modèle.",
+          'Une cause à la fois.',
+          "Je traite la famille d'erreurs la plus fréquente, puis je remesure. Prompt, modèle ou règles autour : je choisis le levier d'après la mesure.",
         ],
         planetTexture: 'planet-bake-2',
       },
       {
-        title: 'Scoring',
+        title: 'Vérifier',
         descriptions: [
-          'Deux axes indépendants, calculés en Python.',
-          "Désirabilité et atteignabilité, au regard de mon profil. Aucun score n'est stocké : changer le profil recalcule tout sans rappeler le modèle.",
+          'Des critères que le modèle ne contrôle pas.',
+          "Je les écris avant de commencer, et les contrôles tournent sans lui : tests, build, jeux d'évaluation.",
         ],
         planetTexture: 'planet-bake-3',
       },
       {
-        title: 'Catégories',
+        title: 'Livrer',
         descriptions: [
-          'Quatre catégories, et rien ne se perd.',
-          "Offre parfaite, offre de rêve, atteignable, hors périmètre. Une offre écartée garde ses données : si une règle se révèle fausse, l'offre revient à sa place sans repasser par le modèle.",
+          'Le process est automatisé.',
+          'Le temps que coûtait la friction est rendu, et ce que fait le système reste lisible dans ses traces.',
         ],
         planetTexture: 'planet-bake-4',
       },
       {
-        title: 'Décision',
+        title: 'Surveiller',
         descriptions: [
-          'Le système classe, je décide.',
-          "Je lis les offres qui remontent et je retiens celles qui m'intéressent. Une vue opérateur me sert à vérifier que les filtres ne coupent pas ce qu'ils ne devraient pas.",
+          'La mesure continue après la livraison.',
+          "Un modèle change, les données aussi. Je garde les traces et les évaluations en place pour voir une dérive avant qu'elle coûte.",
         ],
-        // content/portfolio.md indique `planet-bake-5` pour cette étape, mais
-        // aucun fichier dédié n'existe (seuls -1 à -4 sont bakés, §3 de la
-        // spec autorise explicitement à pointer l'étape 6 sur `planet-bake-4`
-        // plutôt que de fournir une texture dédiée).
         planetTexture: 'planet-bake-4',
       },
     ],
@@ -170,50 +146,50 @@ export const siteContent: SiteContent = {
 
   projects: {
     title: 'Projets',
-    intro:
-      'Des projets personnels, construits pour apprendre en produisant quelque chose qui tourne.',
+    intro: "Des systèmes construits pour mes propres besoins, et mesurés pour savoir s'ils tiennent.",
     cards: [
       {
         id: 'job-search',
         title: 'job-search',
-        tagline: "Récupérer, lire et classer des offres d'emploi avec un LLM local.",
-        text: 'Collecte sur quatre sources, extraction par un modèle local en vocabulaire fermé, scoring Python sur deux axes, traces de chaque appel au modèle.',
+        tagline: "Un outil qui trie les offres d'emploi à ma place, pour ne lire que celles qui valent la peine.",
+        text: "Un LLM local lit chaque offre une seule fois et répond dans un vocabulaire fermé. Des règles Python classent ensuite les offres sur deux axes, ce qui m'attire et ce qui m'est accessible. Le système classe, je décide. Chaque appel au modèle est tracé, et c'est en lisant ces traces que je l'ai refondu plusieurs fois.",
         tags: ['Python', 'FastAPI', 'SQLite', 'Ollama', 'Nuxt'],
-        href: null,
-        cta: { label: 'Voir le détail', section: 'roadmap' },
+        href: 'https://github.com/GregCesi/job-search',
+        cta: null,
       },
       {
         id: 'rag-eval-scifact',
         title: 'rag-eval-scifact',
-        tagline: "Un banc d'évaluation pour un moteur de recherche sémantique.",
-        text: "Embeddings sentence-transformers et base ChromaDB, testés sur le jeu SciFact. Métriques codées à la main à partir du rang du document attendu : premier, top 5, top 100, non retrouvé. Runs nommés et versionnés sur le jeu complet. Les échecs sont classés en quatre familles : retrieval, saturation, inférence, troncature. Cause principale identifiée : la fenêtre de 256 tokens du modèle d'embedding, qui tronque les documents longs.",
+        tagline: "Construire un bon RAG en partant d'un bon banc d'évaluation.",
+        text: "Le banc est posé : corpus public SciFact, métriques codées à la main à partir du rang du document attendu, runs versionnés, échecs classés en quatre familles. L'étape suivante est d'améliorer le RAG en mesurant chaque changement sur ce banc.",
         tags: ['Python', 'sentence-transformers', 'ChromaDB', 'évaluation'],
         href: 'https://github.com/GregCesi/rag-eval-scifact',
         cta: null,
       },
       {
-        id: 'agent-codeloop',
-        title: 'agent-codeloop',
-        tagline: "Une boucle d'exécution de tickets par Claude Code.",
-        text: "Worktrees isolés, preflight, règles protégées, critères d'acceptation externes et journal d'exécution. Appliquée à la refonte en Nuxt 4 de parcpaysage.com.",
-        tags: ['Claude Code', 'git worktrees', 'Nuxt 4'],
+        id: 'cockpit',
+        title: 'Cockpit',
+        tagline: "Un poste de pilotage pour travailler avec l'IA sans jamais réexpliquer le contexte.",
+        text: "Plusieurs projets menés de front avec des agents. Dans Notion, un modèle de chat et moi tenons le backlog, un journal daté et les règles du jeu, relues à chaque session. Les tickets partent ensuite dans une boucle où Claude Code les exécute seul, dans un espace isolé, contre des critères qu'il ne peut pas réécrire. Je relis le résultat avant de l'intégrer. L'orchestration des agents repose sur une boîte à outils open source écrite par un tiers. Le site que vous parcourez est passé par cette boucle.",
+        tags: ['Claude Code', 'MCP Notion', 'git worktrees'],
         href: null,
         cta: { label: 'Voir la méthode', section: 'method' },
       },
     ],
-    contact: {
-      title: 'Contact',
-      text: "Je cherche un poste d'ingénieur IA, en Belgique ou à Strasbourg.",
-      email: 'gmarchand.pro1@gmail.com',
-      github: 'https://github.com/GregCesi',
-      // {{LINKEDIN_URL}} : valeur non fournie dans content/portfolio.md, laissée vide (élément masqué).
-      linkedin: '',
-      // {{CV_URL}} : valeur non fournie dans content/portfolio.md, laissée vide (élément masqué).
-      cvUrl: '',
-      cvLabel: 'Télécharger mon CV',
-      emailLabel: 'E-mail',
-      githubLabel: 'GitHub',
-      linkedinLabel: 'LinkedIn',
-    },
+  },
+
+  contact: {
+    title: 'Ouvrir une fréquence',
+    text: "Je cherche un poste d'AI engineer en Belgique ou à Strasbourg, et je suis disponible dès maintenant.",
+    email: 'gmarchand.pro1@gmail.com',
+    github: 'https://github.com/GregCesi',
+    // {{LINKEDIN_URL}} : valeur non fournie dans content/portfolio.md, laissée vide (élément masqué).
+    linkedin: '',
+    // {{CV_URL}} : valeur non fournie dans content/portfolio.md, laissée vide (élément masqué).
+    cvUrl: '',
+    cvLabel: 'Télécharger mon CV',
+    emailLabel: 'E-mail',
+    githubLabel: 'GitHub',
+    linkedinLabel: 'LinkedIn',
   },
 }

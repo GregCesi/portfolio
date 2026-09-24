@@ -9,25 +9,27 @@ Un marqueur `{{...}}` est une valeur que Grégoire remplira : l'élément qui le
 ## Global
 
 - Nom : Grégoire MARCHAND
-- Titre (header) : Ingénieur logiciel · IA
-- Balise title : Grégoire MARCHAND · Ingénieur logiciel, IA
-- Meta description : Ingénieur en informatique, développeur full-stack de formation, je construis mes propres systèmes à base de LLM : extraction de données, bancs d'évaluation, boucles d'exécution avec des agents de code.
-- Menu latéral (ordre des sections) : Start · Parcours · Méthode · Projet phare · Projets
+- Titre (header) : Développeur full-stack · AI Engineer
+- Balise title : Grégoire MARCHAND · Développeur full-stack, AI Engineer
+- Meta description : Développeur full-stack et AI engineer. J'élimine les frictions en automatisant les process avec des LLM, mesurés pour qu'on puisse s'y fier.
+- Menu latéral (ordre des sections) : Start · Parcours · Méthode · Projets · Contact
 
 ---
 
 ## Section 1 · Start (Hero)
 
 Titre :
-> Je construis des outils qui mettent les modèles de langage au travail
+> J'élimine les frictions en automatisant les process avec des LLM.
 
 Texte :
-> Ingénieur en informatique diplômé du CESI en 2024, développeur full-stack de formation.
-> Je construis mes propres systèmes à base de LLM : extraction de données, bancs d'évaluation, boucles d'exécution avec des agents de code.
+> Ingénieur en informatique, développeur full-stack de formation. Je construis des systèmes à base de LLM : extraction de données, RAG, agents de code, et les évaluations qui montrent s'ils tiennent.
+
+Accroche :
+> Quatre escales vous attendent avant de repartir : mon parcours, ma méthode, mes projets, et une fréquence pour me joindre.
 
 Boutons :
-- « Voir mes projets » → section 5
-- « Me contacter » → bloc Contact de la section 5
+- « Voir mes projets » → section 4
+- « Me contacter » → section 5
 
 ---
 
@@ -37,115 +39,99 @@ Titre :
 > Parcours
 
 Introduction :
-> J'ai appris le métier en entreprise, au fil de quatre stages, puis en indépendant. Je me spécialise aujourd'hui en ingénierie IA en autodidacte, en construisant mes propres projets.
+> Cinq ans d'école d'ingénieur, quatre stages en entreprise dont un à l'étranger, puis développeur indépendant depuis fin 2024. En parallèle, je me spécialise en ingénierie IA en construisant mes propres systèmes.
 
 Frise (du plus ancien au plus récent) :
 
 | Période | Lieu | Rôle | Détail |
 |---|---|---|---|
 | 2019 – 2024 | CESI École d'ingénieurs, Lingolsheim | Diplôme d'ingénieur en informatique | Deux ans de prépa intégrée, trois ans de cycle ingénieur |
-| Avr. – août 2021 | Agile Business, Geudertheim | Intégrateur web · stage | |
-| Janv. – avr. 2022 | Europe Tech Group, Haguenau | Développeur back-end · stage | |
-| Sept. 2022 – janv. 2023 | IT Selecta, Cracovie (Pologne) | Développeur full-stack · stage | |
-| Févr. – août 2024 | Ippon Technologies, Strasbourg | Développeur full-stack · stage | L'équipe produit est passée de 4 à 11 personnes pendant le stage |
-| Déc. 2024 – aujourd'hui | Indépendant | Développeur | Sites et applications pour des clients, dont CATRA et P.A.R.C |
+| Avr. – août 2021 | Agile Business, Geudertheim | Intégrateur web · stage | Sites WordPress : intégration, thèmes, mise en production |
+| Janv. – avr. 2022 | Europe Tech Group, Haguenau | Développeur back-end · stage | API C# .NET pour une application de portage salarial, maintenance de l'ERP Microsoft Dynamics NAV |
+| Sept. 2022 – janv. 2023 | IT Selecta, Cracovie (Pologne) | Développeur full-stack · stage | CRM et workflows d'automatisation sur mesure pour une startup, en anglais |
+| Févr. – août 2024 | Ippon Technologies, Strasbourg | Développeur full-stack · stage | Calculateur d'empreinte carbone en Java Spring Boot et Nuxt. L'équipe produit est passée de 4 à 11 personnes pendant le stage |
+| Déc. 2024 – aujourd'hui | Indépendant, Strasbourg | Développeur freelance | Sites et applications pour des clients, dont CATRA et P.A.R.C, puis une application B2B conçue à deux, menée jusqu'au prototype |
 
 ---
 
-## Section 3 · Méthode
-
-Titre :
-> Travailler avec des agents de code
-
-Introduction :
-> Je fais exécuter mon code par Claude Code, dans un cadre que je construis moi-même : des tickets, des règles, des contrôles automatiques et un journal. Le terrain d'essai est la refonte en Nuxt 4 du site d'une association de jardins, parcpaysage.com.
-
-Quatre cartes :
-
-1. **Un ticket, un espace isolé**
-   > Chaque ticket s'exécute dans son propre worktree git. Les tickets s'enchaînent en mode non interactif, sans que j'aie à rester devant.
-
-2. **Vérifier l'environnement avant de lire le ticket**
-   > Un script de preflight contrôle l'environnement avant que l'agent commence. Un environnement cassé s'arrête en quelques secondes, au lieu de 31 minutes de travail perdu constatées avant sa mise en place.
-
-3. **La barre vient de l'extérieur**
-   > Un agent qui écrit ses propres critères d'acceptation ne peut pas échouer. Les critères viennent donc d'une source que l'agent ne contrôle pas, et ses règles comme ses réglages sont protégés en écriture.
-
-4. **Tout finit au journal**
-   > Je planifie et je spécifie dans Notion avec un modèle de chat, Claude Code exécute et écrit ce qu'il a fait. Chaque échec devient une règle datée, avec le motif qui l'a fait naître.
-
----
-
-## Section 4 · Projet phare (Roadmap + planète)
+## Section 3 · Méthode (étapes + planète)
 
 Surtitre :
-> Projet phare
+> Méthode
 
 Titre :
-> job-search : trier des milliers d'offres avec un LLM local
+> De la friction au système qui tient
 
 Sous-titre :
-> Plus de 2 500 offres en base en septembre 2026. Python, FastAPI, SQLite, Ollama, Nuxt, TypeScript.
+> Six étapes que je suis sur chaque projet, du premier constat à la surveillance après livraison.
 
-Étapes (titre, puis deux paragraphes ; texture de planète entre parenthèses, pour le code seulement) :
+Étapes (titre, phrase, détail ; état de la planète entre parenthèses, pour le code seulement) :
 
-1. **Collecte** (planet-bake-1)
-   > Les offres arrivent de quatre sources.
-   > France Travail, Indeed, Remotive et EURES, récupérées en une passe par une commande que je lance à la main. Pas de tâche planifiée, pas d'API payante.
+1. **Repérer** (planète rouge)
+   > Tout part d'une friction.
+   > Une tâche répétée, lente ou pénible. Je la décris avant de choisir un modèle, et je vérifie qu'un LLM est la bonne réponse.
 
-2. **Tri amont** (planet-bake-1)
-   > Ce qui n'est pas prenable sort avant le modèle.
-   > Une offre publiée sur deux sources n'est gardée qu'une fois. Les stages et les alternances sont écartés avant tout appel au LLM.
+2. **Observer** (planète rouge, satellite en observation)
+   > Avant de corriger, je mesure.
+   > Je trace chaque appel au modèle et je classe les erreurs, pour savoir où le système casse.
 
-3. **Extraction** (planet-bake-2)
-   > Un modèle local lit chaque offre, une seule fois.
-   > Il tourne avec Ollama et ne répond que dans un vocabulaire fermé : séniorité sur quatre valeurs, domaine sur huit, technos avec trois niveaux d'importance, langues exigées. Chaque appel est tracé : prompts, réponse, modèle.
+3. **Corriger** (planète moins rouge)
+   > Une cause à la fois.
+   > Je traite la famille d'erreurs la plus fréquente, puis je remesure. Prompt, modèle ou règles autour : je choisis le levier d'après la mesure.
 
-4. **Scoring** (planet-bake-3)
-   > Deux axes indépendants, calculés en Python.
-   > Désirabilité et atteignabilité, au regard de mon profil. Aucun score n'est stocké : changer le profil recalcule tout sans rappeler le modèle.
+4. **Vérifier** (planète un peu verte)
+   > Des critères que le modèle ne contrôle pas.
+   > Je les écris avant de commencer, et les contrôles tournent sans lui : tests, build, jeux d'évaluation.
 
-5. **Catégories** (planet-bake-4)
-   > Quatre catégories, et rien ne se perd.
-   > Offre parfaite, offre de rêve, atteignable, hors périmètre. Une offre écartée garde ses données : si une règle se révèle fausse, l'offre revient à sa place sans repasser par le modèle.
+5. **Livrer** (planète verte)
+   > Le process est automatisé.
+   > Le temps que coûtait la friction est rendu, et ce que fait le système reste lisible dans ses traces.
 
-6. **Décision** (planet-bake-5)
-   > Le système classe, je décide.
-   > Je lis les offres qui remontent et je retiens celles qui m'intéressent. Une vue opérateur me sert à vérifier que les filtres ne coupent pas ce qu'ils ne devraient pas.
+6. **Surveiller** (planète verte, satellite en observation)
+   > La mesure continue après la livraison.
+   > Un modèle change, les données aussi. Je garde les traces et les évaluations en place pour voir une dérive avant qu'elle coûte.
 
 ---
 
-## Section 5 · Projets
+## Section 4 · Projets
 
 Titre :
 > Projets
 
 Introduction :
-> Des projets personnels, construits pour apprendre en produisant quelque chose qui tourne.
+> Des systèmes construits pour mes propres besoins, et mesurés pour savoir s'ils tiennent.
 
 Trois cartes :
 
 1. **job-search**
-   - Accroche : Récupérer, lire et classer des offres d'emploi avec un LLM local.
-   - Texte : Collecte sur quatre sources, extraction par un modèle local en vocabulaire fermé, scoring Python sur deux axes, traces de chaque appel au modèle.
+   - Accroche : Un outil qui trie les offres d'emploi à ma place, pour ne lire que celles qui valent la peine.
+   - Texte : Un LLM local lit chaque offre une seule fois et répond dans un vocabulaire fermé. Des règles Python classent ensuite les offres sur deux axes, ce qui m'attire et ce qui m'est accessible. Le système classe, je décide. Chaque appel au modèle est tracé, et c'est en lisant ces traces que je l'ai refondu plusieurs fois.
    - Tags : Python · FastAPI · SQLite · Ollama · Nuxt
-   - Lien : aucun (dépôt privé). Bouton « Voir le détail » → section 4.
+   - Lien : https://github.com/GregCesi/job-search (bouton « Voir le code »)
 
 2. **rag-eval-scifact**
-   - Accroche : Un banc d'évaluation pour un moteur de recherche sémantique.
-   - Texte : Embeddings sentence-transformers et base ChromaDB, testés sur le jeu SciFact. Métriques codées à la main à partir du rang du document attendu : premier, top 5, top 100, non retrouvé. Runs nommés et versionnés sur le jeu complet. Les échecs sont classés en quatre familles : retrieval, saturation, inférence, troncature. Cause principale identifiée : la fenêtre de 256 tokens du modèle d'embedding, qui tronque les documents longs.
+   - Accroche : Construire un bon RAG en partant d'un bon banc d'évaluation.
+   - Texte : Le banc est posé : corpus public SciFact, métriques codées à la main à partir du rang du document attendu, runs versionnés, échecs classés en quatre familles. L'étape suivante est d'améliorer le RAG en mesurant chaque changement sur ce banc.
    - Tags : Python · sentence-transformers · ChromaDB · évaluation
-   - Lien : https://github.com/GregCesi/rag-eval-scifact
+   - Lien : https://github.com/GregCesi/rag-eval-scifact (bouton « Voir le code »)
 
-3. **agent-codeloop**
-   - Accroche : Une boucle d'exécution de tickets par Claude Code.
-   - Texte : Worktrees isolés, preflight, règles protégées, critères d'acceptation externes et journal d'exécution. Appliquée à la refonte en Nuxt 4 de parcpaysage.com.
-   - Tags : Claude Code · git worktrees · Nuxt 4
+3. **Cockpit**
+   - Accroche : Un poste de pilotage pour travailler avec l'IA sans jamais réexpliquer le contexte.
+   - Texte : Plusieurs projets menés de front avec des agents. Dans Notion, un modèle de chat et moi tenons le backlog, un journal daté et les règles du jeu, relues à chaque session. Les tickets partent ensuite dans une boucle où Claude Code les exécute seul, dans un espace isolé, contre des critères qu'il ne peut pas réécrire. Je relis le résultat avant de l'intégrer. L'orchestration des agents repose sur une boîte à outils open source écrite par un tiers. Le site que vous parcourez est passé par cette boucle.
+   - Tags : Claude Code · MCP Notion · git worktrees
    - Lien : aucun (dépôt privé). Bouton « Voir la méthode » → section 3.
 
-Bloc Contact :
-- Titre : Contact
-- Texte : Je cherche un poste d'ingénieur IA, en Belgique ou à Strasbourg.
+---
+
+## Section 5 · Contact
+
+Titre :
+> Ouvrir une fréquence
+
+Texte :
+> Je cherche un poste d'AI engineer en Belgique ou à Strasbourg, et je suis disponible dès maintenant.
+
+Liens :
 - E-mail : gmarchand.pro1@gmail.com
 - GitHub : https://github.com/GregCesi
 - LinkedIn : {{LINKEDIN_URL}}
@@ -155,4 +141,4 @@ Bloc Contact :
 
 ## Libellés d'interface autorisés
 
-Seuls textes visibles autorisés en dehors de ce qui précède : repères de section « 01 / 05 » et numéros du menu, indicateurs de sous-écran « 2 / 6 », « Étape N » dans la frise, flèches ou libellés « Précédent » / « Suivant », « Voir le détail », « Voir la méthode », « Voir le code », « Télécharger mon CV », « E-mail », « GitHub », « LinkedIn », attributs aria et textes alternatifs descriptifs.
+Seuls textes visibles autorisés en dehors de ce qui précède : repères de section « 01 / 05 » et numéros du menu, indicateurs de sous-écran « 2 / 6 », « Étape N » dans la frise, flèches ou libellés « Précédent » / « Suivant », « Voir la méthode », « Voir le code », « Télécharger mon CV », « E-mail », « GitHub », « LinkedIn », attributs aria et textes alternatifs descriptifs.
