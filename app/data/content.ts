@@ -108,6 +108,7 @@ export const siteContent: SiteContent = {
           'Je trace chaque appel au modèle et je classe les erreurs, pour savoir où le système casse.',
         ],
         planetTexture: 'planet-bake-1',
+        scansPlanet: true,
       },
       {
         title: 'Corriger',
@@ -140,6 +141,7 @@ export const siteContent: SiteContent = {
           "Un modèle change, les données aussi. Je garde les traces et les évaluations en place pour voir une dérive avant qu'elle coûte.",
         ],
         planetTexture: 'planet-bake-4',
+        scansPlanet: true,
       },
     ],
   },

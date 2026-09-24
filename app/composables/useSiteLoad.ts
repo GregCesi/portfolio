@@ -19,7 +19,7 @@ export const LOAD_TASKS = [
 
 export type LoadTask = (typeof LOAD_TASKS)[number]
 
-const SATELLITE_MODEL = '/3d/models/DSCOVR-Triana.glb'
+export const SATELLITE_MODEL = '/3d/models/DSCOVR-Triana.glb'
 
 export function useSiteLoad() {
   const loaded = useState<LoadTask[]>('site-load', () => [])

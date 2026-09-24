@@ -14,14 +14,15 @@
 
 <script setup lang="ts">
 import * as THREE from 'three'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import Universal3DModel from '~/components/models3d/Universal3DModel.vue'
 import { useMethodState } from '~/composables/useMethodState'
 import { useCrossfadeTexture } from '~/composables/3d/useCrossfadeTexture'
+import { useScanSatellite } from '~/composables/3d/useScanSatellite'
 import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
 import { useSiteLoad } from '~/composables/useSiteLoad'
 
-const { registerPlanetMaterial } = useMethodState()
+const { registerPlanetMaterial, activeStep } = useMethodState()
 const { markLoaded } = useSiteLoad()
 const { crossfadeToTexture } = useCrossfadeTexture()
 const prefersReducedMotion = usePrefersReducedMotion()
@@ -60,7 +61,17 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updatePlanetSize)
   resizeObserver?.disconnect()
+  scanSatellite?.dispose()
 })
+
+// Le satellite et son cercle n'existent qu'aux étapes qui le demandent
+// (`scansPlanet` dans app/data/content.ts).
+let scanSatellite: ReturnType<typeof useScanSatellite> | null = null
+
+watch(
+  () => activeStep.value?.scansPlanet === true,
+  (scanning) => scanSatellite?.setActive(scanning),
+)
 
 let planetMesh: THREE.Mesh | null = null
 let textureMap: Record<string, THREE.Texture | null> = {}
@@ -68,6 +79,11 @@ let currentTextureName = 'planet-bake-1'
 
 const handleModelLoaded = async (model: THREE.Object3D) => {
   markLoaded('planet-model')
+
+  if (model.parent instanceof THREE.Scene) {
+    scanSatellite = useScanSatellite(model.parent, prefersReducedMotion)
+    scanSatellite.setActive(activeStep.value?.scansPlanet === true)
+  }
 
   // 1. Trouver le mesh de la planète (premier enfant)
   planetMesh = model.children[0] as THREE.Mesh
