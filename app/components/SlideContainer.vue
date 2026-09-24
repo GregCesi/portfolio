@@ -17,20 +17,25 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import gsap from 'gsap'
+import { useDepthTransition } from '~/composables/useDepthTransition'
 
 // Props
 interface Props {
   scrollThreshold?: number
   transitionDuration?: number
+  /** Changement de section en profondeur (voir useDepthTransition) au lieu du glissement vertical. */
+  depthMotion?: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
   scrollThreshold: 50,
-  transitionDuration: 0.8
+  transitionDuration: 0.8,
+  depthMotion: false
 })
 
 /* Refs */
 const container = ref<HTMLElement | null>(null)
 const wrapper = ref<HTMLElement | null>(null)
+const depth = useDepthTransition(wrapper)
 const slides = ref<HTMLElement[]>([])
 const current = ref(0)
 const fixedSlideHeight = ref(0)
@@ -103,6 +108,9 @@ function goTo(index: number) {
 
   state.isAnimating = true
 
+  const from = current.value
+  const inDepth = props.depthMotion
+
   // Les écouteurs (molette, tactile, clavier) restent attachés pendant toute
   // la transition : chaque gestionnaire porte déjà son propre garde-fou
   // (`state.isAnimating`), et le clavier a en plus besoin de rester à
@@ -110,6 +118,7 @@ function goTo(index: number) {
   // plutôt que de le perdre (voir `requestNavigate`).
   const tl = gsap.timeline({
     onComplete: () => {
+      if (inDepth) depth.end(slides.value[from]!, slides.value[index]!, index, fixedSlideHeight.value)
       current.value = index
       state.isAnimating = false
       state.wheelDelta = 0
@@ -118,6 +127,18 @@ function goTo(index: number) {
       runPendingAction()
     }
   })
+
+  // En profondeur : les deux sections se superposent, rien ne glisse. La
+  // durée de la timeline reste `transitionDuration` (la fin de la transition
+  // libère les écouteurs), portée par un tween vide.
+  if (inDepth) {
+    const height = fixedSlideHeight.value
+    depth.start(tl, slides.value[from]!, slides.value[index]!, (from - index) * height, height, () =>
+      emit('section-change', index)
+    )
+    tl.to({}, { duration: props.transitionDuration }, 0)
+    return
+  }
 
   // Fondu de sortie et fondu d'entrée superposés au déplacement du wrapper
   // (plutôt qu'enchaînés en série) : la durée totale perçue passe de
@@ -287,6 +308,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   removeEventListeners()
   window.removeEventListener('resize', resizeActiveSlide)
+  depth.clear()
   // Cleanup GSAP si nécessaire
   gsap.killTweensOf([wrapper.value, ...slides.value])
 })

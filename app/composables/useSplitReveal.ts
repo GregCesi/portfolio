@@ -8,9 +8,12 @@ import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
  * spec) : fondu depuis le noir de 0,8 à 1,6 s, titres qui se révèlent en
  * resserrant leur interlettrage, lignes de texte en cascade. Aucun rebond.
  *
- * Rejoue à chaque arrivée sur la section (événement `section-enter` émis
- * par `pages/index.vue`) ; la section 0 se joue au montage. Sous
- * `prefers-reduced-motion`, tout apparaît directement, sans animation.
+ * La section 0 se joue ainsi au montage, à l'ouverture du site. À chaque
+ * arrivée ensuite (événement `section-enter` émis par `pages/index.vue`), le
+ * texte arrive avec la section, en profondeur (voir useDepthTransition), sans
+ * cette révélation : seuls les tweens `extra` se jouent. Sous
+ * `prefers-reduced-motion`, la révélation est rejouée à chaque arrivée mais
+ * tout apparaît directement, sans animation.
  *
  * - `titles` : sélecteur des titres (interlettrage qui se resserre).
  * - `lines`  : sélecteur des blocs de texte (fondu en cascade).
@@ -114,10 +117,26 @@ export function useSplitReveal(rootRef: Ref<HTMLElement | null>, options: Sectio
     options.extra?.(tl)
   }
 
+  // Arrivée par un changement de section : le texte arrive avec la section, en
+  // profondeur (voir useDepthTransition), et n'a plus de révélation propre.
+  // Restent les tweens de la section (`extra`), rejoués avec le même délai.
+  function playInDepth() {
+    timeline?.kill()
+    gsap.set([...query(options.titles), ...query(options.lines)], { opacity: 1, clearProps: 'letterSpacing,height' })
+    options.hideExtra?.()
+    const tl = gsap.timeline({ delay: ENTER_DELAY })
+    timeline = tl
+    options.extra?.(tl)
+  }
+
   function onEnter(index: number) {
     if (index !== options.index) return
-    hide()
-    play()
+    if (prefersReducedMotion.value) {
+      hide()
+      play()
+    } else {
+      playInDepth()
+    }
   }
 
   onMounted(() => {

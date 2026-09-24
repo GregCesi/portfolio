@@ -1,3 +1,5 @@
+import gsap from 'gsap'
+
 /**
  * Zones de lecture : le fond reste un noir continu, ce sont les étoiles qui
  * s'effacent à l'approche du texte.
@@ -19,6 +21,15 @@ interface Box {
 
 /** Éléments qui portent du texte lisible ou interactif. */
 const TEXT_SELECTOR = 'h1, h2, h3, p, li, a, button, .subnav__indicator'
+
+/**
+ * Transition de section en profondeur (voir useDepthTransition) : un écho est
+ * une copie, jamais du texte ; une section sortante devenue invisible n'en a
+ * plus non plus.
+ */
+const NOT_TEXT_SELECTOR = '[data-echo], [data-departed]'
+/** Section en mouvement (mise à l'échelle autour du centre de l'écran). */
+const MOVING_SELECTOR = '[data-depth]'
 
 /** Distance (px) au bloc de texte en deçà de laquelle l'étoile est au plus sombre. */
 const NEAR = 18
@@ -54,11 +65,25 @@ export default class ReadingZones {
     const boxes: Box[] = []
     const nodes = document.body.querySelectorAll<HTMLElement>(TEXT_SELECTOR)
     for (let i = 0; i < nodes.length; i++) {
-      const r = nodes[i]!.getBoundingClientRect()
+      const node = nodes[i]!
+      if (node.closest(NOT_TEXT_SELECTOR)) continue
+      const r = node.getBoundingClientRect()
       if (r.width <= 0 || r.height <= 0) continue
-      if (r.right < -reach || r.left > vw + reach || r.bottom < -reach || r.top > vh + reach)
-        continue
-      boxes.push({ left: r.left, top: r.top, right: r.right, bottom: r.bottom })
+      let { left, top, right, bottom } = r
+      // Le texte d'une section en mouvement grossit ou rétrécit : sa zone reste
+      // celle qu'il a au repos, elle ne grossit pas avec lui.
+      const moving = node.closest<HTMLElement>(MOVING_SELECTOR)
+      if (moving) {
+        const scale = Number(gsap.getProperty(moving, 'scaleX')) || 1
+        const cx = vw / 2
+        const cy = vh / 2
+        left = cx + (left - cx) / scale
+        right = cx + (right - cx) / scale
+        top = cy + (top - cy) / scale
+        bottom = cy + (bottom - cy) / scale
+      }
+      if (right < -reach || left > vw + reach || bottom < -reach || top > vh + reach) continue
+      boxes.push({ left, top, right, bottom })
     }
     this.boxes = boxes
   }

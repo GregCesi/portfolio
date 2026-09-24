@@ -3,6 +3,7 @@
   <SlideContainer
     ref="slideRef"
     :transition-duration="transitionDuration"
+    :depth-motion="!prefersReducedMotion"
     @section-change="onSectionChange"
     @subscreen-next="onSubscreenNext"
     @subscreen-prev="onSubscreenPrev"
