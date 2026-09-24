@@ -25,11 +25,14 @@ interface Props {
   transitionDuration?: number
   /** Changement de section en profondeur (voir useDepthTransition) au lieu du glissement vertical. */
   depthMotion?: boolean
+  /** Tant que c'est vrai (sas d'entrée fermé), aucune entrée ne change de section et la première reste masquée. */
+  locked?: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
   scrollThreshold: 50,
   transitionDuration: 0.8,
-  depthMotion: false
+  depthMotion: false,
+  locked: false
 })
 
 /* Refs */
@@ -103,7 +106,7 @@ function updateInertSlides() {
 
 function goTo(index: number) {
   // Guards groupés
-  if (!wrapper.value || state.isAnimating || index === current.value) return
+  if (!wrapper.value || props.locked || state.isAnimating || index === current.value) return
   if (!isValidIndex(index)) return
 
   state.isAnimating = true
@@ -154,6 +157,36 @@ function goTo(index: number) {
     .fromTo(slides.value[index]!, { autoAlpha: 0 }, { autoAlpha: 1, duration: fadeDuration }, fadeInStart)
 }
 
+// Arrivée de la première section à l'ouverture du sas d'entrée : elle vient du
+// fond comme après un changement de section (`section-change` lance alors
+// l'accélération des étoiles). En mouvement réduit, elle apparaît d'un coup.
+function enter() {
+  const first = slides.value[0]
+  if (!first || state.isAnimating) return
+
+  // Masquée avant l'arrivée, la section ne creuse aucune zone de lecture (voir ReadingZones).
+  first.removeAttribute('data-departed')
+
+  if (!props.depthMotion) {
+    gsap.set(first, { autoAlpha: 1 })
+    return
+  }
+
+  state.isAnimating = true
+  const height = fixedSlideHeight.value
+  const tl = gsap.timeline({
+    onComplete: () => {
+      depth.end(null, first, 0, height)
+      state.isAnimating = false
+      state.wheelDelta = 0
+      emit('section-settled', 0)
+      runPendingAction()
+    }
+  })
+  depth.start(tl, null, first, 0, height, () => emit('section-change', 0))
+  tl.to({}, { duration: props.transitionDuration }, 0)
+}
+
 // Gestion du wheel : chaque section tient entièrement dans l'écran, sans
 // défilement interne (§2.3 de la spec) — la molette ne fait donc que changer
 // de section, dès le premier seuil franchi.
@@ -173,7 +206,7 @@ function onWheel(e: WheelEvent) {
     }
     return
   }
-  if (state.isAnimating) return
+  if (state.isAnimating || props.locked) return
 
   state.wheelDelta += e.deltaY
 
@@ -193,7 +226,7 @@ function onTouchStart(e: TouchEvent) {
 
 function onTouchMove(e: TouchEvent) {
   e.preventDefault()
-  if (state.isAnimating) return
+  if (state.isAnimating || props.locked) return
 
   const touch = e.touches[0]
   if (!touch) return
@@ -296,7 +329,11 @@ onMounted(async () => {
 
   // Configuration GSAP initiale
   gsap.set(slides.value, { autoAlpha: 0 })
-  gsap.set(slides.value[0]!, { autoAlpha: 1 })
+  if (props.locked) {
+    slides.value[0]!.setAttribute('data-departed', '')
+  } else {
+    gsap.set(slides.value[0]!, { autoAlpha: 1 })
+  }
   updateInertSlides()
 
   // Ajouter le listener de resize
@@ -321,6 +358,7 @@ const canGoPrevious = computed(() => current.value > 0)
 /* API publique */
 defineExpose({
   goTo,
+  enter,
   current: readonly(current),
   totalSlides,
   canGoNext,

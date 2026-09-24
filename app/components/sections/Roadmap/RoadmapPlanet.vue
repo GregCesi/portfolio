@@ -3,14 +3,12 @@
        réellement libre à côté de la frise et du texte (aucun chevauchement). -->
   <div ref="wrapRef" class="rp">
     <Universal3DModel
-      v-if="ready"
       model="/3d/models/Planet-1.glb"
       :width="planetSize"
       :height="planetSize"
       :auto-rotate="!prefersReducedMotion"
       @model-loaded="handleModelLoaded"
     />
-    <div v-else :style="{ width: planetSize, height: planetSize }" aria-hidden="true" />
   </div>
 </template>
 
@@ -21,8 +19,10 @@ import Universal3DModel from '~/components/models3d/Universal3DModel.vue'
 import { useRoadmapState } from '~/composables/useRoadmapState'
 import { useCrossfadeTexture } from '~/composables/3d/useCrossfadeTexture'
 import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
+import { useSiteLoad } from '~/composables/useSiteLoad'
 
 const { registerPlanetMaterial } = useRoadmapState()
+const { markLoaded } = useSiteLoad()
 const { crossfadeToTexture } = useCrossfadeTexture()
 const prefersReducedMotion = usePrefersReducedMotion()
 
@@ -48,25 +48,6 @@ function updatePlanetSize() {
   }
 }
 
-// Chargement différé après le premier rendu (spec §4 Performance) : le GLB
-// et les textures (~6,6 Mo au total) ne commencent à être demandés qu'une
-// fois que le navigateur a eu l'occasion de peindre la première frame, pour
-// ne jamais retarder l'affichage initial de la page.
-const ready = ref(false)
-let idleHandle: number | null = null
-
-function scheduleModelLoad(callback: () => void) {
-  const win = window as Window & {
-    requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
-    cancelIdleCallback?: (handle: number) => void
-  }
-  if (typeof win.requestIdleCallback === 'function') {
-    idleHandle = win.requestIdleCallback(callback, { timeout: 1500 })
-  } else {
-    idleHandle = window.setTimeout(callback, 200)
-  }
-}
-
 onMounted(() => {
   updatePlanetSize()
   window.addEventListener('resize', updatePlanetSize)
@@ -74,22 +55,11 @@ onMounted(() => {
     resizeObserver = new ResizeObserver(updatePlanetSize)
     resizeObserver.observe(wrapRef.value)
   }
-  scheduleModelLoad(() => {
-    ready.value = true
-  })
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updatePlanetSize)
   resizeObserver?.disconnect()
-  if (idleHandle !== null) {
-    const win = window as Window & { cancelIdleCallback?: (handle: number) => void }
-    if (typeof win.cancelIdleCallback === 'function') {
-      win.cancelIdleCallback(idleHandle)
-    } else {
-      window.clearTimeout(idleHandle)
-    }
-  }
 })
 
 let planetMesh: THREE.Mesh | null = null
@@ -97,7 +67,8 @@ let textureMap: Record<string, THREE.Texture | null> = {}
 let currentTextureName = 'planet-bake-1'
 
 const handleModelLoaded = async (model: THREE.Object3D) => {
-  
+  markLoaded('planet-model')
+
   // 1. Trouver le mesh de la planète (premier enfant)
   planetMesh = model.children[0] as THREE.Mesh
   
@@ -124,24 +95,29 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
     // ~15 Mo en PNG source — voir spec §4 Performance). L'étape 6 (Décision)
     // réutilise explicitement 'planet-bake-4' (voir app/data/content.ts) :
     // il n'y a que quatre textures bakées, pas de cas 'planet-bake-5' à gérer.
+    // Le sas d'entrée attend qu'elles soient toutes là (voir useSiteLoad) : une
+    // texture qui échoue reste `null`, le voyant correspondant ne s'allume pas.
+    const loadTexture = (path: string) =>
+      textureLoader
+        .loadAsync(path)
+        .then((texture) => correctTextureProperties(texture, originalTexture))
+        .catch((error) => {
+          console.error('Erreur chargement texture planète :', error)
+          return null
+        })
+    const [bake1, bake2, bake3, bake4] = await Promise.all([
+      loadTexture('/3d/models/textures/planet-1/planet-bake-1.webp'),
+      loadTexture('/3d/models/textures/planet-2/planet-bake-2.webp'),
+      loadTexture('/3d/models/textures/planet-3/planet-bake-3.webp'),
+      loadTexture('/3d/models/textures/planet-4/planet-bake-4.webp'),
+    ])
     textureMap = {
-      'planet-bake-1': correctTextureProperties(
-        textureLoader.load('/3d/models/textures/planet-1/planet-bake-1.webp'),
-        originalTexture
-      ),
-      'planet-bake-2': correctTextureProperties(
-        textureLoader.load('/3d/models/textures/planet-2/planet-bake-2.webp'),
-        originalTexture
-      ),
-      'planet-bake-3': correctTextureProperties(
-        textureLoader.load('/3d/models/textures/planet-3/planet-bake-3.webp'),
-        originalTexture
-      ),
-      'planet-bake-4': correctTextureProperties(
-        textureLoader.load('/3d/models/textures/planet-4/planet-bake-4.webp'),
-        originalTexture
-      ),
+      'planet-bake-1': bake1,
+      'planet-bake-2': bake2,
+      'planet-bake-3': bake3,
+      'planet-bake-4': bake4,
     }
+    if (Object.values(textureMap).every(Boolean)) markLoaded('planet-textures')
     
     // 3. Créer la fonction de changement de texture avec crossfade
     // Une demande reçue pendant un fondu (2 s) est retenue : la dernière cible

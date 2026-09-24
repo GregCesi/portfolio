@@ -8,10 +8,10 @@ import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
  * spec) : fondu depuis le noir de 0,8 à 1,6 s, titres qui se révèlent en
  * resserrant leur interlettrage, lignes de texte en cascade. Aucun rebond.
  *
- * La section 0 se joue ainsi au montage, à l'ouverture du site. À chaque
- * arrivée ensuite (événement `section-enter` émis par `pages/index.vue`), le
- * texte arrive avec la section, en profondeur (voir useDepthTransition), sans
- * cette révélation : seuls les tweens `extra` se jouent. Sous
+ * À chaque arrivée (événement `section-enter` émis par `pages/index.vue`, y
+ * compris celle de la section 0 à l'ouverture du sas d'entrée), le texte
+ * arrive avec la section, en profondeur (voir useDepthTransition), sans cette
+ * révélation : seuls les tweens `extra` se jouent. Sous
  * `prefers-reduced-motion`, la révélation est rejouée à chaque arrivée mais
  * tout apparaît directement, sans animation.
  *
@@ -141,14 +141,7 @@ export function useSplitReveal(rootRef: Ref<HTMLElement | null>, options: Sectio
 
   onMounted(() => {
     $emitter.on('section-enter', onEnter)
-    if (options.index === 0) {
-      const start = () => play(0.5)
-      if (typeof document !== 'undefined' && document.fonts?.ready) {
-        void document.fonts.ready.then(start)
-      } else {
-        start()
-      }
-    } else if (prefersReducedMotion.value) {
+    if (prefersReducedMotion.value) {
       showAll()
     } else {
       hide()

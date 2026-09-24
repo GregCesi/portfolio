@@ -4,6 +4,7 @@
     ref="slideRef"
     :transition-duration="transitionDuration"
     :depth-motion="!prefersReducedMotion"
+    :locked="!entryGate.opened.value"
     @section-change="onSectionChange"
     @subscreen-next="onSubscreenNext"
     @subscreen-prev="onSubscreenPrev"
@@ -17,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, provide, ref } from 'vue'
+import { computed, provide, ref, watch } from 'vue'
 import { useNuxtApp, useSeoMeta } from '#app'
 
 import SlideContainer from '@/components/SlideContainer.vue'
@@ -33,6 +34,7 @@ import type { SectionId } from '~/types/content'
 import { appNavigationKey } from '~/composables/useAppNavigation'
 import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
 import { useSubscreenNav } from '~/composables/useSubscreenNav'
+import { useEntryGate } from '~/composables/useEntryGate'
 
 import type { SlideContainerExposed } from '~/types/slides'
 
@@ -49,6 +51,7 @@ const { $emitter } = useNuxtApp()
 const prefersReducedMotion = usePrefersReducedMotion()
 const transitionDuration = computed(() => (prefersReducedMotion.value ? 0.2 : 1.1))
 const subscreenNav = useSubscreenNav()
+const entryGate = useEntryGate()
 
 const slideRef = ref<SlideContainerExposed | null>(null)
 const currentIndex = ref(0)
@@ -58,6 +61,15 @@ function onSectionChange(index: number) {
   $emitter.emit('accelerate-stars')
   $emitter.emit('section-enter', index)
 }
+
+// Le sas d'entrée s'est ouvert : Start arrive du fond, avec l'accélération des
+// étoiles d'un changement de section. En mouvement réduit, Start s'affiche
+// sans elle.
+watch(entryGate.opened, (opened) => {
+  if (!opened) return
+  slideRef.value?.enter()
+  if (prefersReducedMotion.value) $emitter.emit('section-enter', 0)
+})
 
 function onMenuSelect(index: number) {
   const section = SECTION_ORDER[index]

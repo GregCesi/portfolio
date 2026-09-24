@@ -69,10 +69,12 @@ export function useDepthTransition(wrapper: Ref<HTMLElement | null>) {
    * l'arrivée côté page (accélération des étoiles, texte de la section) : il
    * est appelé avant la copie des échos, qui doivent reprendre le texte entrant
    * tel qu'il sera affiché. `offset` ramène `to` à la place de `from`.
+   * Sans `from` (première arrivée, à l'ouverture du sas d'entrée), seule
+   * l'arrivée de `to` se joue.
    */
   function start(
     tl: gsap.core.Timeline,
-    from: HTMLElement,
+    from: HTMLElement | null,
     to: HTMLElement,
     offset: number,
     height: number,
@@ -80,15 +82,15 @@ export function useDepthTransition(wrapper: Ref<HTMLElement | null>) {
   ) {
     const transformOrigin = `50% ${height / 2}px`
 
-    from.setAttribute('data-depth', '')
+    from?.setAttribute('data-depth', '')
     to.setAttribute('data-depth', '')
-    gsap.set(from, { transformOrigin })
+    if (from) gsap.set(from, { transformOrigin })
     gsap.set(to, { y: offset, scale: IN_SCALE, opacity: 0, visibility: 'inherit', transformOrigin })
 
     enter()
 
-    tl.to(from, { scale: OUT_SCALE, duration: OUT_DURATION, ease: 'power2.in' }, 0)
-      .to(
+    if (from) {
+      tl.to(from, { scale: OUT_SCALE, duration: OUT_DURATION, ease: 'power2.in' }, 0).to(
         from,
         {
           autoAlpha: 0,
@@ -98,20 +100,26 @@ export function useDepthTransition(wrapper: Ref<HTMLElement | null>) {
         },
         0,
       )
-      .to(to, { scale: 1, duration: IN_DURATION, ease: 'power2.out' }, IN_START)
-      .to(to, { opacity: 1, duration: IN_FADE, ease: 'power1.out' }, IN_START)
+    }
+    tl.to(to, { scale: 1, duration: IN_DURATION, ease: 'power2.out' }, IN_START).to(
+      to,
+      { opacity: 1, duration: IN_FADE, ease: 'power1.out' },
+      IN_START,
+    )
 
     ECHO_ALPHAS.forEach((alpha, k) => {
       const lag = (k + 1) * ECHO_LAG
 
-      const leaving = makeEcho(from)
-      gsap.set(leaving, { y: 0, scale: 1, opacity: 0, visibility: 'inherit', transformOrigin })
-      tl.to(leaving, { scale: OUT_SCALE, duration: OUT_DURATION, ease: 'power2.in' }, lag).fromTo(
-        leaving,
-        { opacity: alpha },
-        { opacity: 0, duration: OUT_FADE, ease: 'power1.in', immediateRender: false },
-        lag,
-      )
+      if (from) {
+        const leaving = makeEcho(from)
+        gsap.set(leaving, { y: 0, scale: 1, opacity: 0, visibility: 'inherit', transformOrigin })
+        tl.to(leaving, { scale: OUT_SCALE, duration: OUT_DURATION, ease: 'power2.in' }, lag).fromTo(
+          leaving,
+          { opacity: alpha },
+          { opacity: 0, duration: OUT_FADE, ease: 'power1.in', immediateRender: false },
+          lag,
+        )
+      }
 
       // Un écho entrant apparaît vite, puis se résorbe en rejoignant le texte.
       const arriving = makeEcho(to)
@@ -124,13 +132,13 @@ export function useDepthTransition(wrapper: Ref<HTMLElement | null>) {
   }
 
   /** Remet chaque section à sa place de repos : le wrapper se cale sur la cible, sans que rien ne bouge à l'écran. */
-  function end(from: HTMLElement, to: HTMLElement, index: number, height: number) {
+  function end(from: HTMLElement | null, to: HTMLElement, index: number, height: number) {
     clear()
-    gsap.set(from, { clearProps: 'transform,transformOrigin' })
+    if (from) gsap.set(from, { clearProps: 'transform,transformOrigin' })
     gsap.set(to, { clearProps: 'transform,transformOrigin' })
     gsap.set(to, { autoAlpha: 1 })
-    from.removeAttribute('data-depth')
-    from.removeAttribute('data-departed')
+    from?.removeAttribute('data-depth')
+    from?.removeAttribute('data-departed')
     to.removeAttribute('data-depth')
     if (wrapper.value) gsap.set(wrapper.value, { y: -index * height })
   }
