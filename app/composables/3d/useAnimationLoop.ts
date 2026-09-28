@@ -85,6 +85,8 @@ export function useAnimationLoop() {
 
   return {
     isRunning,
+    start,
+    stop,
     subscribe,
     unsubscribe,
     clear

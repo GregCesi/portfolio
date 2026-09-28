@@ -7,6 +7,7 @@
       :width="planetSize"
       :height="planetSize"
       :auto-rotate="!prefersReducedMotion"
+      :active="isMethodActive"
       @model-loaded="handleModelLoaded"
     />
   </div>
@@ -15,17 +16,29 @@
 <script setup lang="ts">
 import * as THREE from 'three'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useNuxtApp } from '#app'
 import Universal3DModel from '~/components/models3d/Universal3DModel.vue'
 import { useMethodState } from '~/composables/useMethodState'
 import { useCrossfadeTexture } from '~/composables/3d/useCrossfadeTexture'
 import { useScanSatellite } from '~/composables/3d/useScanSatellite'
 import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
 import { useSiteLoad } from '~/composables/useSiteLoad'
+import { SECTION_INDEX } from '~/data/content'
 
 const { registerPlanetMaterial, activeStep } = useMethodState()
 const { markLoaded } = useSiteLoad()
 const { crossfadeToTexture } = useCrossfadeTexture()
 const prefersReducedMotion = usePrefersReducedMotion()
+const { $emitter } = useNuxtApp()
+
+// La planète ne tourne et ne se redessine que sur Méthode : ailleurs le canvas
+// est invisible (autoAlpha) mais son rendu WebGL, lui, ne s'arrêtait jamais
+// (voir EXE-48). `section-enter` (émis par pages/index.vue) porte l'index
+// 0-based de la diapositive qui arrive.
+const isMethodActive = ref(false)
+function onSectionEnter(index: number) {
+  isMethodActive.value = index === SECTION_INDEX.method
+}
 
 // Taille responsive : la planète ne doit chevaucher ni la frise ni le texte,
 // de 375 px à 1920 px (§2.2.4 de la spec).
@@ -56,12 +69,14 @@ onMounted(() => {
     resizeObserver = new ResizeObserver(updatePlanetSize)
     resizeObserver.observe(wrapRef.value)
   }
+  $emitter.on('section-enter', onSectionEnter)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updatePlanetSize)
   resizeObserver?.disconnect()
   scanSatellite?.dispose()
+  $emitter.off('section-enter', onSectionEnter)
 })
 
 // Le satellite et son cercle n'existent qu'aux étapes qui le demandent

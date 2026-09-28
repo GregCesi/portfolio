@@ -24,6 +24,8 @@ interface Props {
   autoRotate?: boolean
   interactive?: boolean
   rotationSpeed?: number
+  /** Rendu suspendu tant que ce n'est pas true : aucune image dessinée, aucun appel WebGL. */
+  active?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -32,7 +34,8 @@ const props = withDefaults(defineProps<Props>(), {
   cameraPosition: 2,
   autoRotate: true,
   interactive: true,
-  rotationSpeed: 0.002
+  rotationSpeed: 0.002,
+  active: true
 })
 
 const containerRef = ref<HTMLElement>()
@@ -41,8 +44,17 @@ function parsePixels(value: string): number {
   return parseInt(value.replace('px', ''), 10)
 }
 
+// Le rendu (et donc tout appel WebGL) reste suspendu quand la diapositive n'est
+// pas active ou quand l'onglet est caché, même une fois le modèle chargé.
+const isTabHidden = ref(typeof document !== 'undefined' ? document.hidden : false)
+function handleVisibilityChange() {
+  isTabHidden.value = document.hidden
+}
+
 onMounted(async () => {
   if (!containerRef.value) return
+
+  document.addEventListener('visibilitychange', handleVisibilityChange)
 
   // 1. Initialiser les composables de base (toujours nécessaires)
   const { scene, initScene, render, resize, cleanup } = use3DScene(containerRef)
@@ -62,6 +74,7 @@ onMounted(async () => {
 
   // 3. Cleanup - nettoyer seulement ce qui a été initialisé
   onBeforeUnmount(() => {
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     if (animationLoop) {
       animationLoop.clear()
     }
@@ -87,7 +100,7 @@ onMounted(async () => {
     () => [props.width, props.height],
     ([width, height]) => {
       resize(parsePixels(width ?? '400px'), parsePixels(height ?? '400px'))
-      render()
+      if (props.active && !isTabHidden.value) render()
     }
   )
 
@@ -118,6 +131,17 @@ onMounted(async () => {
     if (animationLoop) {
       animationLoop.subscribe('render', () => {
         render()
+      })
+
+      // subscribe() démarre toujours la boucle : on l'arrête aussitôt si la
+      // diapositive n'est pas active ou l'onglet caché, puis on la garde
+      // synchronisée avec ces deux signaux.
+      const loop = animationLoop
+      const shouldRun = () => props.active && !isTabHidden.value
+      if (!shouldRun()) loop.stop()
+      watch(shouldRun, (run) => {
+        if (run) loop.start()
+        else loop.stop()
       })
     } else {
       // Si pas d'animation loop, faire au moins un rendu initial
