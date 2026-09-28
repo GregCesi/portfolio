@@ -9,20 +9,25 @@
       <div class="hero__block">
         <h1 class="hero__title t-title rv">{{ hero.title }}</h1>
 
-        <div class="hero__text">
-          <p v-for="paragraph in hero.paragraphs" :key="paragraph" class="t-body rv">
-            {{ paragraph }}
-          </p>
-          <p class="hero__hook t-body rv">{{ hero.hook }}</p>
-        </div>
+        <div class="hero__row">
+          <div class="hero__text">
+            <p v-for="paragraph in hero.paragraphs" :key="paragraph" class="t-body rv">
+              {{ paragraph }}
+            </p>
+          </div>
 
-        <div class="hero__actions rv">
-          <button type="button" class="hero__btn hero__btn--primary" @click="goToSection('projects')">
-            {{ hero.ctaProjects }}
-          </button>
-          <button type="button" class="hero__btn" @click="goToSection('contact')">
-            {{ hero.ctaContact }}
-          </button>
+          <div class="hero__aside">
+            <p class="hero__hook t-body rv">{{ hero.hook }}</p>
+
+            <div class="hero__actions rv">
+              <button type="button" class="hero__btn hero__btn--primary" @click="goToSection('projects')">
+                {{ hero.ctaProjects }}
+              </button>
+              <button type="button" class="hero__btn" @click="goToSection('contact')">
+                {{ hero.ctaContact }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -61,22 +66,42 @@ useSplitReveal(rootRef, {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  gap: clamp(1.25rem, 3.5vh, 2.5rem);
-  max-width: 46rem;
+  gap: clamp(2rem, 6vh, 3.5rem);
+  width: 100%;
+  max-width: 70rem;
 }
 
 .hero__title {
+  width: 100%;
+  max-width: 64rem;
+  text-align: center;
   font-size: clamp(1.15rem, 0.8rem + 1.5vw, 2.25rem);
-  letter-spacing: 0.22em;
+  letter-spacing: 0.12em;
   line-height: 1.5;
   text-wrap: balance;
+}
+
+.hero__row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.75rem;
+  width: 100%;
 }
 
 .hero__text {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  max-width: 30rem;
+}
+
+.hero__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
   max-width: 30rem;
 }
 
@@ -90,6 +115,30 @@ useSplitReveal(rootRef, {
 
 .hero__hook {
   color: var(--color-ink-dim);
+}
+
+@media (min-width: 1024px) {
+  .hero__row {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    text-align: left;
+    gap: 2.5rem;
+  }
+
+  .hero__text,
+  .hero__aside {
+    flex: 1 1 0;
+    max-width: 32rem;
+  }
+
+  .hero__aside {
+    align-items: flex-start;
+  }
+
+  .hero__actions {
+    justify-content: flex-start;
+  }
 }
 
 /* Liens de générique : Jost capitales espacées, un filet de 1 px dessous,
