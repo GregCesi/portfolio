@@ -35,6 +35,7 @@ import { appNavigationKey } from '~/composables/useAppNavigation'
 import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
 import { useSubscreenNav } from '~/composables/useSubscreenNav'
 import { useEntryGate } from '~/composables/useEntryGate'
+import { TOTAL_DURATION } from '~/composables/useDepthTransition'
 
 import type { SlideContainerExposed } from '~/types/slides'
 
@@ -49,7 +50,7 @@ useSeoMeta({
 
 const { $emitter } = useNuxtApp()
 const prefersReducedMotion = usePrefersReducedMotion()
-const transitionDuration = computed(() => (prefersReducedMotion.value ? 0.2 : 1.1))
+const transitionDuration = computed(() => (prefersReducedMotion.value ? 0.2 : TOTAL_DURATION))
 const subscreenNav = useSubscreenNav()
 const entryGate = useEntryGate()
 

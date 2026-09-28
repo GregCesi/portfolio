@@ -18,6 +18,7 @@ import StarsField from '@/graphics/background/StarsField'
 import WarpEffect from '@/graphics/background/WarpEffect'
 import ReadingZones from '@/graphics/background/ReadingZones'
 import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
+import { DEPART_DURATION, TRAVEL_DURATION, ARRIVE_DURATION } from '~/composables/useDepthTransition'
 
 const canvas = ref<HTMLCanvasElement | null>(null)
 let renderer: Renderer
@@ -28,16 +29,17 @@ let zones: ReadingZones
 const { $emitter } = useNuxtApp()
 const prefersReducedMotion = usePrefersReducedMotion()
 
-const accelerate = (duration?: number) => {
+const accelerate = () => {
   // Le texte bouge pendant la transition : les zones de lecture suivent à chaque image.
   zones.boost(3000)
-  // `prefers-reduced-motion` : warp atténué et raccourci (§2.3 de la spec).
+  // `prefers-reduced-motion` : warp atténué et raccourci (§2.3 de la spec), inchangé par EXE-49.
   if (prefersReducedMotion.value) {
     warpEffect.start(0.25, 2)
   } else {
-    // Warp plus lent (§2.3 bis) : au service du changement de section, pas
-    // un spectacle en soi.
-    warpEffect.start(duration ?? 1.0, 4)
+    // Même découpage en trois phases que le changement de section « en
+    // profondeur » (voir useDepthTransition) : les étoiles accélèrent, filent,
+    // puis freinent jusqu'au repos pile quand le texte entrant se pose.
+    warpEffect.journey(DEPART_DURATION, TRAVEL_DURATION, ARRIVE_DURATION, 4)
   }
 }
 
