@@ -5,6 +5,7 @@
     :transition-duration="transitionDuration"
     :depth-motion="!prefersReducedMotion"
     :locked="!entryGate.opened.value"
+    :capture="captureFor"
     @section-change="onSectionChange"
     @subscreen-next="onSubscreenNext"
     @subscreen-prev="onSubscreenPrev"
@@ -34,6 +35,7 @@ import type { SectionId } from '~/types/content'
 import { appNavigationKey } from '~/composables/useAppNavigation'
 import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
 import { useSubscreenNav } from '~/composables/useSubscreenNav'
+import { useSlideScrollCapture } from '~/composables/useSlideScrollCapture'
 import { useEntryGate } from '~/composables/useEntryGate'
 import { TOTAL_DURATION } from '~/composables/useDepthTransition'
 
@@ -52,7 +54,15 @@ const { $emitter } = useNuxtApp()
 const prefersReducedMotion = usePrefersReducedMotion()
 const transitionDuration = computed(() => (prefersReducedMotion.value ? 0.2 : TOTAL_DURATION))
 const subscreenNav = useSubscreenNav()
+const scrollCapture = useSlideScrollCapture()
 const entryGate = useEntryGate()
+
+// Rétention de molette (EXE-52) : SlideContainer reste ignorant des sections,
+// c'est ici que l'index numérique se traduit en SectionId pour interroger le
+// registre (même pont que subscreenNav ci-dessous).
+function captureFor(index: number) {
+  return scrollCapture.get(SECTION_ORDER[index])
+}
 
 const slideRef = ref<SlideContainerExposed | null>(null)
 const currentIndex = ref(0)

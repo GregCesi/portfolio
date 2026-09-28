@@ -1,47 +1,42 @@
 <template>
   <BaseSection :index="2">
-    <div ref="rootRef" class="about">
-      <div class="about__scene">
-        <!--
-          Mobile : le titre et l'introduction forment le premier sous-écran,
-          puis une entrée de frise par sous-écran (§2.3). Au-delà de 768px la
-          piste s'efface (`display: contents`) : la frise se lit d'un coup, sur
-          deux ou trois colonnes, un carton de dates.
-        -->
-        <SubscreenTrack :index="sub.index.value" :total="sub.total.value" @update:index="sub.goTo">
-          <header class="about__head">
-            <div class="about__head-inner">
-              <h2 class="about__title t-title rv">{{ about.title }}</h2>
-              <p class="about__intro t-body rv">{{ about.intro }}</p>
+    <div ref="rootRef" class="par">
+      <div ref="sceneRef" class="par__scene">
+        <div ref="trackRef" class="par__track">
+          <div class="par__intro">
+            <div class="par__intro-inner">
+              <h2 class="par__title t-title rv">{{ about.title }}</h2>
+              <p class="par__intro-text t-body rv">{{ about.intro }}</p>
             </div>
-          </header>
+          </div>
 
-          <article
+          <div
             v-for="(entry, index) in about.timeline"
             :key="entry.period"
-            class="about__entry"
-            :class="{ 'about__entry--e2': index % 2 === 1, 'about__entry--e3': index % 3 === 2 }"
+            class="par__stop"
+            :class="index % 2 === 0 ? 'par__stop--above' : 'par__stop--below'"
           >
-            <div class="about__entry-inner">
-              <div class="about__marker" aria-hidden="true">
-                <span :ref="(el) => setCircleRef(el as HTMLElement, index)" class="about__circle" />
-                <span v-if="index < about.timeline.length - 1" class="about__connector">
-                  <span :ref="(el) => setLineRef(el as HTMLElement, index)" class="about__connector-fill" />
-                </span>
-              </div>
+            <svg
+              class="par__seg"
+              :class="{ 'par__seg--first': index === 0, 'par__seg--reached': isReached(index) }"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path :d="segPath(index)" vector-effect="non-scaling-stroke" />
+            </svg>
 
-              <div class="about__body rv">
-                <p class="about__period">{{ entry.period }}</p>
-                <p class="about__place">{{ entry.place }}</p>
-                <p class="about__role">{{ entry.role }}</p>
-                <p v-if="entry.detail" class="about__detail">{{ entry.detail }}</p>
-              </div>
+            <span class="par__marker" :class="{ 'par__marker--reached': isReached(index) }" aria-hidden="true" />
+
+            <div class="par__cartouche">
+              <p class="par__period">{{ entry.period }}</p>
+              <p class="par__place">{{ entry.place }}</p>
+              <p class="par__role">{{ entry.role }}</p>
+              <p v-if="entry.detail" class="par__detail">{{ entry.detail }}</p>
             </div>
-          </article>
-        </SubscreenTrack>
+          </div>
+        </div>
       </div>
-
-      <SubscreenNav :index="sub.index.value" :total="sub.total.value" @prev="sub.prev" @next="sub.next" />
     </div>
   </BaseSection>
 </template>
@@ -50,170 +45,249 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import gsap from 'gsap'
 import BaseSection from '~/components/sections/BaseSection.vue'
-import SubscreenTrack from '~/components/subscreen/SubscreenTrack.vue'
-import SubscreenNav from '~/components/subscreen/SubscreenNav.vue'
 import { siteContent } from '~/data/content'
-import { useMobileSubscreens } from '~/composables/useMobileSubscreens'
-import { useSubscreenNav } from '~/composables/useSubscreenNav'
+import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
 import { useSplitReveal } from '~/composables/useSplitReveal'
+import { useSlideScrollCapture, type CaptureDirection } from '~/composables/useSlideScrollCapture'
 
 const about = siteContent.about
 
 const rootRef = ref<HTMLElement | null>(null)
-const circles = ref<HTMLElement[]>([])
-const lines = ref<HTMLElement[]>([])
+const sceneRef = ref<HTMLElement | null>(null)
+const trackRef = ref<HTMLElement | null>(null)
 
-// Sous-écrans mobiles : titre + introduction, puis une entrée de frise chacun.
-const sub = useMobileSubscreens(about.timeline.length + 1, 1)
-const subscreenNav = useSubscreenNav()
+const prefersReducedMotion = usePrefersReducedMotion()
 
-onMounted(() => subscreenNav.register('about', sub))
-onBeforeUnmount(() => subscreenNav.unregister('about'))
+// Un itinéraire horizontal en pointillés (EXE-52) : la molette verticale, le
+// clavier haut/bas et le glissement tactile vertical font défiler la scène en
+// crans discrets tant qu'elle a du terrain, avant de céder à SlideContainer
+// le changement de section (voir useSlideScrollCapture, réutilisé par EXE-54).
+const STEPS = about.timeline.length
+const STEP_THRESHOLD = 100
 
-function setCircleRef(el: HTMLElement | null, index: number) {
-  if (el) circles.value[index] = el
+const stepIndex = ref(0)
+let scrollable = 0
+let wheelAcc = 0
+
+function isReached(index: number): boolean {
+  return prefersReducedMotion.value || stepIndex.value >= index + 1
 }
 
-function setLineRef(el: HTMLElement | null, index: number) {
-  if (el) lines.value[index] = el
+// Chaque escale bombe le tracé vers le côté où se pose son cartouche : la
+// molette venant à l'avance ne dépend que de la parité, pas d'une mesure DOM.
+function segPath(index: number): string {
+  const bulge = index % 2 === 0 ? 18 : 82
+  return `M0,50 Q50,${bulge} 100,50`
 }
 
-// À partir de 768px chaque entrée porte sa ligne à l'horizontale (carton de
-// dates) : seule cette fonction pilote l'axe de la ligne qui se trace, la mise
-// en page reste 100 % CSS.
-function isRow(): boolean {
-  return window.matchMedia('(min-width: 768px)').matches
+function measure() {
+  if (!sceneRef.value || !trackRef.value) return
+  scrollable = Math.max(trackRef.value.scrollWidth - sceneRef.value.clientWidth, 0)
 }
 
-function hideExtra() {
-  gsap.set(circles.value, { opacity: 0 })
-  gsap.set(lines.value, { scaleX: 0, scaleY: 0 })
-}
-
-// La frise se trace comme un décompte : un point apparaît, le trait vers le
-// suivant s'étire, puis le point suivant. Mouvement lent, aucun rebond.
-function extra(tl: gsap.core.Timeline | null) {
-  if (!tl) {
-    gsap.set(circles.value, { opacity: 1 })
-    gsap.set(lines.value, { scaleX: 1, scaleY: 1 })
-    return
+function render(animate: boolean) {
+  if (!trackRef.value) return
+  const x = -(stepIndex.value / STEPS) * scrollable
+  if (animate && !prefersReducedMotion.value) {
+    gsap.to(trackRef.value, { x, duration: 0.6, ease: 'power2.out', overwrite: true })
+  } else {
+    gsap.set(trackRef.value, { x })
   }
-  const row = isRow()
-  const prop = row ? 'scaleX' : 'scaleY'
-  const other = row ? 'scaleY' : 'scaleX'
-  const origin = row ? 'left center' : 'top center'
-  gsap.set(lines.value, { [prop]: 0, [other]: 1, transformOrigin: origin })
-
-  about.timeline.forEach((_, index) => {
-    const at = 0.9 + index * 0.36
-    tl.to(circles.value[index]!, { opacity: 1, duration: 0.8, ease: 'power2.out' }, at)
-    if (lines.value[index]) {
-      tl.to(lines.value[index]!, { [prop]: 1, duration: 0.8, ease: 'power2.inOut' }, at + 0.2)
-    }
-  })
 }
 
-useSplitReveal(rootRef, {
-  index: 1,
-  titles: '.about__title',
-  lines: '.about__intro, .about__body',
-  extra,
-  hideExtra,
+function applyStep(direction: CaptureDirection): boolean {
+  const next = Math.min(Math.max(stepIndex.value + direction, 0), STEPS)
+  if (next === stepIndex.value) return false
+  stepIndex.value = next
+  render(true)
+  return true
+}
+
+function wants(direction: CaptureDirection): boolean {
+  return direction === 1 ? stepIndex.value < STEPS : stepIndex.value > 0
+}
+
+function feed(rawDelta: number) {
+  wheelAcc += rawDelta
+  while (Math.abs(wheelAcc) >= STEP_THRESHOLD) {
+    const direction: CaptureDirection = wheelAcc > 0 ? 1 : -1
+    if (!applyStep(direction)) {
+      wheelAcc = 0
+      break
+    }
+    wheelAcc -= direction * STEP_THRESHOLD
+  }
+}
+
+function step(direction: CaptureDirection) {
+  applyStep(direction)
+  wheelAcc = 0
+}
+
+// `from` vient de SlideContainer.goTo (EXE-52) : 1 depuis Start (section
+// précédente) pose l'arrivée au début de l'itinéraire, -1 depuis Méthode (la
+// suivante) la pose à la fin, 0 pour un saut direct (menu) revient au début —
+// aucune continuité de défilement à porter pour un saut.
+function onEnter(from: CaptureDirection | 0) {
+  wheelAcc = 0
+  stepIndex.value = from === -1 ? STEPS : 0
+  measure()
+  render(false)
+}
+
+const scrollCapture = useSlideScrollCapture()
+
+function onResize() {
+  measure()
+  render(false)
+}
+
+onMounted(() => {
+  measure()
+  render(false)
+  scrollCapture.register('about', { wants, feed, step, onEnter })
+  window.addEventListener('resize', onResize)
 })
 
 onBeforeUnmount(() => {
-  gsap.killTweensOf([...circles.value, ...lines.value])
+  scrollCapture.unregister('about')
+  window.removeEventListener('resize', onResize)
+  if (trackRef.value) gsap.killTweensOf(trackRef.value)
+})
+
+useSplitReveal(rootRef, {
+  index: 1,
+  titles: '.par__title',
+  lines: '.par__intro-text',
 })
 </script>
 
 <style scoped>
-.about {
+.par {
   height: 100%;
   width: 100%;
-  max-width: 76rem;
-  margin: 0 auto;
+}
+
+.par__scene {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.par__track {
+  height: 100%;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  align-items: stretch;
+  will-change: transform;
+}
+
+.par__intro {
+  flex: 0 0 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
   padding: 0 var(--pad-x);
 }
 
-/* Mobile : la piste glisse, chaque sous-écran centre son contenu, la
-   navigation reste en bas. */
-@media (max-width: 767.98px) {
-  .about__scene {
-    flex: 1;
-    min-height: 0;
-  }
+.par__intro-inner {
+  max-width: 26rem;
 }
 
-.about__head,
-.about__entry {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.about__head-inner {
-  text-align: center;
-}
-
-.about__title {
-  font-size: clamp(1.25rem, 1rem + 1vw, 2rem);
+.par__title {
+  font-size: clamp(1.5rem, 1rem + 2vw, 2.5rem);
   margin-bottom: 1.25rem;
 }
 
-.about__intro {
-  max-width: 30rem;
-  margin: 0 auto;
-  text-align: center;
+.par__intro-text {
+  max-width: 26rem;
 }
 
-.about__entry-inner {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: 1.1rem;
-  max-width: 24rem;
-}
-
-.about__marker {
+.par__stop {
+  position: relative;
+  flex: 0 0 clamp(13rem, 60vw, 19rem);
+  height: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex-shrink: 0;
-  padding-top: 0.3rem;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 0 1rem;
 }
 
-.about__circle {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  background: var(--color-accent);
-  flex-shrink: 0;
+.par__stop--above .par__marker {
+  order: 2;
+}
+.par__stop--above .par__cartouche {
+  order: 1;
+}
+.par__stop--below .par__marker {
+  order: 1;
+}
+.par__stop--below .par__cartouche {
+  order: 2;
 }
 
-.about__connector {
-  width: 1px;
-  flex: 1;
-  min-height: 1.5rem;
-  background: var(--color-line);
-  overflow: hidden;
-  margin-top: 0.5rem;
-}
-
-.about__connector-fill {
-  display: block;
+.par__seg {
+  position: absolute;
+  left: -50%;
+  top: 50%;
   width: 100%;
-  height: 100%;
+  height: 6rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-slow);
+}
+
+.par__seg--first {
+  left: 0;
+  width: 50%;
+}
+
+.par__seg--reached {
+  opacity: 1;
+}
+
+.par__seg path {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 0.5 7;
+}
+
+.par__marker {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--color-ink-dim);
+  transition:
+    background-color 0.6s var(--ease-slow),
+    border-color 0.6s var(--ease-slow);
+}
+
+.par__marker--reached {
   background: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
-.about__body {
-  padding-bottom: 0.5rem;
+.par__cartouche {
+  position: relative;
+  z-index: 1;
+  width: 90%;
+  max-width: 19rem;
+  text-align: center;
 }
 
-.about__period {
+.par__period {
   font-family: var(--font-display);
   font-weight: 400;
   font-size: 0.8125rem;
@@ -224,97 +298,23 @@ onBeforeUnmount(() => {
   margin-bottom: 0.3rem;
 }
 
-.about__place {
+.par__place {
   font-size: var(--fs-body);
   line-height: 1.4;
   color: var(--color-ink);
 }
 
-.about__role {
+.par__role {
   font-size: var(--fs-body);
   line-height: 1.4;
   color: var(--color-ink-dim);
   margin-top: 0.15rem;
 }
 
-.about__detail {
+.par__detail {
   font-size: var(--fs-body);
   line-height: 1.45;
   color: var(--color-ink-dim);
   margin-top: 0.3rem;
-}
-
-/*
- * >= 768px : la piste s'efface, la scène devient une grille de deux colonnes
- * (tablette portrait) puis de trois (>= 1024px), trois dates sur deux rangées.
- * Chaque entrée porte sa ligne : un point, un filet qui se trace.
- */
-@media (min-width: 768px) {
-  .about__scene {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: clamp(1.25rem, 3vw, 3rem);
-    row-gap: clamp(1rem, 3.5vh, 2.75rem);
-    justify-items: stretch;
-    align-items: start;
-  }
-
-  .about__head {
-    grid-column: 1 / -1;
-    margin-bottom: clamp(0.75rem, 3.5vh, 2.5rem);
-  }
-
-  .about__entry {
-    max-width: none;
-    align-items: flex-start;
-    justify-content: flex-start;
-  }
-
-  .about__entry-inner {
-    width: 100%;
-    max-width: none;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .about__marker {
-    flex-direction: row;
-    align-items: center;
-    width: 100%;
-    padding-top: 0;
-  }
-
-  .about__connector {
-    width: auto;
-    height: 1px;
-    flex: 1;
-    min-height: 0;
-    min-width: 0.75rem;
-    margin-top: 0;
-    margin-left: 0.6rem;
-  }
-
-  .about__body {
-    padding-bottom: 0;
-  }
-
-  /* Deux colonnes : la fin de chaque rangée n'a pas de filet vers le vide. */
-  .about__entry--e2 .about__connector {
-    display: none;
-  }
-}
-
-@media (min-width: 1024px) {
-  .about__scene {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .about__entry--e2 .about__connector {
-    display: block;
-  }
-
-  .about__entry--e3 .about__connector {
-    display: none;
-  }
 }
 </style>

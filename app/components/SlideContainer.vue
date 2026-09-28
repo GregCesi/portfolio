@@ -18,6 +18,7 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import gsap from 'gsap'
 import { useDepthTransition } from '~/composables/useDepthTransition'
+import type { ScrollCaptureController } from '~/composables/useSlideScrollCapture'
 
 // Props
 interface Props {
@@ -27,12 +28,15 @@ interface Props {
   depthMotion?: boolean
   /** Tant que c'est vrai (sas d'entrée fermé), aucune entrée ne change de section et la première reste masquée. */
   locked?: boolean
+  /** Contrôleur de rétention de molette (EXE-52) de la diapositive `index`, s'il y en a un. */
+  capture?: (index: number) => ScrollCaptureController | undefined
 }
 const props = withDefaults(defineProps<Props>(), {
   scrollThreshold: 50,
   transitionDuration: 0.8,
   depthMotion: false,
-  locked: false
+  locked: false,
+  capture: () => undefined
 })
 
 /* Refs */
@@ -113,6 +117,13 @@ function goTo(index: number) {
 
   const from = current.value
   const inDepth = props.depthMotion
+
+  // Rétention de molette (EXE-52) : la diapositive cible retrouve son terrain
+  // interne avant que sa transition d'arrivée ne soit construite (l'écho de la
+  // transition en profondeur clone son DOM juste après), pour ne jamais cloner
+  // une position laissée par une visite précédente.
+  const enterDirection = Math.abs(index - from) === 1 ? (index > from ? 1 : -1) : 0
+  props.capture?.(index)?.onEnter(enterDirection)
 
   // Les écouteurs (molette, tactile, clavier) restent attachés pendant toute
   // la transition : chaque gestionnaire porte déjà son propre garde-fou
@@ -208,6 +219,16 @@ function onWheel(e: WheelEvent) {
   }
   if (state.isAnimating || props.locked) return
 
+  // Rétention de molette (EXE-52) : la diapositive active peut consommer ce
+  // sens en interne (terrain qu'elle n'a pas fini de parcourir) avant de le
+  // céder au changement de section.
+  const heldDirection: 1 | -1 = e.deltaY > 0 ? 1 : -1
+  const held = props.capture?.(current.value)
+  if (held?.wants(heldDirection)) {
+    held.feed(e.deltaY)
+    return
+  }
+
   state.wheelDelta += e.deltaY
 
   if (Math.abs(state.wheelDelta) >= props.scrollThreshold) {
@@ -234,6 +255,15 @@ function onTouchMove(e: TouchEvent) {
   const delta = state.touchStartY - touch.clientY
 
   if (Math.abs(delta) >= props.scrollThreshold) {
+    // Rétention (EXE-52) : voir onWheel.
+    const heldDirection: 1 | -1 = delta > 0 ? 1 : -1
+    const held = props.capture?.(current.value)
+    if (held?.wants(heldDirection)) {
+      held.feed(delta)
+      state.touchStartY = touch.clientY
+      return
+    }
+
     const direction = delta > 0 ? 1 : -1
     goTo(current.value + direction)
     state.touchStartY = touch.clientY // Reset pour éviter les répétitions
@@ -252,9 +282,20 @@ function onKeydown(e: KeyboardEvent) {
   // dès que la transition se termine (voir plus haut).
   if (NEXT_KEYS.has(e.key)) {
     e.preventDefault()
+    // Rétention (EXE-52) : voir onWheel.
+    const held = props.capture?.(current.value)
+    if (held?.wants(1)) {
+      held.step(1)
+      return
+    }
     requestNavigate(() => goTo(current.value + 1))
   } else if (PREV_KEYS.has(e.key)) {
     e.preventDefault()
+    const held = props.capture?.(current.value)
+    if (held?.wants(-1)) {
+      held.step(-1)
+      return
+    }
     requestNavigate(() => goTo(current.value - 1))
   } else if (e.key === 'Home') {
     e.preventDefault()
