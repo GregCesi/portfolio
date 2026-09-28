@@ -49,6 +49,10 @@ export interface SiteContent {
     menuLabels: string[]
     lang: string
   }
+  entryGate: {
+    /** Les 8 lignes du journal de chargement, dans leur ordre d'affichage. */
+    log: [string, string, string, string, string, string, string, string]
+  }
   hero: {
     title: string
     paragraphs: string[]

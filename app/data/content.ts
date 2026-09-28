@@ -29,6 +29,19 @@ export const siteContent: SiteContent = {
     lang: 'fr',
   },
 
+  entryGate: {
+    log: [
+      'Mise sous tension des systèmes',
+      'Chargement des polices de titre',
+      'Chargement des polices de texte',
+      'Calibrage des propulseurs',
+      'Chargement de la planète',
+      'Application des textures',
+      'Mise en orbite du satellite',
+      'Ouverture du sas',
+    ],
+  },
+
   hero: {
     title: "J'élimine les frictions en automatisant les process avec des LLM.",
     paragraphs: [

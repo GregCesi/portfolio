@@ -16,6 +16,20 @@ Un marqueur `{{...}}` est une valeur que Grégoire remplira : l'élément qui le
 
 ---
 
+## Sas d'entrée
+
+Journal de chargement, affiché dans cet ordre, une ligne à la fois :
+1. Mise sous tension des systèmes
+2. Chargement des polices de titre
+3. Chargement des polices de texte
+4. Calibrage des propulseurs
+5. Chargement de la planète
+6. Application des textures
+7. Mise en orbite du satellite
+8. Ouverture du sas
+
+---
+
 ## Section 1 · Start (Hero)
 
 Titre :
@@ -141,4 +155,4 @@ Liens :
 
 ## Libellés d'interface autorisés
 
-Seuls textes visibles autorisés en dehors de ce qui précède : repères de section « 01 / 05 » et numéros du menu, indicateurs de sous-écran « 2 / 6 », « Étape N » dans la frise, flèches ou libellés « Précédent » / « Suivant », « Voir la méthode », « Voir le code », « Télécharger mon CV », « E-mail », « GitHub », « LinkedIn », attributs aria et textes alternatifs descriptifs.
+Seuls textes visibles autorisés en dehors de ce qui précède : repères de section « 01 / 05 » et numéros du menu, indicateurs de sous-écran « 2 / 6 », « Étape N » dans la frise, flèches ou libellés « Précédent » / « Suivant », « Voir la méthode », « Voir le code », « Télécharger mon CV », « E-mail », « GitHub », « LinkedIn », « OK », « % », attributs aria et textes alternatifs descriptifs.
