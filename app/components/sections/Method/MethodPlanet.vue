@@ -54,11 +54,10 @@ function updatePlanetSize() {
   else if (w < 768) planetSize.value = '200px'
   else if (w < 1024) planetSize.value = '240px'
   else {
-    // >= 1024px : la planète occupe la place restante de la rangée
-    // (frise | texte | planète), plafonnée par la hauteur de la fenêtre.
-    const free = wrapRef.value?.clientWidth ?? 0
-    const size = Math.min(free, Math.round(window.innerHeight * 0.6), 480)
-    planetSize.value = `${Math.max(size, 220)}px`
+    // >= 1024px : la planète est un décor de fond, sa taille suit la hauteur
+    // de la fenêtre (seuil du critère 2 : au moins 540 px, 60 % de 900).
+    const size = Math.round(window.innerHeight * 0.72)
+    planetSize.value = `${Math.min(Math.max(size, 540), 820)}px`
   }
 }
 
@@ -188,12 +187,5 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
 .rp {
   display: flex;
   justify-content: center;
-}
-
-@media (min-width: 1024px) {
-  .rp {
-    flex: 1 1 0;
-    min-width: 0;
-  }
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <BaseSection :index="3">
+  <BaseSection :index="3" full-bleed>
     <div ref="rootRef" class="method" :class="{ 'is-intro': introVisible }">
       <header class="method__head">
         <div ref="headRef" class="method__head-inner">
@@ -10,11 +10,17 @@
       </header>
 
       <div class="method__stage rv">
-        <MethodTimeline class="method__timeline" />
-        <div ref="contentRef" class="method__content">
-          <MethodContent />
+        <div class="method__planet-wrap">
+          <MethodPlanet class="method__planet" />
         </div>
-        <MethodPlanet class="method__planet" />
+
+        <div class="method__foreground">
+          <span class="method__halo" aria-hidden="true" />
+          <div ref="contentRef" class="method__content">
+            <MethodContent />
+          </div>
+          <MethodTimeline class="method__timeline" />
+        </div>
       </div>
 
       <!-- Mobile, introduction seule : passe à la première étape. -->
@@ -136,12 +142,12 @@ useSplitReveal(rootRef, {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: clamp(0.75rem, 3vh, 2rem);
+  gap: clamp(0.75rem, 3vh, 1.5rem);
   padding: 0 var(--pad-x);
 }
 
 .method__head {
+  flex: 0 0 auto;
   display: flex;
   justify-content: center;
 }
@@ -168,26 +174,61 @@ useSplitReveal(rootRef, {
   color: var(--color-ink-dim);
 }
 
+/*
+ * La planète est un décor de fond plein cadre, centrée derrière le texte de
+ * l'étape et la frise (§ hypothèses TCK-230). `.method__stage` prend toute la
+ * place restante sous l'en-tête pour que le centrage vertical de la planète
+ * (50 % de sa hauteur) ait du sens.
+ */
 .method__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.method__planet-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -45%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.method__foreground {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.6rem;
+  gap: clamp(1rem, 3vh, 1.75rem);
+  width: 100%;
 }
 
-/* Empilement (< 1024px) : planète, texte de l'étape, puis frise compacte. */
-.method__planet {
-  order: 0;
+/* Halo sombre derrière le texte de l'étape, pour qu'il reste lisible même
+   sur la partie la plus claire de la planète. */
+.method__halo {
+  position: absolute;
+  top: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(46rem, 120%);
+  height: calc(100% + 3rem);
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 55% at 50% 38%, rgb(5 7 10 / 80%), transparent 72%);
 }
 
 .method__content {
-  order: 1;
   width: 100%;
-  max-width: 28rem;
+  max-width: 36rem;
 }
 
 .method__timeline {
-  order: 2;
+  width: 100%;
 }
 
 .method__intro-next {
@@ -232,51 +273,8 @@ useSplitReveal(rootRef, {
 
 /* Très petit écran (iPhone SE, 568 px) : la planète cède la place au texte des étapes, elle reste sur l'introduction. */
 @media (max-width: 767.98px) and (max-height: 620px) {
-  .method:not(.is-intro) .method__planet {
+  .method:not(.is-intro) .method__planet-wrap {
     display: none;
-  }
-}
-
-@media (min-width: 768px) {
-  .method__stage {
-    gap: 0.9rem;
-  }
-}
-
-/* >= 1024px : une rangée, frise | texte de l'étape | planète. */
-@media (min-width: 1024px) {
-  .method__stage {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: clamp(1.25rem, 2.5vw, 2.5rem);
-  }
-
-  .method__timeline {
-    order: 1;
-    flex-shrink: 0;
-    width: 12.5rem;
-  }
-
-  .method__content {
-    order: 2;
-    flex-shrink: 0;
-    width: 22rem;
-    max-width: none;
-  }
-
-  .method__planet {
-    order: 3;
-  }
-}
-
-@media (min-width: 1440px) {
-  .method__timeline {
-    width: 14rem;
-  }
-
-  .method__content {
-    width: 25rem;
   }
 }
 </style>

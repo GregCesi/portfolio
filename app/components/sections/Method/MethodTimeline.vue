@@ -1,59 +1,51 @@
 <template>
-  <!-- >= 1024px : frise verticale complète, comme un compte à rebours de
-       mission, les 6 libellés toujours visibles. En dessous, la mise en page
-       empile planète + contenu + frise : la liste complète n'a pas la place de
-       tenir, elle est remplacée par la frise compacte ci-dessous (numéros
-       seuls). Aucun texte n'est perdu : le titre complet de l'étape active
-       reste affiché en entier par MethodContent. -->
   <!-- Racine unique : elle reçoit `class="method__timeline"` posé par
-       MethodSection.vue, quelle que soit la frise affichée à l'intérieur. -->
-  <div class="rt-root">
-    <ol class="rt-list">
-      <li v-for="(step, index) in steps" :key="index" class="rt-item">
-        <!-- Chaque jalon est un vrai bouton : clic ou clavier, on va à l'étape. -->
-        <button
-          type="button"
-          class="rt-hit"
-          :aria-current="stepsStatus[index]?.active ? 'step' : undefined"
-          @click="selectCompact(index + 1)"
-        >
-          <span
-            :ref="(el) => setCircleRef(el as HTMLElement, index)"
-            class="rt-circle"
-            :class="getCircleClass(index)"
-          />
+       MethodSection.vue. En dessous de 1024px, une frise compacte de 6
+       points, seul le nom de l'étape affichée est visible. À partir de
+       1024px, les 6 noms forment une rangée reliée par un trait, flanquée
+       des flèches de navigation (§ critères 6, 7, 8, 10). -->
+  <div class="mt-root">
+    <button
+      type="button"
+      class="mt-arrow"
+      :disabled="!canGoPrev"
+      aria-label="Étape précédente"
+      @click="prevStepAnimated"
+    >
+      ‹
+    </button>
 
-          <span class="rt-label" :class="getTitleClass(index)">
-            <span class="rt-label__step">Étape {{ index + 1 }}</span>
-            <span class="rt-label__title">{{ step.title }}</span>
-          </span>
-        </button>
+    <div class="mt-track">
+      <span class="mt-line" aria-hidden="true">
+        <span class="mt-line__fill" :style="{ width: `${fillPercent}%` }" />
+      </span>
 
-        <span v-if="index < steps.length - 1" class="rt-connector">
-          <span class="rt-connector__track" />
-          <span :ref="(el) => setLineRef(el as HTMLElement, index)" class="rt-connector__fill" />
-        </span>
-      </li>
-    </ol>
+      <ol class="mt-row" aria-label="Étapes de la méthode">
+        <li v-for="(step, index) in steps" :key="index" class="mt-item">
+          <button
+            type="button"
+            class="mt-seg"
+            :class="segClass(index)"
+            :aria-current="stepsStatus[index]?.active ? 'step' : undefined"
+            :aria-label="`Étape ${index + 1} : ${step.title}`"
+            @click="selectCompact(index + 1)"
+          >
+            <span class="mt-dot" aria-hidden="true" />
+            <span class="mt-name">{{ step.title }}</span>
+          </button>
+        </li>
+      </ol>
+    </div>
 
-    <!-- < 1024px : frise compacte, 6 segments numérotés, l'étape active en accent.
-         Chaque segment reste un vrai bouton de navigation directe (même rôle que
-         les flèches ‹ › de MethodContent), avec le titre complet de l'étape en
-         `aria-label` pour les lecteurs d'écran. -->
-    <ol class="rt-compact" aria-label="Étapes de la méthode">
-      <li v-for="(step, index) in steps" :key="`compact-${index}`" class="rt-compact__item">
-        <button
-          type="button"
-          class="rt-compact__seg"
-          :class="compactClass(index)"
-          :aria-label="`Étape ${index + 1} : ${step.title}`"
-          :aria-current="stepsStatus[index]?.active ? 'step' : undefined"
-          @click="selectCompact(index + 1)"
-        >
-          {{ index + 1 }}
-        </button>
-      </li>
-    </ol>
+    <button
+      type="button"
+      class="mt-arrow"
+      :disabled="!canGoNext"
+      aria-label="Étape suivante"
+      @click="nextStepAnimated"
+    >
+      ›
+    </button>
   </div>
 </template>
 
@@ -62,19 +54,20 @@ import { computed } from 'vue'
 import type { StepStatus } from '~/types/method'
 import { useMethodState } from '~/composables/useMethodState'
 
-const { currentStep, steps, registerCircle, registerLine, selectStep, introActive } = useMethodState()
+const {
+  currentStep,
+  steps,
+  selectStep,
+  introActive,
+  canGoPrev,
+  canGoNext,
+  nextStepAnimated,
+  prevStepAnimated,
+} = useMethodState()
 
 // Jalon ou segment : quitte l'introduction mobile, puis va à l'étape avec le
 // même fondu (texte, ligne, texture de la planète) que les flèches.
 const selectCompact = (stepNumber: number) => selectStep(stepNumber)
-
-const setCircleRef = (el: HTMLElement | null, index: number) => {
-  if (el) registerCircle(el, index)
-}
-
-const setLineRef = (el: HTMLElement | null, index: number) => {
-  if (el) registerLine(el, index)
-}
 
 const stepsStatus = computed((): StepStatus[] => {
   return steps.value.map((_, index) => {
@@ -87,180 +80,182 @@ const stepsStatus = computed((): StepStatus[] => {
   })
 })
 
-const getCircleClass = (index: number) => {
+// Pendant l'introduction mobile, aucune étape n'est encore « en cours » :
+// la frise reste éteinte plutôt que de montrer l'étape 1 en avance.
+const segClass = (index: number) => {
+  if (introActive.value) return ''
   const status = stepsStatus.value[index]
-  if (!status) return 'is-future'
+  if (!status) return ''
   if (status.active) return 'is-active'
   if (status.past) return 'is-past'
-  return 'is-future'
+  return ''
 }
 
-const compactClass = (index: number) => (introActive.value ? '' : getCircleClass(index))
-
-const getTitleClass = (index: number) => {
-  const status = stepsStatus.value[index]
-  return status?.active ? 'is-active' : ''
-}
+const fillPercent = computed(() => {
+  if (introActive.value || steps.value.length <= 1) return 0
+  return ((currentStep.value - 1) / (steps.value.length - 1)) * 100
+})
 </script>
 
 <style scoped>
-.rt-list {
+.mt-root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.mt-arrow {
+  /* < 1024px : la navigation reste dans MethodContent (`.rc__nav`), comme
+     avant ce tour — ces flèches-ci ne flanquent la rangée qu'à partir de
+     1024px (§ critère 10), où elles remplacent celles de MethodContent. */
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.6s var(--ease-slow), opacity 0.6s var(--ease-slow);
+}
+
+.mt-arrow:hover:not(:disabled) {
+  color: var(--color-accent);
+}
+
+.mt-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mt-track {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.mt-line {
+  display: none;
+}
+
+.mt-row {
+  position: relative;
   list-style: none;
   margin: 0;
   padding: 0;
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.mt-item {
+  display: flex;
+}
+
+.mt-seg {
+  display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-}
-
-.rt-item {
-  position: relative;
-  display: flex;
   align-items: center;
-}
-
-.rt-hit {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  padding: 0;
+  gap: 0.35rem;
+  padding: 0.15rem;
   border: none;
   background: transparent;
-  font: inherit;
-  text-align: left;
-  color: inherit;
+  color: var(--color-ink-dim);
   cursor: pointer;
 }
 
-.rt-hit:hover .rt-label {
-  color: var(--color-ink);
-}
-
-.rt-circle {
+.mt-dot {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
   border: 1px solid var(--color-ink-dim);
   background: transparent;
-  flex-shrink: 0;
-  transition: background-color 0.8s var(--ease-slow), border-color 0.8s var(--ease-slow);
+  transition: background-color 0.6s var(--ease-slow), border-color 0.6s var(--ease-slow);
 }
 
-.rt-circle.is-past,
-.rt-circle.is-active {
+.mt-seg.is-past .mt-dot,
+.mt-seg.is-active .mt-dot {
   background: var(--color-accent);
   border-color: var(--color-accent);
 }
 
-.rt-label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  color: var(--color-ink-dim);
-  transition: color 0.8s var(--ease-slow);
+.mt-name {
+  display: none;
 }
 
-.rt-label.is-active {
-  color: var(--color-ink);
-}
-
-.rt-label__step {
+/* < 1024px : seul le nom de l'étape affichée est visible, à côté de ses 6 points (§ critère 13). */
+.mt-seg.is-active .mt-name {
+  display: block;
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.3em;
-  line-height: 1.4;
-  color: var(--color-ink-dim);
-}
-
-.rt-label__title {
-  font-family: var(--font-display);
-  font-weight: 400;
+  letter-spacing: 0.15em;
   font-size: 0.8125rem;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  line-height: 1.4;
-}
-
-.rt-connector {
-  position: absolute;
-  left: 0.25rem;
-  top: 100%;
-  width: 1px;
-  height: 0.8rem;
-}
-
-.rt-connector__track {
-  position: absolute;
-  inset: 0;
-  background: var(--color-line);
-}
-
-.rt-connector__fill {
-  position: absolute;
-  inset: 0;
-  background: var(--color-accent);
-  transform: scaleY(0);
-  transform-origin: top center;
-}
-
-/* Frise compacte (< 1024px), voir commentaire dans le template : des
-   chiffres Jost sans cadre, un filet sous l'étape active et les passées. */
-.rt-compact {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.rt-compact__item {
-  display: contents;
-}
-
-.rt-compact__seg {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  border: none;
-  border-bottom: 1px solid transparent;
-  background: transparent;
-  color: var(--color-ink-dim);
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 0.8125rem;
-  line-height: 1;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: border-color 0.8s var(--ease-slow), color 0.8s var(--ease-slow);
-}
-
-.rt-compact__seg.is-past {
-  color: var(--color-ink);
-  border-bottom-color: var(--color-ink-dim);
-}
-
-.rt-compact__seg.is-active {
   color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
-}
-
-.rt-compact__seg:hover {
-  color: var(--color-accent);
+  white-space: nowrap;
 }
 
 @media (min-width: 1024px) {
-  .rt-list {
+  .mt-arrow {
     display: flex;
   }
 
-  .rt-compact {
+  .mt-line {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--color-line);
+    transform: translateY(-50%);
+  }
+
+  .mt-line__fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    height: 100%;
+    background: var(--color-accent);
+    transition: width 0.8s var(--ease-slow);
+  }
+
+  .mt-row {
+    gap: clamp(1.25rem, 2.5vw, 2.5rem);
+    flex-wrap: nowrap;
+  }
+
+  .mt-dot {
     display: none;
+  }
+
+  .mt-name {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 1.2rem;
+    color: var(--color-ink-dim);
+    white-space: nowrap;
+    transition: color 0.6s var(--ease-slow);
+  }
+
+  .mt-seg.is-active .mt-name {
+    font-size: 1.2rem;
+    color: var(--color-accent);
   }
 }
 </style>

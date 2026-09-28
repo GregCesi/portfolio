@@ -1,5 +1,5 @@
 <template>
-  <section ref="sectionRef" class="section-viewport">
+  <section ref="sectionRef" class="section-viewport" :class="{ 'section-viewport--full-bleed': props.fullBleed }">
     <p class="section-marker" aria-hidden="true">{{ paddedIndex }} / {{ paddedTotal }}</p>
     <div class="section-inner">
       <slot />
@@ -15,9 +15,17 @@ interface Props {
   /** Numéro 1-based de la section (repère Jost "01 / 05", §2.3 bis de la spec). */
   index: number
   total?: number
+  /**
+   * Ignore la réserve latérale normalement faite pour le nav desktop
+   * (`--slidemenu-width`) : la section retrouve une marge symétrique, centrée
+   * sur la largeur réelle de la fenêtre plutôt que sur l'espace qui reste à
+   * droite du nav. Réservé aux sections dont le contenu est centré (le nav,
+   * en `position: fixed`, reste au-dessus en z-index quoi qu'il arrive).
+   */
+  fullBleed?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), { total: 5 })
+const props = withDefaults(defineProps<Props>(), { total: 5, fullBleed: false })
 
 const paddedIndex = computed(() => String(props.index).padStart(2, '0'))
 const paddedTotal = computed(() => String(props.total).padStart(2, '0'))
@@ -49,6 +57,11 @@ useLayoutDimensions()
     padding-bottom: 1.25rem;
     padding-left: var(--slidemenu-width, 0px);
     padding-right: 1.5rem;
+  }
+
+  .section-viewport.section-viewport--full-bleed {
+    padding-left: var(--pad-x);
+    padding-right: var(--pad-x);
   }
 }
 

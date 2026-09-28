@@ -115,4 +115,28 @@ const setContentRef = (el: Element | ComponentPublicInstance | null) => {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+/*
+ * >= 1024px : le texte de l'étape est centré et agrandi, en décor devant la
+ * planète (§ critères 4, 5). Les flèches ‹ › se retrouvent dans la frise
+ * horizontale (MethodTimeline), qui les tient déjà : les siennes ici seraient
+ * redondantes.
+ */
+@media (min-width: 1024px) {
+  .rc {
+    text-align: center;
+  }
+
+  .rc__title {
+    font-size: clamp(1.9rem, 1.5rem + 1vw, 2.5rem);
+  }
+
+  .rc__text {
+    margin: 0 auto;
+  }
+
+  .rc__nav {
+    display: none;
+  }
+}
 </style>
