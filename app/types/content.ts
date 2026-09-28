@@ -27,6 +27,7 @@ export interface ProjectCard {
 
 export interface ContactBlock {
   title: string
+  badge: string
   text: string
   email: string
   github: string
@@ -38,6 +39,13 @@ export interface ContactBlock {
   emailLabel: string
   githubLabel: string
   linkedinLabel: string
+  githubName: string
+  linkedinName: string
+  channelEmailLabel: string
+  channelLinkedinLabel: string
+  channelGithubLabel: string
+  copyLabel: string
+  copiedLabel: string
 }
 
 export interface SiteContent {

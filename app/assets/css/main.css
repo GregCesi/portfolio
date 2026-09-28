@@ -21,6 +21,8 @@
   --color-ink-dim: #8c98a3;
   --color-accent: #a9cbdd;
   --color-line: rgb(230 236 239 / 22%);
+  /* Badge de disponibilité (EXE-55) : seul usage du vert sur le site. */
+  --color-online: #6ee7a0;
 }
 
 :root {

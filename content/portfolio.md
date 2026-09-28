@@ -142,8 +142,20 @@ Trois cartes :
 Titre :
 > Ouvrir une fréquence
 
+Badge de disponibilité :
+> Disponible dès maintenant
+
 Texte :
 > Je cherche un poste d'AI engineer en Belgique ou à Strasbourg, et je suis disponible dès maintenant.
+
+Canaux, en cartes, e-mail en avant :
+- Canal 01 : E-mail — gmarchand.pro1@gmail.com
+- Canal 02 : LinkedIn — Grégoire Marchand
+- Canal 03 : GitHub — GregCesi
+
+Bouton de copie de l'e-mail :
+> Copier
+> Copié
 
 Liens :
 - E-mail : gmarchand.pro1@gmail.com

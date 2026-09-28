@@ -195,6 +195,7 @@ export const siteContent: SiteContent = {
 
   contact: {
     title: 'Ouvrir une fréquence',
+    badge: 'Disponible dès maintenant',
     text: "Je cherche un poste d'AI engineer en Belgique ou à Strasbourg, et je suis disponible dès maintenant.",
     email: 'gmarchand.pro1@gmail.com',
     github: 'https://github.com/GregCesi',
@@ -205,5 +206,12 @@ export const siteContent: SiteContent = {
     emailLabel: 'E-mail',
     githubLabel: 'GitHub',
     linkedinLabel: 'LinkedIn',
+    githubName: 'GregCesi',
+    linkedinName: 'Grégoire Marchand',
+    channelEmailLabel: 'Canal 01',
+    channelLinkedinLabel: 'Canal 02',
+    channelGithubLabel: 'Canal 03',
+    copyLabel: 'Copier',
+    copiedLabel: 'Copié',
   },
 }
