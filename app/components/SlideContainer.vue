@@ -108,7 +108,7 @@ function updateInertSlides() {
   })
 }
 
-function goTo(index: number) {
+function goTo(index: number, opts?: { direct?: boolean }) {
   // Guards groupés
   if (!wrapper.value || props.locked || state.isAnimating || index === current.value) return
   if (!isValidIndex(index)) return
@@ -122,7 +122,11 @@ function goTo(index: number) {
   // interne avant que sa transition d'arrivée ne soit construite (l'écho de la
   // transition en profondeur clone son DOM juste après), pour ne jamais cloner
   // une position laissée par une visite précédente.
-  const enterDirection = Math.abs(index - from) === 1 ? (index > from ? 1 : -1) : 0
+  // `opts.direct` (EXE-54) : un saut explicite (menu) reste un saut direct (0)
+  // même vers une section adjacente, au lieu d'être lu comme une avancée pas à
+  // pas — seul ce départage change, la rétention pas-à-pas elle-même (wheel,
+  // clavier, tactile) garde exactement le même calcul qu'avant.
+  const enterDirection = opts?.direct ? 0 : Math.abs(index - from) === 1 ? (index > from ? 1 : -1) : 0
   props.capture?.(index)?.onEnter(enterDirection)
 
   // Les écouteurs (molette, tactile, clavier) restent attachés pendant toute

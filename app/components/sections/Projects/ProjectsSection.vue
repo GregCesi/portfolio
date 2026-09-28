@@ -1,152 +1,194 @@
 <template>
   <BaseSection :index="4">
-    <div ref="rootRef" class="projects">
-      <div class="projects__scene rv">
+    <div ref="rootRef" class="projects" :class="{ 'projects--reduced': prefersReducedMotion }">
+      <div class="projects__cube-scene rv">
         <!--
-          Les projets comme des plans successifs : le titre et l'introduction, puis
-          un projet par plan. Mobile : la piste glisse ; desktop :
-          les plans se fondent l'un dans l'autre (§2.3, §2.3 bis).
+          Les projets sur les faces d'un cube CSS 3D : l'intro puis un projet par
+          face, dans cet ordre de rotation. La molette, le clavier haut/bas et le
+          glissement tactile vertical font tourner le cube en crans (réutilise la
+          rétention de molette d'EXE-52, voir useSlideScrollCapture) ; à chaque
+          bout, le geste suivant cède à SlideContainer le changement de section.
+          Sous mouvement réduit : un fondu entre faces plutôt qu'une rotation.
         -->
-        <SubscreenTrack stage :index="sub.index.value" :total="sub.total.value" @update:index="sub.goTo">
-          <header class="projects__head">
-            <div class="projects__head-inner">
-              <h2 class="projects__title t-title rv">{{ projects.title }}</h2>
-              <p class="projects__intro t-body">{{ projects.intro }}</p>
-            </div>
-          </header>
-
-          <template v-for="card in projects.cards" :key="card.id">
-            <!-- Plan complet : un projet par plan. -->
-            <article v-if="!isSplit(card.id)" class="projects__card">
-              <div class="projects__card-inner">
-                <h3 class="projects__card-title">{{ card.title }}</h3>
-                <p class="projects__card-tagline t-body">{{ card.tagline }}</p>
-                <p class="projects__card-text t-body">{{ card.text }}</p>
-                <p class="projects__tags">{{ card.tags.join(' · ') }}</p>
+        <div
+          ref="cubeRef"
+          class="projects__cube"
+          @pointerdown="onPointerDown"
+          @pointermove="onPointerMove"
+          @pointerup="onPointerUp"
+          @pointercancel="onPointerUp"
+        >
+          <div
+            v-for="(face, i) in FACES"
+            :key="face.id"
+            class="projects__cube-face"
+            :class="{ 'is-front': i === rotateIndex }"
+            :style="faceStyle(i)"
+          >
+            <div class="projects__cube-face-inner">
+              <template v-if="!face.card">
+                <h2 class="projects__title t-title rv">{{ projects.title }}</h2>
+                <p class="projects__intro t-body rv">{{ projects.intro }}</p>
+              </template>
+              <template v-else>
+                <h3 class="projects__card-title">{{ face.card.title }}</h3>
+                <p class="projects__card-tagline t-body">{{ face.card.tagline }}</p>
+                <p class="projects__card-text projects__card-text--face t-body">{{ face.card.text }}</p>
+                <p class="projects__tags">{{ face.card.tags.join(' · ') }}</p>
                 <div class="projects__card-actions">
-                  <a v-if="card.href" :href="card.href" target="_blank" rel="noopener noreferrer" class="projects__link">
+                  <a
+                    v-if="face.card.href"
+                    :href="face.card.href"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="projects__link"
+                  >
                     Voir le code
                   </a>
-                  <button v-if="card.cta" type="button" class="projects__link" @click="goToSection(card.cta.section)">
-                    {{ card.cta.label }}
+                  <button v-if="face.card.cta" type="button" class="projects__link" @click="goToSection(face.card.cta.section)">
+                    {{ face.card.cta.label }}
                   </button>
                 </div>
-              </div>
-            </article>
-
-            <!-- Écran trop court pour ce projet (petit téléphone) : on découpe, on ne tronque pas.
-                 Premier plan : titre, accroche, tags, liens. Second plan : le texte. -->
-            <template v-else>
-              <article class="projects__card">
-                <div class="projects__card-inner">
-                  <h3 class="projects__card-title">{{ card.title }}</h3>
-                  <p class="projects__card-tagline t-body">{{ card.tagline }}</p>
-                  <p class="projects__tags">{{ card.tags.join(' · ') }}</p>
-                  <div class="projects__card-actions">
-                  <a v-if="card.href" :href="card.href" target="_blank" rel="noopener noreferrer" class="projects__link">
-                    Voir le code
-                  </a>
-                  <button v-if="card.cta" type="button" class="projects__link" @click="goToSection(card.cta.section)">
-                    {{ card.cta.label }}
-                  </button>
-                </div>
-                </div>
-              </article>
-              <article class="projects__card">
-                <div class="projects__card-inner">
-                  <p class="projects__card-text projects__card-text--solo t-body">{{ card.text }}</p>
-                </div>
-              </article>
-            </template>
-          </template>
-        </SubscreenTrack>
+              </template>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <SubscreenNav persistent :index="sub.index.value" :total="sub.total.value" @prev="sub.prev" @next="sub.next" />
+      <!-- Mobile uniquement : le texte long de la face devant, sous le cube (§ce tour). -->
+      <div v-if="frontFace?.card" class="projects__mobile-text" @touchstart.stop @touchmove.stop>
+        <p class="projects__card-text t-body">{{ frontFace.card.text }}</p>
+      </div>
     </div>
   </BaseSection>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import gsap from 'gsap'
 import BaseSection from '~/components/sections/BaseSection.vue'
-import SubscreenTrack from '~/components/subscreen/SubscreenTrack.vue'
-import SubscreenNav from '~/components/subscreen/SubscreenNav.vue'
 import { siteContent } from '~/data/content'
+import type { ProjectCard } from '~/types/content'
 import { useAppNavigation } from '~/composables/useAppNavigation'
-import { useMobileSubscreens } from '~/composables/useMobileSubscreens'
-import { useSubscreenNav } from '~/composables/useSubscreenNav'
+import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
+import { useSlideScrollCapture, type CaptureDirection } from '~/composables/useSlideScrollCapture'
 import { useSplitReveal } from '~/composables/useSplitReveal'
 
 const projects = siteContent.projects
 const { goToSection } = useAppNavigation()
 
-// Sous-écrans mobiles : titre + introduction, un projet par écran (§2.3).
 const rootRef = ref<HTMLElement | null>(null)
+const cubeRef = ref<HTMLElement | null>(null)
 
-// Un projet trop long pour un écran très court (petit téléphone) est découpé en deux plans (voir `measure`).
-const splitIds = ref<string[]>([])
-const isSplit = (id: string) => splitIds.value.includes(id)
-const total = computed(() => projects.cards.length + 1 + splitIds.value.length)
-const sub = useMobileSubscreens(total, 3)
-const subscreenNav = useSubscreenNav()
+const prefersReducedMotion = usePrefersReducedMotion()
 
-// Marge minimale de 14 px au-dessus et au-dessous d'un plan mobile.
-const FRAME_MARGIN = 28
-let measureTimer: ReturnType<typeof setTimeout> | null = null
-let lastSize = ''
-
-/** Mesure chaque projet entier dans son cadre ; ceux qui ne tiennent pas sont découpés en deux plans. */
-async function measure() {
-  const root = rootRef.value
-  if (!root) return
-  const mobile = window.matchMedia('(max-width: 767.98px)').matches
-  const frame = root.querySelector<HTMLElement>('.subtrack')
-  if (!mobile || !frame) {
-    if (splitIds.value.length) splitIds.value = []
-    return
-  }
-  // Mesure à l'état entier : tout est remis en un plan par projet, puis rendu.
-  splitIds.value = []
-  await nextTick()
-  const cards = Array.from(root.querySelectorAll<HTMLElement>('.projects__card'))
-  const tooTall: string[] = []
-  projects.cards.forEach((card, i) => {
-    const inner = cards[i]?.querySelector<HTMLElement>('.projects__card-inner')
-    if (inner && inner.offsetHeight > frame.clientHeight - FRAME_MARGIN) tooTall.push(card.id)
-  })
-  splitIds.value = tooTall
+interface CubeFace {
+  id: string
+  card?: ProjectCard
 }
 
-function scheduleMeasure() {
-  const size = `${window.innerWidth}x${window.innerHeight}`
-  if (size === lastSize) return
-  lastSize = size
-  if (measureTimer) clearTimeout(measureTimer)
-  measureTimer = setTimeout(() => void measure(), 200)
+// 4 faces, dans l'ordre de rotation : intro, puis un projet par face (§ce tour).
+const FACES = computed<CubeFace[]>(() => [{ id: 'intro' }, ...projects.cards.map((card) => ({ id: card.id, card }))])
+const frontFace = computed(() => FACES.value[rotateIndex.value])
+
+const STEPS = 3
+const STEP_THRESHOLD = 100
+
+const rotateIndex = ref(0)
+let wheelAcc = 0
+
+function faceStyle(i: number): Record<string, string> {
+  if (prefersReducedMotion.value) return {}
+  return { transform: `rotateY(${i * 90}deg) translateZ(var(--cube-r))` }
+}
+
+function render(animate: boolean) {
+  if (!cubeRef.value || prefersReducedMotion.value) return
+  const rotationY = -rotateIndex.value * 90
+  if (animate) {
+    gsap.to(cubeRef.value, { rotationY, duration: 0.7, ease: 'power2.out', overwrite: true })
+  } else {
+    gsap.set(cubeRef.value, { rotationY })
+  }
+}
+
+function applyStep(direction: CaptureDirection): boolean {
+  const next = Math.min(Math.max(rotateIndex.value + direction, 0), STEPS)
+  if (next === rotateIndex.value) return false
+  rotateIndex.value = next
+  render(true)
+  return true
+}
+
+function wants(direction: CaptureDirection): boolean {
+  return direction === 1 ? rotateIndex.value < STEPS : rotateIndex.value > 0
+}
+
+function feed(rawDelta: number) {
+  wheelAcc += rawDelta
+  while (Math.abs(wheelAcc) >= STEP_THRESHOLD) {
+    const direction: CaptureDirection = wheelAcc > 0 ? 1 : -1
+    if (!applyStep(direction)) {
+      wheelAcc = 0
+      break
+    }
+    wheelAcc -= direction * STEP_THRESHOLD
+  }
+}
+
+function step(direction: CaptureDirection) {
+  applyStep(direction)
+  wheelAcc = 0
+}
+
+// `from` vient de SlideContainer.goTo (EXE-52) : 1 depuis Méthode (précédente)
+// pose l'arrivée sur l'intro, -1 depuis Contact (suivante) la pose sur Cockpit,
+// 0 pour un saut direct (menu) revient à l'intro.
+function onEnter(from: CaptureDirection | 0) {
+  wheelAcc = 0
+  rotateIndex.value = from === -1 ? STEPS : 0
+  render(false)
+}
+
+const scrollCapture = useSlideScrollCapture()
+
+// Rotation à la souris (glisser vertical, même geste que la molette) : le
+// tactile est déjà porté par la rétention globale de SlideContainer.
+let dragging = false
+let dragStartY = 0
+
+function onPointerDown(e: PointerEvent) {
+  if (e.pointerType === 'touch') return
+  dragging = true
+  dragStartY = e.clientY
+  ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+}
+
+function onPointerMove(e: PointerEvent) {
+  if (!dragging) return
+  const delta = dragStartY - e.clientY
+  dragStartY = e.clientY
+  if (delta !== 0) feed(delta)
+}
+
+function onPointerUp() {
+  dragging = false
 }
 
 onMounted(() => {
-  subscreenNav.register('projects', sub)
-  lastSize = `${window.innerWidth}x${window.innerHeight}`
-  void measure()
-  // Les polices changent la hauteur du texte : on mesure de nouveau une fois chargées.
-  void document.fonts?.ready.then(() => {
-    lastSize = ''
-    scheduleMeasure()
-  })
-  window.addEventListener('resize', scheduleMeasure)
+  scrollCapture.register('projects', { wants, feed, step, onEnter })
+  render(false)
 })
+
 onBeforeUnmount(() => {
-  subscreenNav.unregister('projects')
-  window.removeEventListener('resize', scheduleMeasure)
-  if (measureTimer) clearTimeout(measureTimer)
+  scrollCapture.unregister('projects')
+  if (cubeRef.value) gsap.killTweensOf(cubeRef.value)
 })
 
 useSplitReveal(rootRef, {
   index: 3,
   titles: '.projects__title',
-  lines: '.projects__scene',
+  lines: '.projects__intro',
 })
 </script>
 
@@ -161,26 +203,52 @@ useSplitReveal(rootRef, {
   padding: 0 var(--pad-x);
 }
 
-.projects__scene {
+.projects__cube-scene {
   flex: 1;
   min-height: 0;
+  display: flex;
+  justify-content: center;
+  perspective: 1800px;
 }
 
-/* `safe` : un contenu plus haut que le cadre s'aligne en haut au lieu de déborder des deux côtés. */
-.projects__head,
-.projects__card {
+.projects__cube {
+  position: relative;
+  height: 100%;
+  width: var(--cube-w);
+  --cube-w: min(88vw, 34rem);
+  --cube-r: calc(var(--cube-w) / 2);
+  transform-style: preserve-3d;
+  touch-action: pan-y;
+}
+
+.projects__cube-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
   display: flex;
   align-items: safe center;
   justify-content: center;
 }
 
-.projects__head-inner,
-.projects__card-inner {
+/* Sous mouvement réduit, chaque face occupe la même place : un fondu remplace la rotation 3D. */
+.projects--reduced .projects__cube-face {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease-slow);
+}
+
+.projects--reduced .projects__cube-face.is-front {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.projects__cube-face-inner {
   width: 100%;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0 1rem;
 }
 
 .projects__title {
@@ -202,7 +270,7 @@ useSplitReveal(rootRef, {
   color: var(--color-ink);
 }
 
-/* Un filet de 1 px ouvre le carton d'un plan (ornement, aucun texte). */
+/* Un filet de 1 px ouvre le carton d'une face (ornement, aucun texte). */
 .projects__card-title::before {
   content: '';
   display: block;
@@ -221,11 +289,6 @@ useSplitReveal(rootRef, {
   color: var(--color-ink-dim);
   margin-top: 0.7rem;
   max-width: 30rem;
-}
-
-/* Texte seul sur son plan (projet découpé) : pas de marge au-dessus. */
-.projects__card-text--solo {
-  margin-top: 0;
 }
 
 .projects__tags {
@@ -270,7 +333,17 @@ useSplitReveal(rootRef, {
   border-bottom-color: var(--color-ink);
 }
 
+/* Panneau mobile sous le cube : masqué au-delà de 768px, où le texte reste sur la face. */
+.projects__mobile-text {
+  display: none;
+}
+
 @media (max-width: 767.98px) {
+  .projects__cube-scene {
+    flex: 0 0 auto;
+    height: min(46vh, 22rem);
+  }
+
   .projects__card-title {
     letter-spacing: 0.16em;
   }
@@ -279,17 +352,8 @@ useSplitReveal(rootRef, {
     margin-bottom: 0.75rem;
   }
 
-  /* Le plus long plan (rag-eval-scifact) doit tenir dans le cadre avec de l'air autour du lien. */
-  .projects__card-inner .t-body {
-    line-height: 1.5;
-  }
-
   .projects__card-tagline {
     margin-top: 0.7rem;
-  }
-
-  .projects__card-text {
-    margin-top: 0.4rem;
   }
 
   .projects__tags {
@@ -298,6 +362,25 @@ useSplitReveal(rootRef, {
 
   .projects__card-actions {
     margin-top: 0.4rem;
+  }
+
+  /* Sur la face, seuls titre, accroche, tags et liens restent : le texte long passe sous le cube. */
+  .projects__cube-face .projects__card-text--face {
+    display: none;
+  }
+
+  .projects__mobile-text {
+    display: block;
+    flex: 1;
+    min-height: 0;
+    max-width: 30rem;
+    margin: 1rem auto 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .projects__mobile-text .projects__card-text {
+    margin-top: 0;
   }
 }
 </style>

@@ -82,9 +82,10 @@ watch(entryGate.opened, (opened) => {
   if (prefersReducedMotion.value) $emitter.emit('section-enter', 0)
 })
 
+// Un clic dans le menu est un saut direct (EXE-54) : même vers une section
+// adjacente, il ne porte aucune continuité de défilement (voir SlideContainer.goTo).
 function onMenuSelect(index: number) {
-  const section = SECTION_ORDER[index]
-  if (section) goToSection(section)
+  slideRef.value?.goTo(index, { direct: true })
 }
 
 function goToSection(section: SectionId) {

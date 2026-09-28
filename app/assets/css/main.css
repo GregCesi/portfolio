@@ -92,6 +92,19 @@
     user-select: text;
   }
 
+  /*
+   * Exception ciblée à `user-select: none` (EXE-54) : le texte des faces du
+   * cube Projets reste sélectionnable, comme celui de Contact ci-dessus.
+   */
+  .projects__cube-face,
+  .projects__cube-face * {
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+
   /* Focus clavier toujours visible, quel que soit l'élément (§2.3 de la spec) */
   :focus-visible {
     outline: 2px solid var(--color-accent);
