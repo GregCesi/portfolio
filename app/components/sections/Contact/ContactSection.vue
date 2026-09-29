@@ -330,7 +330,7 @@ onBeforeUnmount(() => clearTimeout(copyTimeout))
     flex-direction: row;
     align-items: stretch;
     justify-content: center;
-    max-width: min(60rem, 72vw);
+    max-width: min(60rem, 74vw);
     margin-left: auto;
     margin-right: auto;
   }
