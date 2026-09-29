@@ -9,17 +9,19 @@ import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
  * resserrant leur interlettrage, lignes de texte en cascade. Aucun rebond.
  *
  * À chaque arrivée (événement `section-enter` émis par `pages/index.vue`, y
- * compris celle de la section 0 à l'ouverture du sas d'entrée), le texte
- * arrive avec la section, en profondeur (voir useDepthTransition), sans cette
- * révélation : seuls les tweens `extra` se jouent. Sous
+ * compris celle de la section 0 à l'ouverture du sas d'entrée), toute la
+ * section arrive d'un bloc, en profondeur (voir useDepthTransition), sans
+ * aucune animation propre : textes et éléments `extra` sont posés dans leur
+ * état final avant que la section ne devienne visible (EXE-72). Sous
  * `prefers-reduced-motion`, la révélation est rejouée à chaque arrivée mais
  * tout apparaît directement, sans animation.
  *
  * - `titles` : sélecteur des titres (interlettrage qui se resserre).
  * - `lines`  : sélecteur des blocs de texte (fondu en cascade).
  * - `extra`  : tweens propres à la section (frise, planète...), ajoutés à la
- *              même timeline ; reçoit `null` en mouvement réduit (état final
- *              direct). `hideExtra` remet ces éléments dans l'état masqué.
+ *              même timeline ; reçoit `null` pour poser l'état final direct
+ *              (arrivée en profondeur, mouvement réduit). `hideExtra` remet
+ *              ces éléments dans l'état masqué.
  */
 export interface SectionRevealOptions {
   index: number
@@ -117,16 +119,13 @@ export function useSplitReveal(rootRef: Ref<HTMLElement | null>, options: Sectio
     options.extra?.(tl)
   }
 
-  // Arrivée par un changement de section : le texte arrive avec la section, en
-  // profondeur (voir useDepthTransition), et n'a plus de révélation propre.
-  // Restent les tweens de la section (`extra`), rejoués avec le même délai.
+  // Arrivée par un changement de section : toute la section arrive d'un bloc,
+  // en profondeur (voir useDepthTransition). Rien ne s'anime ici : tout est
+  // posé dans son état final avant que la section ne devienne visible.
   function playInDepth() {
     timeline?.kill()
-    gsap.set([...query(options.titles), ...query(options.lines)], { opacity: 1, clearProps: 'letterSpacing,height' })
-    options.hideExtra?.()
-    const tl = gsap.timeline({ delay: ENTER_DELAY })
-    timeline = tl
-    options.extra?.(tl)
+    timeline = null
+    showAll()
   }
 
   function onEnter(index: number) {

@@ -9,6 +9,18 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  hooks: {
+    // Le panneau `?tune` (EXE-72) et tweakpane ne se chargent qu'à la demande :
+    // aucune balise de préchargement ne les annonce dans la page.
+    'build:manifest': (manifest) => {
+      for (const resource of Object.values(manifest)) {
+        if (resource.src?.startsWith('tune/')) {
+          resource.prefetch = false
+          resource.preload = false
+        }
+      }
+    },
+  },
   app: {
     head: {
       htmlAttrs: {

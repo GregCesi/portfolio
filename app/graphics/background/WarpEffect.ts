@@ -30,15 +30,23 @@ export default class WarpEffect {
    * Voyage en trois phases, synchronisé au changement de section « en
    * profondeur » (voir useDepthTransition) : accélération progressive
    * pendant `depart`, vitesse de croisière tenue pendant `travel`, puis
-   * décélération pendant `arrive` jusqu'à un bref recul (au plus 0,2 s) avant
-   * de retrouver la vitesse de repos pile à la fin — l'instant où le texte
-   * entrant se pose. Aucun saut de vitesse à aucune frontière.
+   * décélération pendant `arrive` jusqu'à un bref recul (vitesse
+   * `-reboundSpeed`, pendant au plus `reboundDuration`) avant de retrouver la
+   * vitesse de repos pile à la fin — l'instant où le texte entrant se pose.
+   * Aucun saut de vitesse à aucune frontière.
    */
-  journey(depart: number, travel: number, arrive: number, cruiseSpeed: number = 4) {
+  journey(
+    depart: number,
+    travel: number,
+    arrive: number,
+    cruiseSpeed: number,
+    reboundSpeed: number,
+    reboundDuration: number,
+  ) {
     if (this.normalizeTimeout) clearTimeout(this.normalizeTimeout)
     this.timeline?.kill()
 
-    const rebound = Math.min(0.2, arrive * 0.3)
+    const rebound = Math.min(reboundDuration, arrive)
     const brake = arrive - rebound
     const proxy = { speed: 1 }
 
@@ -54,7 +62,7 @@ export default class WarpEffect {
         },
       })
       .to(proxy, { speed: cruiseSpeed, duration: depart, ease: 'sine.inOut' }, 0)
-      .to(proxy, { speed: -cruiseSpeed * 0.25, duration: brake, ease: 'sine.inOut' }, depart + travel)
+      .to(proxy, { speed: -reboundSpeed, duration: brake, ease: 'sine.inOut' }, depart + travel)
       .to(proxy, { speed: 1, duration: rebound, ease: 'sine.inOut' }, depart + travel + brake)
   }
 

@@ -108,8 +108,9 @@ watch(introVisible, async (isIntro) => {
   if (target) gsap.fromTo(target, { opacity: 0 }, { opacity: 1, duration: 0.9, ease: 'power1.out' })
 })
 
-// Mouvement d'entrée : le titre se révèle, puis le surtitre et le sous-titre
-// en cascade, puis la frise, le texte et la planète émergent ensemble du noir.
+// Révélation (mouvement réduit seulement, où elle s'affiche d'un coup) : le
+// titre, puis le surtitre et le sous-titre, puis la frise, le texte et la
+// planète. En profondeur, la section arrive d'un bloc (voir useSplitReveal).
 function extra(tl: gsap.core.Timeline | null) {
   const stage = rootRef.value?.querySelector<HTMLElement>('.method__stage')
   if (!stage) return

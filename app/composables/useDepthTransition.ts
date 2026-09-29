@@ -1,50 +1,57 @@
 import type { Ref } from 'vue'
 import gsap from 'gsap'
+import { arrivalStart, journey } from '~/composables/useJourney'
 
 /**
  * Changement de section « en profondeur », en trois phases qui se suivent
  * sans se chevaucher (EXE-49) : Départ — le contenu sortant part vers le
- * visiteur et s'efface ; Trajet — aucun texte à l'écran ; Arrivée — le
- * contenu entrant apparaît au loin et grossit jusqu'à sa taille normale.
- * Rien ne glisse : les deux sections se superposent à l'écran le temps de la
- * transition, comme les étoiles filent vers le visiteur (voir
- * BackgroundHyperspace, qui rejoue le même découpage en trois phases pour
+ * visiteur et s'efface ; Trajet — aucun texte à l'écran ; Arrivée — la
+ * section entrante vient du fond, d'un seul bloc, comme un objet qui
+ * s'approche (EXE-72). Rien ne glisse : les deux sections se superposent à
+ * l'écran le temps de la transition, comme les étoiles filent vers le
+ * visiteur (voir BackgroundHyperspace, qui rejoue le même découpage pour
  * l'accélération du fond).
  *
- * Les échos sont des copies de la section, en retard sur le mouvement
- * principal : plus petites que lui, elles se glissent derrière. Ils sont
+ * L'arrivée anime une distance, de `1 / arrivalStartScale` jusqu'à 1, et la
+ * section prend l'échelle `1 / distance` : sa taille croît lentement au loin
+ * puis de plus en plus vite en approchant, comme en perspective. Échelle et
+ * opacité portent sur la section entière, jamais sur un de ses textes : tout
+ * grossit et apparaît ensemble. Durées et courbe sont lues dans les réglages
+ * du voyage (useJourney) à chaque changement de section.
+ *
+ * Les échos du départ sont des copies de la section sortante, en retard sur
+ * son mouvement : plus petites que lui, elles se glissent derrière. Ils sont
  * masqués aux lecteurs d'écran (`aria-hidden`, `inert`, sans `id`) et retirés
  * du DOM en fin de transition. Leur retard raccourcit d'autant leur propre
- * durée : ils s'effacent tous exactement à la fin de leur phase (`OUT_FADE`
- * pour le départ, `IN_START + IN_DURATION` pour l'arrivée), jamais pendant le
- * trajet ni après l'arrivée.
- *
- * Tout est fini à `TOTAL_DURATION` (1,6 s) : c'est l'instant où le fond
- * étoilé reprend sa vitesse de repos (voir BackgroundHyperspace), et le texte
- * entrant doit alors être net, à sa taille normale, sans écho.
+ * durée : ils s'effacent tous exactement quand la section sortante devient
+ * invisible, jamais pendant le trajet.
  *
  * Attributs posés le temps de la transition, lus par ReadingZones :
  * - `data-depth`    : section en mouvement (sa zone de lecture est celle du repos) ;
  * - `data-departed` : section sortante devenue invisible (plus de zone) ;
  * - `data-echo`     : copie d'écho (jamais une zone).
  */
-export const DEPART_DURATION = 0.4
-export const TRAVEL_DURATION = 0.5
-export const ARRIVE_DURATION = 0.7
-export const TOTAL_DURATION = DEPART_DURATION + TRAVEL_DURATION + ARRIVE_DURATION
-
 const OUT_SCALE = 2.2
-const OUT_DURATION = DEPART_DURATION
-/** Le texte sortant est invisible bien avant la fin du départ : aucune marge avec le trajet. */
-const OUT_FADE = 0.25
-const IN_SCALE = 0.4
-/** L'arrivée commence pile à la fin du trajet : aucun texte n'est visible avant. */
-const IN_START = DEPART_DURATION + TRAVEL_DURATION
-const IN_DURATION = ARRIVE_DURATION
-const IN_FADE = 0.4
+/** Part du départ au bout de laquelle le texte sortant est invisible (0,25 s sur 0,4 s, EXE-49) : aucune marge avec le trajet. */
+const OUT_FADE_RATIO = 0.625
+/** Part de l'arrivée pendant laquelle la section entrante passe de transparente à opaque. */
+const IN_FADE_RATIO = 0.4
 const ECHO_LAG = 0.02
 /** Opacité de chaque écho : le premier est le plus proche du texte, les suivants s'estompent. */
 const ECHO_ALPHAS = [0.32, 0.22, 0.12]
+
+/**
+ * Abscisse, dans la section, du centre de son titre (premier `h1` ou `h2`) :
+ * l'arrivée grossit autour de ce point, pour que le titre vienne du fond en
+ * ligne droite, sans dériver de côté, même quand il n'est pas centré dans la
+ * fenêtre. Lue avant toute transformation de la section.
+ */
+function headingCenterX(section: HTMLElement): string {
+  const heading = section.querySelector('h1, h2')
+  if (!heading) return '50%'
+  const box = heading.getBoundingClientRect()
+  return `${box.left + box.width / 2 - section.getBoundingClientRect().left}px`
+}
 
 export function useDepthTransition(wrapper: Ref<HTMLElement | null>) {
   let echoes: HTMLElement[] = []
@@ -78,9 +85,8 @@ export function useDepthTransition(wrapper: Ref<HTMLElement | null>) {
 
   /**
    * Ajoute le départ de `from` et l'arrivée de `to` à `tl`. `enter` déclenche
-   * l'arrivée côté page (accélération des étoiles, texte de la section) : il
-   * est appelé avant la copie des échos, qui doivent reprendre le texte entrant
-   * tel qu'il sera affiché. `offset` ramène `to` à la place de `from`.
+   * l'arrivée côté page (accélération des étoiles, texte de la section).
+   * `offset` ramène `to` à la place de `from`.
    * Sans `from` (première arrivée, à l'ouverture du sas d'entrée), seule
    * l'arrivée de `to` se joue.
    */
@@ -93,60 +99,60 @@ export function useDepthTransition(wrapper: Ref<HTMLElement | null>) {
     enter: () => void,
   ) {
     const transformOrigin = `50% ${height / 2}px`
+    const outDuration = journey.departDuration
+    const outFade = outDuration * OUT_FADE_RATIO
+    const inStart = arrivalStart()
+    const inDuration = journey.arrivalDuration
+    const startScale = journey.arrivalStartScale
+    const approach = { distance: 1 / startScale }
+    const arrivalOrigin = `${headingCenterX(to)} ${height / 2}px`
 
     from?.setAttribute('data-depth', '')
     to.setAttribute('data-depth', '')
     if (from) gsap.set(from, { transformOrigin })
-    gsap.set(to, { y: offset, scale: IN_SCALE, opacity: 0, visibility: 'inherit', transformOrigin })
+    gsap.set(to, { y: offset, scale: startScale, opacity: 0, visibility: 'inherit', transformOrigin: arrivalOrigin })
 
     enter()
 
     if (from) {
-      tl.to(from, { scale: OUT_SCALE, duration: OUT_DURATION, ease: 'power2.in' }, 0).to(
+      tl.to(from, { scale: OUT_SCALE, duration: outDuration, ease: 'power2.in' }, 0).to(
         from,
         {
           autoAlpha: 0,
-          duration: OUT_FADE,
+          duration: outFade,
           ease: 'power1.in',
           onComplete: () => from.setAttribute('data-departed', ''),
         },
         0,
       )
-    }
-    tl.to(to, { scale: 1, duration: IN_DURATION, ease: 'power2.out' }, IN_START).to(
-      to,
-      { opacity: 1, duration: IN_FADE, ease: 'power1.out' },
-      IN_START,
-    )
 
-    ECHO_ALPHAS.forEach((alpha, k) => {
-      const lag = (k + 1) * ECHO_LAG
-
-      if (from) {
+      ECHO_ALPHAS.forEach((alpha, k) => {
         // Décalé de `lag`, l'écho s'efface plus vite que le texte : tous
-        // atteignent l'opacité 0 exactement à `OUT_FADE`, jamais pendant le trajet.
+        // atteignent l'opacité 0 exactement à `outFade`, jamais pendant le trajet.
+        const lag = (k + 1) * ECHO_LAG
         const leaving = makeEcho(from)
-        const leavingFade = OUT_FADE - lag
         gsap.set(leaving, { y: 0, scale: 1, opacity: 0, visibility: 'inherit', transformOrigin })
-        tl.to(leaving, { scale: OUT_SCALE, duration: OUT_DURATION - lag, ease: 'power2.in' }, lag).fromTo(
+        tl.to(leaving, { scale: OUT_SCALE, duration: outDuration - lag, ease: 'power2.in' }, lag).fromTo(
           leaving,
           { opacity: alpha },
-          { opacity: 0, duration: leavingFade, ease: 'power1.in', immediateRender: false },
+          { opacity: 0, duration: outFade - lag, ease: 'power1.in', immediateRender: false },
           lag,
         )
-      }
+      })
+    }
 
-      // Un écho entrant apparaît vite, puis se résorbe en rejoignant le texte :
-      // décalé de `lag` au départ, sa propre durée est raccourcie d'autant pour
-      // se poser exactement à `IN_START + IN_DURATION`, jamais après l'arrivée.
-      const arriving = makeEcho(to)
-      gsap.set(arriving, { y: offset, scale: IN_SCALE, opacity: 0, visibility: 'inherit', transformOrigin })
-      const at = IN_START + lag
-      const arrivingDuration = IN_DURATION - lag
-      tl.to(arriving, { scale: 1, duration: arrivingDuration, ease: 'power2.out' }, at)
-        .to(arriving, { opacity: alpha, duration: arrivingDuration * 0.4, ease: 'none' }, at)
-        .to(arriving, { opacity: 0, duration: arrivingDuration * 0.6, ease: 'power1.in' }, at + arrivingDuration * 0.4)
-    })
+    tl.to(
+      approach,
+      {
+        distance: 1,
+        duration: inDuration,
+        ease: journey.arrivalEase,
+        onUpdate: () => {
+          gsap.set(to, { scale: 1 / approach.distance })
+        },
+      },
+      inStart,
+    ).to(to, { opacity: 1, duration: inDuration * IN_FADE_RATIO, ease: 'power1.out' }, inStart)
   }
 
   /** Remet chaque section à sa place de repos : le wrapper se cale sur la cible, sans que rien ne bouge à l'écran. */

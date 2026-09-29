@@ -18,7 +18,7 @@ import StarsField from '@/graphics/background/StarsField'
 import WarpEffect from '@/graphics/background/WarpEffect'
 import ReadingZones from '@/graphics/background/ReadingZones'
 import { usePrefersReducedMotion } from '~/composables/usePrefersReducedMotion'
-import { DEPART_DURATION, TRAVEL_DURATION, ARRIVE_DURATION } from '~/composables/useDepthTransition'
+import { journey } from '~/composables/useJourney'
 
 const canvas = ref<HTMLCanvasElement | null>(null)
 let renderer: Renderer
@@ -37,9 +37,17 @@ const accelerate = () => {
     warpEffect.start(0.25, 2)
   } else {
     // Même découpage en trois phases que le changement de section « en
-    // profondeur » (voir useDepthTransition) : les étoiles accélèrent, filent,
-    // puis freinent jusqu'au repos pile quand le texte entrant se pose.
-    warpEffect.journey(DEPART_DURATION, TRAVEL_DURATION, ARRIVE_DURATION, 4)
+    // profondeur » (voir useDepthTransition) : les étoiles accélèrent, filent
+    // (le délai avant l'arrivée prolonge la croisière), puis freinent jusqu'au
+    // repos pile quand le texte entrant se pose. Réglages lus à chaque voyage.
+    warpEffect.journey(
+      journey.departDuration,
+      journey.travelDuration + journey.arrivalDelay,
+      journey.arrivalDuration,
+      journey.starsCruiseSpeed,
+      journey.starsReboundSpeed,
+      journey.starsReboundDuration,
+    )
   }
 }
 
