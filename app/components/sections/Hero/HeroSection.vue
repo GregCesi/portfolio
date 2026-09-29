@@ -48,7 +48,7 @@ const rootRef = ref<HTMLElement | null>(null)
 useSplitReveal(rootRef, {
   index: 0,
   titles: '.hero__title',
-  lines: '.hero__text p, .hero__hook, .hero__actions',
+  lines: '.hero__text p, .hero__actions',
 })
 </script>
 
