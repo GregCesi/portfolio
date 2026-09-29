@@ -142,8 +142,22 @@ useSplitReveal(rootRef, {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: clamp(0.75rem, 3vh, 1.5rem);
   padding: 0 var(--pad-x);
+}
+
+/*
+ * `.section-viewport` (BaseSection) réserve plus de place en haut (hauteur du
+ * Header) qu'en bas (1,25rem fixe) : un centrage naïf dans `.method` (100 %
+ * de l'espace restant) reste donc décalé vers le bas par rapport à la
+ * fenêtre. On compense par l'écart exact entre ces deux réserves, à partir
+ * des mêmes variables que BaseSection — aucun pixel arbitraire.
+ */
+@media (min-width: 768px) {
+  .method {
+    margin-top: calc((0.75rem - var(--header-height, 80px)) / 2);
+  }
 }
 
 .method__head {
@@ -176,14 +190,15 @@ useSplitReveal(rootRef, {
 
 /*
  * La planète est un décor de fond plein cadre, centrée derrière le texte de
- * l'étape et la frise (§ hypothèses TCK-230). `.method__stage` prend toute la
- * place restante sous l'en-tête pour que le centrage vertical de la planète
- * (50 % de sa hauteur) ait du sens.
+ * l'étape et la frise (§ hypothèses TCK-230). `.method__stage` garde la
+ * hauteur de son contenu (pas `flex: 1 1 auto`) : c'est `.method`, avec
+ * `justify-content: center`, qui centre le bloc entier (en-tête + stage)
+ * dans la fenêtre (EXE-70). `.method__planet-wrap` déborde librement de
+ * `.method__stage` — seul `.section-viewport` masque le débordement.
  */
 .method__stage {
   position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;

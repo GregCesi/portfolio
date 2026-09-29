@@ -101,11 +101,11 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
 
   // 1. Trouver le mesh de la planète (premier enfant)
   planetMesh = model.children[0] as THREE.Mesh
-  
+
   if (planetMesh && planetMesh.material) {
     const material = planetMesh.material as THREE.MeshStandardMaterial
     const originalTexture = material.map // Texture GLB originale
-    
+
     // 2. Charger toutes les textures avec les bonnes propriétés
     const textureLoader = new THREE.TextureLoader()
     
@@ -148,7 +148,19 @@ const handleModelLoaded = async (model: THREE.Object3D) => {
       'planet-bake-4': bake4,
     }
     if (Object.values(textureMap).every(Boolean)) markLoaded('planet-textures')
-    
+
+    // Le matériau du GLB ne porte plus de couleur de base (voir EXE-48) : sans
+    // ceci, la planète reste noire jusqu'au premier changement vers une étape
+    // de texture différente — or les étapes 1 et 2 (puis 5 et 6) partagent la
+    // même texture, donc ce premier changement peut ne jamais survenir. On
+    // pose la texture de l'étape courante dès qu'elle est chargée, sans fondu
+    // (rien n'était visible avant).
+    const initialTexture = textureMap[currentTextureName]
+    if (initialTexture) {
+      material.map = initialTexture
+      material.needsUpdate = true
+    }
+
     // 3. Créer la fonction de changement de texture avec crossfade
     // Une demande reçue pendant un fondu (2 s) est retenue : la dernière cible
     // l'emporte, enchaînée dès la fin du fondu en cours, sans jamais ignorer
