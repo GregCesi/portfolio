@@ -1,5 +1,5 @@
 <template>
-  <BaseSection :index="1">
+  <BaseSection :index="1" full-bleed>
     <div ref="rootRef" class="hero">
       <!--
         Carton de générique, centré : un titre, un texte, une accroche, deux
@@ -48,7 +48,7 @@ const rootRef = ref<HTMLElement | null>(null)
 useSplitReveal(rootRef, {
   index: 0,
   titles: '.hero__title',
-  lines: '.hero__text p, .hero__actions',
+  lines: '.hero__text p, .hero__hook, .hero__actions',
 })
 </script>
 
@@ -115,30 +115,6 @@ useSplitReveal(rootRef, {
 
 .hero__hook {
   color: var(--color-ink-dim);
-}
-
-@media (min-width: 1024px) {
-  .hero__row {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-    text-align: left;
-    gap: 2.5rem;
-  }
-
-  .hero__text,
-  .hero__aside {
-    flex: 1 1 0;
-    max-width: 32rem;
-  }
-
-  .hero__aside {
-    align-items: flex-start;
-  }
-
-  .hero__actions {
-    justify-content: flex-start;
-  }
 }
 
 /* Liens de générique : Jost capitales espacées, un filet de 1 px dessous,
