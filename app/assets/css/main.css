@@ -21,6 +21,8 @@
   --color-ink-dim: #8c98a3;
   --color-accent: #a9cbdd;
   --color-line: rgb(230 236 239 / 22%);
+  /* Fond opaque des faces du cube de Projets (EXE-73), à peine plus clair que le fond. */
+  --color-surface: #0c131b;
   /* Badge de disponibilité (EXE-55) : seul usage du vert sur le site. */
   --color-online: #6ee7a0;
 }

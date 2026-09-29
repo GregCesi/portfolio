@@ -6,8 +6,8 @@ import { reactive } from 'vue'
  * lisent ces valeurs à chaque changement de section. Le panneau `?tune` les
  * modifie en direct et « Copier les valeurs » les exporte telles quelles.
  *
- * `JOURNEY_DEFAULTS` est le seul endroit où les valeurs par défaut du site
- * sont écrites.
+ * `JOURNEY_DEFAULTS` et `CUBE_DEFAULTS` (cube de Projets, plus bas) sont le
+ * seul endroit où les valeurs par défaut du site sont écrites.
  */
 export const ARRIVAL_EASES = [
   'none',
@@ -56,6 +56,37 @@ export const JOURNEY_DEFAULTS: Readonly<JourneySettings> = Object.freeze({
 })
 
 export const journey = reactive<JourneySettings>({ ...JOURNEY_DEFAULTS })
+
+/**
+ * Réglages du cube de Projets (EXE-73), écrits ici avec ceux du voyage : même
+ * panneau `?tune`, même « Copier les valeurs ». ProjectsSection les lit à
+ * chaque rotation ; perspective et dimensions s'appliquent en direct.
+ */
+export interface CubeSettings {
+  /** Perspective de la scène (px) : plus petite, plus la rotation est marquée. */
+  perspective: number
+  /** Durée de la rotation d'une face (s). */
+  rotationDuration: number
+  /** Délai (s) sans molette avant que le cube se cale sur une face. */
+  settleDelay: number
+  /** Part d'une face à dépasser (molette ou glisser) pour se caler sur la suivante. */
+  snapThreshold: number
+  /** Largeur d'une face, en part de la largeur disponible. */
+  widthRatio: number
+  /** Hauteur d'une face, en part de la hauteur disponible. */
+  heightRatio: number
+}
+
+export const CUBE_DEFAULTS: Readonly<CubeSettings> = Object.freeze({
+  perspective: 1800,
+  rotationDuration: 0.7,
+  settleDelay: 0.25,
+  snapThreshold: 0.2,
+  widthRatio: 0.62,
+  heightRatio: 0.86,
+})
+
+export const cube = reactive<CubeSettings>({ ...CUBE_DEFAULTS })
 
 /** Instant (s, depuis le geste) où commence l'arrivée. */
 export function arrivalStart(settings: JourneySettings = journey): number {
