@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EXE-75 · Variante 4 · Three.js avec skill iart-ai</title>
+<link rel="icon" href="data:,">
+<style>
+:root {
+  --color-bg: #05070a;
+  --color-ink: #e6ecef;
+  --font-sans: 'Hanken Grotesk', 'Helvetica Neue', system-ui;
+}
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--color-bg); }
+canvas { display: block; }
+.ui { position: fixed; top: 16px; z-index: 10; font-family: var(--font-sans); font-size: 14px; }
+.ui--left { left: 16px; } .ui--right { right: 16px; }
+.ui a, .ui button {
+  color: var(--color-ink); background: color-mix(in srgb, var(--color-bg) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 25%, transparent); border-radius: 4px;
+  padding: 6px 12px; font: inherit; text-decoration: none; cursor: pointer;
+}
+</style>
+<!-- La skill demande un CDN ; le ticket interdit toute ressource réseau :
+     Three.js est servi depuis node_modules du dépôt. -->
+<script type="importmap">
+{ "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div class="ui ui--left"><a href="./index.html">← Comparaison</a></div>
+<div class="ui ui--right"><button type="button" id="replay">Rejouer</button></div>
+
+<script type="module">
+import * as THREE from 'three'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
+
+// Jetons de couleur du site (app/assets/css/main.css).
+const COLOR = { bg: 0x05070a, ink: 0xe6ecef, accent: 0xa9cbdd, surface: 0x0c131b }
+const FONT = '400 {size}px Jost, Futura, system-ui'
+
+const FOV = 30
+const BLEED = 60
+const LIP_W = 30
+const WORD_PX = 30
+
+// Skill : toute l'aléa vient d'une graine fixe, pour que deux rendus au même
+// instant donnent les mêmes pixels.
+function mulberry32(seed) {
+  return () => {
+    seed |= 0; seed = (seed + 0x6d2b79f5) | 0
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
+
+const renderer = new THREE.WebGLRenderer({ antialias: true })
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+renderer.toneMapping = THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure = 1.05
+document.body.prepend(renderer.domElement)
+
+const scene = new THREE.Scene()
+scene.background = new THREE.Color(COLOR.bg)
+const camera = new THREE.PerspectiveCamera(FOV, 1, 1, 10000)
+
+const pmrem = new THREE.PMREMGenerator(renderer)
+const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04)
+scene.environment = envRT.texture
+scene.environmentIntensity = 0.55
+pmrem.dispose()
+
+const key = new THREE.DirectionalLight(0xffffff, 2.2)
+key.position.set(-1, 1.1, 1.3)
+const rim = new THREE.DirectionalLight(COLOR.accent, 0.6)
+rim.position.set(1, -0.6, 0.8)
+const slitLight = new THREE.PointLight(COLOR.accent, 0, 0, 1.2)
+scene.add(key, rim, slitLight)
+
+// --- Brossage généré par un fragment shader (skill shader-glsl) ------------
+// Bruit de valeur périodique (il se répète sans couture), fbm très étiré à
+// l'horizontale : des stries fines et irrégulières. Rendu une fois dans une
+// cible hors écran, relu en DataTexture, puis la cible est libérée.
+const BRUSH_FRAG = /* glsl */ `
+  precision highp float;
+  varying vec2 vUv;
+  uniform vec2 u_period;
+  float hash21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+  float pnoise(vec2 p, vec2 per){
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    float a = hash21(mod(i, per));
+    float b = hash21(mod(i + vec2(1.0, 0.0), per));
+    float c = hash21(mod(i + vec2(0.0, 1.0), per));
+    float d = hash21(mod(i + vec2(1.0, 1.0), per));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+  }
+  float fbm(vec2 p, vec2 per){
+    float v = 0.0, a = 0.5;
+    for (int i = 0; i < 5; i++){ v += a * pnoise(p, per); p *= 2.0; per *= 2.0; a *= 0.5; }
+    return v;
+  }
+  void main(){
+    vec2 p = vUv * u_period;
+    float streak = fbm(p, u_period);
+    float grain = pnoise(vUv * u_period * vec2(8.0, 2.0), u_period * vec2(8.0, 2.0));
+    float h = 0.5 + (streak - 0.5) * 0.9 + (grain - 0.5) * 0.25;
+    gl_FragColor = vec4(vec3(h), 1.0);
+  }
+`
+function brushedData(size = 1024) {
+  const rt = new THREE.WebGLRenderTarget(size, size)
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { u_period: { value: new THREE.Vector2(6, 700) } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: BRUSH_FRAG,
+  })
+  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat)
+  const s = new THREE.Scene()
+  s.add(quad)
+  renderer.setRenderTarget(rt)
+  renderer.render(s, new THREE.Camera())
+  renderer.setRenderTarget(null)
+  const pixels = new Uint8Array(size * size * 4)
+  renderer.readRenderTargetPixels(rt, 0, 0, size, size, pixels)
+  rt.dispose(); mat.dispose(); quad.geometry.dispose()
+  return { pixels, size }
+}
+const brushed = brushedData()
+function brushedTexture(repeatX, repeatY) {
+  const t = new THREE.DataTexture(brushed.pixels, brushed.size, brushed.size)
+  t.wrapS = t.wrapT = THREE.RepeatWrapping
+  t.repeat.set(repeatX, repeatY)
+  t.generateMipmaps = true
+  t.minFilter = THREE.LinearMipmapLinearFilter
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy()
+  t.needsUpdate = true
+  return t
+}
+
+function steel(color, roughness, repeatX, repeatY) {
+  const map = brushedTexture(repeatX, repeatY)
+  return new THREE.MeshPhysicalMaterial({
+    color, metalness: 1, roughness,
+    roughnessMap: map, bumpMap: map, bumpScale: 0.35,
+    clearcoat: 0.15, clearcoatRoughness: 0.5,
+  })
+}
+
+function roundedRect(w, h, r) {
+  const s = new THREE.Shape()
+  s.moveTo(-w / 2 + r, -h / 2)
+  s.lineTo(w / 2 - r, -h / 2); s.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r)
+  s.lineTo(w / 2, h / 2 - r); s.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2)
+  s.lineTo(-w / 2 + r, h / 2); s.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r)
+  s.lineTo(-w / 2, -h / 2 + r); s.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2)
+  return s
+}
+function plateGeometry(w, h) {
+  return new THREE.ExtrudeGeometry(roundedRect(w - 16, h - 16, 4), {
+    depth: 4, bevelEnabled: true, bevelThickness: 7, bevelSize: 8, bevelSegments: 5, curveSegments: 6,
+  })
+}
+
+function wordMesh(text) {
+  const scale = 4
+  const size = WORD_PX * scale
+  const c = document.createElement('canvas')
+  const g = c.getContext('2d')
+  g.font = FONT.replace('{size}', size)
+  g.letterSpacing = `${0.34 * size}px`
+  const glyphW = g.measureText(text.toUpperCase()).width - 0.34 * size
+  const pad = 6 * scale
+  c.width = Math.ceil(glyphW + pad * 2)
+  c.height = Math.ceil(size * 1.3 + pad * 2)
+  g.font = FONT.replace('{size}', size)
+  g.letterSpacing = `${0.34 * size}px`
+  g.textBaseline = 'middle'
+  g.fillStyle = '#fff'
+  g.fillText(text.toUpperCase(), pad, c.height / 2)
+  const tex = new THREE.CanvasTexture(c)
+  tex.anisotropy = 8
+  const w = c.width / scale
+  const h = c.height / scale
+  const group = new THREE.Group()
+  const face = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, h),
+    new THREE.MeshPhysicalMaterial({ color: 0xc9d9e3, metalness: 1, roughness: 0.35, alphaMap: tex, transparent: true }),
+  )
+  face.position.z = 1
+  const shadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, h),
+    new THREE.MeshBasicMaterial({ color: 0x000000, alphaMap: tex, transparent: true, opacity: 0.7 }),
+  )
+  shadow.position.set(1.5, -2, 0.5)
+  // Ordre fixe : l'ombre d'abord, les lettres ensuite, sans écriture de profondeur.
+  shadow.renderOrder = 1
+  face.renderOrder = 2
+  shadow.material.depthWrite = face.material.depthWrite = false
+  group.add(shadow, face)
+  group.userData.glyphs = { w: glyphW / scale, h: size / scale }
+  return group
+}
+
+// Skill : libérer chaque ressource GPU — géométries, matériaux, et toutes les
+// textures de chaque matériau, quel que soit leur emplacement.
+function disposeObject(root) {
+  root.traverse((obj) => {
+    obj.geometry?.dispose()
+    if (!obj.material) return
+    for (const m of Array.isArray(obj.material) ? obj.material : [obj.material]) {
+      for (const k of Object.keys(m)) { if (m[k]?.isTexture) m[k].dispose() }
+      m.dispose()
+    }
+  })
+  root.clear()
+}
+
+const leaves = { left: new THREE.Group(), right: new THREE.Group() }
+scene.add(leaves.left, leaves.right)
+let W = 0
+let H = 0
+
+function buildLeaf(group, side, text) {
+  disposeObject(group)
+  const s = side === 'left' ? -1 : 1
+  const leafW = W / 2 + BLEED
+  const leafH = H + BLEED * 2
+  const cx = s * leafW / 2
+
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(leafW, leafH, 40), steel(0x5d6f7e, 0.42, leafW / 700, leafH / 700))
+  slab.position.set(cx, 0, -20)
+  group.add(slab)
+
+  const pw = (W / 2) * 0.78
+  const ph = H * 0.3
+  const pcx = s * ((W / 2) * 0.12 + pw / 2)
+  const plateMat = steel(0x71849a, 0.32, 1 / 500, 1 / 500)
+  const plateGeo = plateGeometry(pw, ph) // skill : une géométrie réutilisée
+  for (const py of [H * 0.26, -H * 0.26]) {
+    const p = new THREE.Mesh(plateGeo, plateMat)
+    p.position.set(pcx, py, 0)
+    group.add(p)
+  }
+
+  const lip = new THREE.Mesh(plateGeometry(LIP_W + 12, leafH + 40), steel(0x3d4a56, 0.38, 1 / 400, 1 / 400))
+  lip.position.set(s * (LIP_W + 12) / 2, 0, 0)
+  group.add(lip)
+
+  const rivetGeo = new THREE.SphereGeometry(6, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2)
+  rivetGeo.rotateX(Math.PI / 2)
+  rivetGeo.scale(1, 1, 0.55)
+  const lipRivetX = s * (LIP_W / 2 + 2)
+  const positions = []
+  const top = H / 2 - 14
+  const outer = s * (W / 2 - 14)
+  for (let x = LIP_W + 20; x < W / 2 - 20; x += 46) positions.push([s * x, top, 0], [s * x, -top, 0])
+  for (let y = -top + 32; y < top - 16; y += 46) positions.push([outer, y, 0])
+  for (let y = -H / 2 + 24; y < H / 2; y += 64) positions.push([lipRivetX, y, 11])
+  const rivets = new THREE.InstancedMesh(rivetGeo, new THREE.MeshPhysicalMaterial({ color: 0x8a9cab, metalness: 1, roughness: 0.25 }), positions.length)
+  // Chaque rivet tourne un peu sur lui-même (graine fixe) : les reflets ne
+  // sont pas tous identiques, comme sur des rivets posés à la main.
+  const rand = mulberry32(side === 'left' ? 75 : 57)
+  const dummy = new THREE.Object3D()
+  positions.forEach(([x, y, z], i) => {
+    dummy.position.set(x, y, z)
+    dummy.rotation.set((rand() - 0.5) * 0.25, (rand() - 0.5) * 0.25, rand() * Math.PI)
+    dummy.updateMatrix()
+    rivets.setMatrixAt(i, dummy.matrix)
+  })
+  rivets.instanceMatrix.needsUpdate = true
+  rivets.computeBoundingSphere() // skill : sinon le culling se trompe
+  group.add(rivets)
+
+  const word = wordMesh(text)
+  word.position.set(s * (W / 4), 0, 0)
+  word.name = 'word'
+  group.add(word)
+}
+
+// La fente : un filet HDR (hors tone mapping) que le bloom fait rayonner.
+// Skill : un matériau émissif au-delà du seuil vaut mieux qu'un halo peint.
+const slitMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(COLOR.accent), transparent: true, toneMapped: false })
+const slit = new THREE.Mesh(new THREE.PlaneGeometry(3, 1), slitMat)
+slit.position.z = 12
+scene.add(slit)
+
+const composer = new EffectComposer(renderer)
+composer.addPass(new RenderPass(scene, camera))
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.5, 0.4, 1.0)
+composer.addPass(bloom)
+composer.addPass(new OutputPass())
+
+function layout() {
+  W = innerWidth
+  H = innerHeight
+  renderer.setSize(W, H)
+  composer.setSize(W, H)
+  composer.setPixelRatio(Math.min(devicePixelRatio, 2))
+  camera.aspect = W / H
+  camera.position.set(0, 0, H / 2 / Math.tan(THREE.MathUtils.degToRad(FOV / 2)))
+  camera.updateProjectionMatrix()
+  buildLeaf(leaves.left, 'left', 'Grégoire')
+  buildLeaf(leaves.right, 'right', 'Marchand')
+  slit.scale.y = H * 1.2
+  slitLight.position.set(0, 0, 30)
+}
+
+// --- Séquence : l'état est une fonction pure du temps écoulé (skill) --------
+const HOLD_S = reducedMotion ? 0.3 : 0.9
+const GLOW_S = reducedMotion ? 0 : 0.6
+const OPEN_S = reducedMotion ? 0.6 : 1.6
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+const clamp01 = (x) => Math.min(1, Math.max(0, x))
+const travel = () => W / 2 + BLEED + 80
+let state = { glow: 0, p: 0 }
+
+function stateAt(t) {
+  return {
+    glow: GLOW_S ? clamp01((t - HOLD_S) / GLOW_S) : (t >= HOLD_S ? 1 : 0),
+    p: clamp01((t - HOLD_S - GLOW_S) / OPEN_S),
+  }
+}
+
+function apply({ glow, p }) {
+  state = { glow, p }
+  const e = ease(p)
+  leaves.left.position.x = -e * travel()
+  leaves.right.position.x = e * travel()
+  const fade = 1 - Math.min(1, p * 2)
+  // Au-delà de 1, la couleur dépasse le seuil du bloom : la fente irradie.
+  slitMat.color.setHex(COLOR.accent).multiplyScalar(0.9 + 3.2 * glow)
+  slitMat.opacity = fade
+  slit.scale.x = 1 + 1.5 * glow
+  slitLight.intensity = 500 * glow * fade
+}
+
+function draw() { composer.render() }
+
+const clock = new THREE.Clock(false)
+let seeking = false
+function frame() {
+  if (!seeking) apply(stateAt(clock.getElapsedTime()))
+  draw()
+}
+function play() { seeking = false; clock.start() }
+
+// --- Mesure ---------------------------------------------------------------
+const v = new THREE.Vector3()
+function screenRect(points) {
+  const r = { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity }
+  for (const p of points) {
+    v.copy(p).project(camera)
+    const x = (v.x + 1) / 2 * W
+    const y = (1 - v.y) / 2 * H
+    r.left = Math.min(r.left, x); r.right = Math.max(r.right, x)
+    r.top = Math.min(r.top, y); r.bottom = Math.max(r.bottom, y)
+  }
+  return r
+}
+function boxCorners(box) {
+  const out = []
+  for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) out.push(new THREE.Vector3(x, y, z))
+  return out
+}
+function measureLeaf(group) {
+  group.updateMatrixWorld(true)
+  const extent = screenRect(boxCorners(new THREE.Box3().setFromObject(group)))
+  const b = new THREE.Box3().setFromObject(group.children[0])
+  const leaf = screenRect([new THREE.Vector3(b.min.x, b.min.y, 0), new THREE.Vector3(b.max.x, b.max.y, 0)])
+  const word = group.getObjectByName('word')
+  const { w, h } = word.userData.glyphs
+  const corners = [[-w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2], [w / 2, -h / 2]].map(([x, y]) => word.localToWorld(new THREE.Vector3(x, y, 1)))
+  return { leaf, extent, word: screenRect(corners) }
+}
+
+window.door = {
+  replay: play,
+  seek(p) { seeking = true; apply({ glow: p > 0 ? 1 : 0, p }); draw() },
+  get progress() { return state.p },
+  measure() {
+    return { viewport: { width: W, height: H }, progress: state.p, left: measureLeaf(leaves.left), right: measureLeaf(leaves.right) }
+  },
+}
+
+document.getElementById('replay').addEventListener('click', () => { renderer.setAnimationLoop(frame); play() })
+addEventListener('resize', () => { layout(); apply(state); draw() })
+
+// Skill : `?t=N` fige la scène à N secondes, rend une image et s'arrête.
+const fixedT = new URLSearchParams(location.search).get('t')
+document.fonts.ready.then(() => {
+  layout()
+  if (fixedT !== null) {
+    seeking = true
+    apply(stateAt(parseFloat(fixedT)))
+    draw()
+    window.__ready = true
+  } else {
+    play()
+    renderer.setAnimationLoop(frame)
+  }
+})
+</script>
+</body>
+</html>

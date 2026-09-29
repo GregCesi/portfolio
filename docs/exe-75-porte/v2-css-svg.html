@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EXE-75 · Variante 2 · CSS et filtres SVG</title>
+<link rel="icon" href="data:,">
+<style>
+/* Jetons de couleur du site (app/assets/css/main.css). */
+:root {
+  --color-bg: #05070a;
+  --color-ink: #e6ecef;
+  --color-accent: #a9cbdd;
+  --color-surface: #0c131b;
+  --font-display: 'Jost', 'Futura', system-ui;
+  --font-sans: 'Hanken Grotesk', 'Helvetica Neue', system-ui;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--color-bg); }
+
+.behind {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse 40% 60% at 50% 50%, color-mix(in srgb, var(--color-accent) 18%, transparent), transparent 70%), var(--color-bg);
+}
+
+/* Chaque battant est un SVG plein cadre : le HTML ne fait que le déplacer. */
+.leaf { position: fixed; top: 0; bottom: 0; width: 50%; will-change: transform; overflow: hidden; }
+.leaf--left { left: 0; }
+.leaf--right { right: 0; }
+.leaf svg { display: block; width: 100%; height: 100%; }
+
+/* Reflet large, en CSS par-dessus le SVG : il ne suit pas le relief, il donne
+   la direction du brossage. */
+.leaf::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
+  background:
+    linear-gradient(97deg, transparent 20%, color-mix(in srgb, var(--color-accent) 12%, transparent) 40%, transparent 60%),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-ink) 6%, transparent), transparent 45%);
+}
+
+.word {
+  font-family: var(--font-display); font-weight: 400; font-size: 30px;
+  text-transform: uppercase; letter-spacing: 0.34em;
+}
+
+.slit {
+  position: fixed; top: 0; bottom: 0; left: 50%; width: 3px; margin-left: -1.5px; z-index: 2;
+  background: linear-gradient(to bottom, transparent, var(--color-accent) 15%, var(--color-accent) 85%, transparent);
+  box-shadow: 0 0 calc(6px + 26px * var(--glow, 0)) color-mix(in srgb, var(--color-accent) calc(40% + 60% * var(--glow, 0)), transparent);
+  transform: scaleX(calc(1 + 2 * var(--glow, 0)));
+  pointer-events: none;
+}
+
+.ui { position: fixed; top: 16px; z-index: 10; font-family: var(--font-sans); font-size: 14px; }
+.ui--left { left: 16px; } .ui--right { right: 16px; }
+.ui a, .ui button {
+  color: var(--color-ink); background: color-mix(in srgb, var(--color-bg) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 25%, transparent); border-radius: 4px;
+  padding: 6px 12px; font: inherit; text-decoration: none; cursor: pointer;
+}
+</style>
+</head>
+<body>
+<!-- Filtres partagés par les deux battants. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Brossage : un bruit très étiré à l'horizontale sert de carte de hauteur,
+         éclairé en diffus depuis le haut à gauche, puis teinté acier bleuté. -->
+    <filter id="brushed" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.0025 0.55" numOctaves="3" seed="7" result="noise"/>
+      <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="height"/>
+      <feDiffuseLighting in="height" surfaceScale="1.6" diffuseConstant="1" lighting-color="#ffffff" result="shade">
+        <feDistantLight azimuth="225" elevation="55"/>
+      </feDiffuseLighting>
+      <feSpecularLighting in="height" surfaceScale="1.6" specularConstant="0.55" specularExponent="22" lighting-color="#a9cbdd" result="spec">
+        <feDistantLight azimuth="200" elevation="35"/>
+      </feSpecularLighting>
+      <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+      <feFlood flood-color="#1f2a35" result="base"/>
+      <feBlend in="base" in2="shade" mode="multiply" result="tinted"/>
+      <feComposite in="tinted" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="0.6" k4="0" result="metal"/>
+      <feComposite in="metal" in2="SourceAlpha" operator="in"/>
+    </filter>
+
+    <!-- Relief : l'alpha flouté de la forme sert de carte de hauteur. Éclairage
+         spéculaire (arête claire en haut à gauche), diffus pour le modelé, et
+         ombre portée vers le bas à droite. -->
+    <filter id="bevel" x="-6%" y="-6%" width="115%" height="118%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="blur"/>
+      <feSpecularLighting in="blur" surfaceScale="7" specularConstant="1.1" specularExponent="26" lighting-color="#dcebf3" result="spec">
+        <feDistantLight azimuth="225" elevation="40"/>
+      </feSpecularLighting>
+      <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+      <feDiffuseLighting in="blur" surfaceScale="7" diffuseConstant="1.05" lighting-color="#ffffff" result="diff">
+        <feDistantLight azimuth="225" elevation="50"/>
+      </feDiffuseLighting>
+      <feComposite in="diff" in2="SourceAlpha" operator="in" result="diffIn"/>
+      <feBlend in="SourceGraphic" in2="diffIn" mode="multiply" result="lit"/>
+      <feComposite in="lit" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="0.8" k4="0" result="face"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="shadowBlur"/>
+      <feOffset in="shadowBlur" dx="7" dy="10" result="shadowOff"/>
+      <feColorMatrix in="shadowOff" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.75 0" result="shadow"/>
+      <feMerge>
+        <feMergeNode in="shadow"/>
+        <feMergeNode in="face"/>
+      </feMerge>
+    </filter>
+
+    <!-- Rivets : même principe, flou large par rapport au rayon, la tête est bombée. -->
+    <filter id="dome" x="-60%" y="-60%" width="240%" height="240%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="blur"/>
+      <feSpecularLighting in="blur" surfaceScale="4" specularConstant="1.4" specularExponent="30" lighting-color="#f0f6fa" result="spec">
+        <feDistantLight azimuth="225" elevation="45"/>
+      </feSpecularLighting>
+      <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+      <feDiffuseLighting in="blur" surfaceScale="4" diffuseConstant="1" lighting-color="#ffffff" result="diff">
+        <feDistantLight azimuth="225" elevation="40"/>
+      </feDiffuseLighting>
+      <feComposite in="diff" in2="SourceAlpha" operator="in" result="diffIn"/>
+      <feBlend in="SourceGraphic" in2="diffIn" mode="multiply" result="lit"/>
+      <feComposite in="lit" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="face"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="sb"/>
+      <feOffset in="sb" dx="2" dy="3" result="so"/>
+      <feColorMatrix in="so" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.8 0" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="face"/></feMerge>
+    </filter>
+
+    <!-- Lettres gravées : l'alpha inversé sert de carte de hauteur, le creux
+         s'éclaire donc sur son bord bas à droite et s'assombrit en haut à gauche. -->
+    <filter id="engrave" x="-4%" y="-30%" width="108%" height="160%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.1" result="blur"/>
+      <feComponentTransfer in="blur" result="inv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>
+      <feSpecularLighting in="inv" surfaceScale="3" specularConstant="1.2" specularExponent="18" lighting-color="#dcebf3" result="spec">
+        <feDistantLight azimuth="225" elevation="35"/>
+      </feSpecularLighting>
+      <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+      <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="0.9" k4="0"/>
+    </filter>
+
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a4854"/>
+      <stop offset="0.5" stop-color="#2a3541"/>
+      <stop offset="1" stop-color="#1a222b"/>
+    </linearGradient>
+    <linearGradient id="plateSteel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4a5a68"/>
+      <stop offset="1" stop-color="#26313c"/>
+    </linearGradient>
+    <linearGradient id="lipSteel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a3541"/>
+      <stop offset="1" stop-color="#11171e"/>
+    </linearGradient>
+    <pattern id="rivetsH" width="46" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="23" cy="10" r="7" fill="#5b6b78"/>
+    </pattern>
+    <pattern id="rivetsV" width="20" height="46" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="23" r="7" fill="#5b6b78"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="behind"></div>
+<div class="leaf leaf--left" data-leaf="left"></div>
+<div class="leaf leaf--right" data-leaf="right"></div>
+<div class="slit"></div>
+<div class="ui ui--left"><a href="./index.html">← Comparaison</a></div>
+<div class="ui ui--right"><button type="button" id="replay">Rejouer</button></div>
+
+<script type="module">
+const NS = 'http://www.w3.org/2000/svg'
+const LIP = 30
+
+// Construit le SVG d'un battant aux dimensions courantes (en pixels). Le
+// battant droit est le miroir du gauche : sa lèvre est à gauche.
+function buildLeaf(host, side, word) {
+  const w = innerWidth / 2
+  const h = innerHeight
+  const lipX = side === 'left' ? w - LIP : 0
+  const outerX = side === 'left' ? 0 : w - 20
+  const plateX = side === 'left' ? w * 0.1 : w * 0.12
+  const plateW = w * 0.78
+  const svg = `
+    <svg xmlns="${NS}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+      <rect width="${w}" height="${h}" fill="url(#steel)"/>
+      <rect width="${w}" height="${h}" filter="url(#brushed)" opacity="0.85"/>
+      <g filter="url(#bevel)">
+        <rect x="${plateX}" y="${h * 0.09}" width="${plateW}" height="${h * 0.3}" rx="3" fill="url(#plateSteel)"/>
+        <rect x="${plateX}" y="${h * 0.61}" width="${plateW}" height="${h * 0.3}" rx="3" fill="url(#plateSteel)"/>
+      </g>
+      <g filter="url(#brushed)" opacity="0.35" style="mix-blend-mode:overlay">
+        <rect x="${plateX}" y="${h * 0.09}" width="${plateW}" height="${h * 0.3}" rx="3"/>
+        <rect x="${plateX}" y="${h * 0.61}" width="${plateW}" height="${h * 0.3}" rx="3"/>
+      </g>
+      <g filter="url(#bevel)">
+        <rect x="${lipX}" y="-20" width="${LIP}" height="${h + 40}" fill="url(#lipSteel)"/>
+      </g>
+      <g filter="url(#dome)">
+        <rect x="0" y="0" width="${w - LIP}" height="20" fill="url(#rivetsH)"/>
+        <rect x="0" y="${h - 20}" width="${w - LIP}" height="20" fill="url(#rivetsH)"/>
+        <rect x="${outerX}" y="20" width="20" height="${h - 40}" fill="url(#rivetsV)"/>
+        <rect x="${lipX + 5}" y="20" width="20" height="${h - 40}" fill="url(#rivetsV)"/>
+      </g>
+      <text class="word" data-word="${side}" x="${w / 2}" y="${h / 2}" text-anchor="middle" dominant-baseline="central"
+        fill="#8fa3b2" filter="url(#engrave)">${word}</text>
+    </svg>`
+  host.innerHTML = svg
+}
+
+const leaves = { left: document.querySelector('[data-leaf="left"]'), right: document.querySelector('[data-leaf="right"]') }
+function build() {
+  buildLeaf(leaves.left, 'left', 'Grégoire')
+  buildLeaf(leaves.right, 'right', 'Marchand')
+  // L'interlettrage ajoute une espace après la dernière lettre : on recentre
+  // le mot sur ses glyphes en le décalant d'une demi-espace.
+  for (const side of ['left', 'right']) {
+    const t = leaves[side].querySelector('text')
+    t.setAttribute('dx', String(parseFloat(getComputedStyle(t).letterSpacing) / 2))
+  }
+}
+
+// Séquence commune aux 4 variantes : porte fermée, la fente s'intensifie,
+// puis les battants coulissent. `window.door` expose de quoi mesurer.
+const HOLD_MS = 900
+const GLOW_MS = 600
+const OPEN_MS = 1600
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+const slit = document.querySelector('.slit')
+let raf = 0
+let progress = 0
+
+function render(glow, p) {
+  progress = p
+  const e = ease(p)
+  leaves.left.style.transform = `translateX(${-e * 104}%)`
+  leaves.right.style.transform = `translateX(${e * 104}%)`
+  slit.style.setProperty('--glow', String(glow))
+  slit.style.opacity = String(1 - Math.min(1, p * 2))
+}
+
+function play() {
+  cancelAnimationFrame(raf)
+  const start = performance.now()
+  const tick = (now) => {
+    const t = now - start
+    const glow = Math.min(1, Math.max(0, (t - HOLD_MS) / GLOW_MS))
+    const p = Math.min(1, Math.max(0, (t - HOLD_MS - GLOW_MS) / OPEN_MS))
+    render(glow, p)
+    if (p < 1) raf = requestAnimationFrame(tick)
+  }
+  render(0, 0)
+  raf = requestAnimationFrame(tick)
+}
+
+const rect = (el) => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom } }
+window.door = {
+  replay: play,
+  seek(p) { cancelAnimationFrame(raf); render(p > 0 ? 1 : 0, p) },
+  get progress() { return progress },
+  measure() {
+    const word = (side) => rect(leaves[side].querySelector('text'))
+    return {
+      viewport: { width: innerWidth, height: innerHeight },
+      progress,
+      left: { leaf: rect(leaves.left), extent: rect(leaves.left), word: word('left') },
+      right: { leaf: rect(leaves.right), extent: rect(leaves.right), word: word('right') },
+    }
+  },
+}
+document.getElementById('replay').addEventListener('click', play)
+addEventListener('resize', build)
+document.fonts.ready.then(() => { build(); play() })
+</script>
+</body>
+</html>

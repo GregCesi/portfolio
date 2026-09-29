@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EXE-75 · Porte du sas · comparaison</title>
+<link rel="icon" href="data:,">
+<style>
+:root {
+  --color-bg: #05070a;
+  --color-ink: #e6ecef;
+  --color-ink-dim: #8c98a3;
+  --color-accent: #a9cbdd;
+  --color-surface: #0c131b;
+  --font-display: 'Jost', 'Futura', system-ui;
+  --font-sans: 'Hanken Grotesk', 'Helvetica Neue', system-ui;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: var(--color-bg); color: var(--color-ink); font-family: var(--font-sans); }
+main { max-width: 1100px; margin: 0 auto; padding: 48px 24px; }
+h1 { font-family: var(--font-display); font-weight: 300; text-transform: uppercase; letter-spacing: 0.2em; font-size: 22px; margin: 0 0 8px; }
+p.lead { color: var(--color-ink-dim); margin: 0 0 32px; }
+ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+li a {
+  display: block; height: 100%; padding: 20px; border-radius: 6px; text-decoration: none; color: inherit;
+  background: var(--color-surface); border: 1px solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+}
+li a:hover { border-color: var(--color-accent); }
+.num { font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.2em; text-transform: uppercase; font-size: 13px; }
+.tech { display: block; margin: 8px 0; font-size: 17px; }
+.skill { font-size: 13px; color: var(--color-ink-dim); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Porte du sas · 4 variantes</h1>
+  <p class="lead">Chaque page montre la porte fermée, puis son ouverture. « Rejouer » la referme et relance l'ouverture.</p>
+  <ol>
+    <li data-variant="1"><a href="./v1-css.html">
+      <span class="num">Variante 1</span>
+      <span class="tech">Métal en CSS seul : dégradés superposés, chanfreins en bordure, ombres portées.</span>
+      <span class="skill">sans skill iart-ai</span>
+    </a></li>
+    <li data-variant="2"><a href="./v2-css-svg.html">
+      <span class="num">Variante 2</span>
+      <span class="tech">CSS avec filtres SVG : bruit brossé et reliefs éclairés par feSpecularLighting.</span>
+      <span class="skill">sans skill iart-ai</span>
+    </a></li>
+    <li data-variant="3"><a href="./v3-three.html">
+      <span class="num">Variante 3</span>
+      <span class="tech">Three.js : géométrie en relief, matériau métallique éclairé, reflets d'environnement.</span>
+      <span class="skill">sans skill iart-ai</span>
+    </a></li>
+    <li data-variant="4"><a href="./v4-three-skill.html">
+      <span class="num">Variante 4</span>
+      <span class="tech">Three.js, même demande que la variante 3, travaillée avec la skill iart-ai.</span>
+      <span class="skill">avec skill iart-ai</span>
+    </a></li>
+  </ol>
+</main>
+</body>
+</html>
