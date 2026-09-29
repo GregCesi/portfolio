@@ -132,10 +132,10 @@ export function useDepthTransition(wrapper: Ref<HTMLElement | null>) {
         const lag = (k + 1) * ECHO_LAG
         const leaving = makeEcho(from)
         gsap.set(leaving, { y: 0, scale: 1, opacity: 0, visibility: 'inherit', transformOrigin })
-        tl.to(leaving, { scale: OUT_SCALE, duration: outDuration - lag, ease: 'power2.in' }, lag).fromTo(
+        tl.to(leaving, { scale: OUT_SCALE, duration: Math.max(outDuration - lag, 0), ease: 'power2.in' }, lag).fromTo(
           leaving,
           { opacity: alpha },
-          { opacity: 0, duration: outFade - lag, ease: 'power1.in', immediateRender: false },
+          { opacity: 0, duration: Math.max(outFade - lag, 0), ease: 'power1.in', immediateRender: false },
           lag,
         )
       })
