@@ -1,9 +1,11 @@
 <template>
   <!-- Racine unique : elle reçoit `class="method__timeline"` posé par
        MethodSection.vue. En dessous de 1024px, une frise compacte de 6
-       points, seul le nom de l'étape affichée est visible. À partir de
-       1024px, les 6 noms forment une rangée reliée par un trait, flanquée
-       des flèches de navigation (§ critères 6, 7, 8, 10). -->
+       points, seul le nom de l'étape affichée est visible, sous son point.
+       À partir de 1024px, chaque étape porte son point sur le trait et son
+       nom dessous ; le trait relie le centre des points, jamais les noms.
+       Le point de l'étape affichée pulse. Flèches de navigation flanquant
+       la rangée à partir de 1024px. -->
   <div class="mt-root">
     <button
       type="button"
@@ -15,8 +17,8 @@
       ‹
     </button>
 
-    <div class="mt-track">
-      <span class="mt-line" aria-hidden="true">
+    <div ref="trackRef" class="mt-track">
+      <span class="mt-line" aria-hidden="true" :style="lineStyle">
         <span class="mt-line__fill" :style="{ width: `${fillPercent}%` }" />
       </span>
 
@@ -30,7 +32,7 @@
             :aria-label="`Étape ${index + 1} : ${step.title}`"
             @click="selectCompact(index + 1)"
           >
-            <span class="mt-dot" aria-hidden="true" />
+            <span :ref="(el) => setDotRef(el, index)" class="mt-dot" aria-hidden="true" />
             <span class="mt-name">{{ step.title }}</span>
           </button>
         </li>
@@ -50,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, type ComponentPublicInstance } from 'vue'
 import type { StepStatus } from '~/types/method'
 import { useMethodState } from '~/composables/useMethodState'
 
@@ -94,6 +96,59 @@ const segClass = (index: number) => {
 const fillPercent = computed(() => {
   if (introActive.value || steps.value.length <= 1) return 0
   return ((currentStep.value - 1) / (steps.value.length - 1)) * 100
+})
+
+// À partir de 1024px, le trait doit relier le centre du premier point à
+// celui du dernier (§ critère 5) sans jamais croiser un nom (§ critère 6).
+// Les noms n'ont pas la même largeur : l'écart entre deux points n'est pas
+// uniforme, donc seule une mesure DOM donne leur position exacte — un calcul
+// CSS pur ne peut pas la déduire de la largeur du texte.
+const trackRef = ref<HTMLElement | null>(null)
+const dotRefs = ref<(HTMLElement | null)[]>([])
+
+const setDotRef = (el: Element | ComponentPublicInstance | null, index: number) => {
+  dotRefs.value[index] = el instanceof HTMLElement ? el : null
+}
+
+const lineTop = ref(0)
+const lineLeft = ref(0)
+const lineRight = ref(0)
+
+const lineStyle = computed(() => ({
+  top: `${lineTop.value}px`,
+  left: `${lineLeft.value}px`,
+  right: `${lineRight.value}px`,
+}))
+
+const measureLine = () => {
+  const track = trackRef.value
+  const first = dotRefs.value[0]
+  const last = dotRefs.value[dotRefs.value.length - 1]
+  if (!track || !first || !last) return
+  const trackRect = track.getBoundingClientRect()
+  const firstRect = first.getBoundingClientRect()
+  const lastRect = last.getBoundingClientRect()
+  lineTop.value = firstRect.top + firstRect.height / 2 - trackRect.top
+  lineLeft.value = firstRect.left + firstRect.width / 2 - trackRect.left
+  lineRight.value = trackRect.right - (lastRect.left + lastRect.width / 2)
+}
+
+let resizeObserver: ResizeObserver | null = null
+
+onMounted(async () => {
+  await nextTick()
+  measureLine()
+  if (typeof ResizeObserver !== 'undefined' && trackRef.value) {
+    resizeObserver = new ResizeObserver(() => measureLine())
+    resizeObserver.observe(trackRef.value)
+  }
+  window.addEventListener('resize', measureLine)
+  void document.fonts.ready.then(() => measureLine())
+})
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+  window.removeEventListener('resize', measureLine)
 })
 </script>
 
@@ -192,6 +247,25 @@ const fillPercent = computed(() => {
   border-color: var(--color-accent);
 }
 
+/* Point de l'étape affichée : seul repère du "en cours", en plus de la
+   couleur du nom (§ critère 7). Durée dans [1,5 s ; 3 s], douce (§ critère
+   humain 2) ; `prefers-reduced-motion` la raccourcit déjà (main.css). */
+@keyframes mt-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.65;
+  }
+}
+
+.mt-seg.is-active .mt-dot {
+  animation: mt-pulse 2.4s ease-in-out infinite;
+}
+
 .mt-name {
   display: none;
 }
@@ -214,14 +288,14 @@ const fillPercent = computed(() => {
   }
 
   .mt-line {
+    /* Position exacte (top/left/right) posée en style inline par
+       `lineStyle`, mesurée en JS depuis le premier et le dernier point :
+       elle va de centre à centre, jamais des bords de la piste
+       (§ critères 5, 6). */
     display: block;
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
     height: 1px;
     background: var(--color-line);
-    transform: translateY(-50%);
   }
 
   .mt-line__fill {
@@ -235,10 +309,6 @@ const fillPercent = computed(() => {
   .mt-row {
     gap: clamp(1.25rem, 2.5vw, 2.5rem);
     flex-wrap: nowrap;
-  }
-
-  .mt-dot {
-    display: none;
   }
 
   .mt-name {
