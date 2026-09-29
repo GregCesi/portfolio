@@ -30,13 +30,25 @@ interface Props {
   locked?: boolean
   /** Contrôleur de rétention de molette (EXE-52) de la diapositive `index`, s'il y en a un. */
   capture?: (index: number) => ScrollCaptureController | undefined
+  /**
+   * Vrai si la diapositive `index` n'a aucun sous-écran horizontal : tout
+   * événement molette lui revient alors par deltaY seul, sans jamais être
+   * détourné vers le sous-écran (EXE-71). Un pavé tactile envoie deltaX et
+   * deltaY dans le même événement, dans un rapport qui varie d'un événement à
+   * l'autre au sein d'un même geste ; router par axe dominant perdait alors
+   * le deltaY d'un événement à deltaX momentanément plus grand, dès que la
+   * diapositive active n'a rien à faire de ce deltaX (elle n'a pas de
+   * sous-écran enregistré dans useSubscreenNav).
+   */
+  axisLocked?: (index: number) => boolean
 }
 const props = withDefaults(defineProps<Props>(), {
   scrollThreshold: 50,
   transitionDuration: 0.8,
   depthMotion: false,
   locked: false,
-  capture: () => undefined
+  capture: () => undefined,
+  axisLocked: () => false
 })
 
 /* Refs */
@@ -212,7 +224,7 @@ let lastHorizontalAt = 0
 
 function onWheel(e: WheelEvent) {
   e.preventDefault()
-  if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+  if (!props.axisLocked?.(current.value) && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
     const now = performance.now()
     if (Math.abs(e.deltaX) >= props.scrollThreshold && now - lastHorizontalAt > 800) {
       lastHorizontalAt = now

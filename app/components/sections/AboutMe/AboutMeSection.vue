@@ -63,11 +63,18 @@ const prefersReducedMotion = usePrefersReducedMotion()
 // crans discrets tant qu'elle a du terrain, avant de céder à SlideContainer
 // le changement de section (voir useSlideScrollCapture, réutilisé par EXE-54).
 const STEPS = about.timeline.length
-const STEP_THRESHOLD = 100
+// Amplitude minimale d'un deltaY pour compter comme un geste voulu (EXE-71) :
+// en dessous, c'est du bruit de pavé tactile, pas une intention de défiler.
+const STEP_MIN_DELTA = 20
+// Un cran par geste, jamais deux (TCK-230 : « sans sauter d'une escale à
+// l'autre »). Une rafale de pavé tactile envoie une dizaine d'événements sur
+// ~150 ms : ce délai les regroupe en un seul cran, comme le délai symétrique
+// de SlideContainer pour le changement de sous-écran (voir lastHorizontalAt).
+const STEP_COOLDOWN_MS = 800
 
 const stepIndex = ref(0)
 let scrollable = 0
-let wheelAcc = 0
+let lastStepAt = 0
 
 function isReached(index: number): boolean {
   return prefersReducedMotion.value || stepIndex.value >= index + 1
@@ -103,25 +110,29 @@ function applyStep(direction: CaptureDirection): boolean {
   return true
 }
 
+// Pendant le refroidissement qui suit un cran, l'itinéraire réclame
+// l'événement même s'il est déjà à son bout (EXE-71) : une rafale de pavé
+// tactile envoie sa dizaine d'événements bien après le premier cran qui l'a
+// consommée, et sans ce garde-fou les événements suivants de cette même
+// rafale, trouvant `wants` déjà faux, retombaient sur SlideContainer et
+// changeaient de section avant la fin de cette rafale — plutôt qu'au geste
+// suivant, comme le veut TCK-230.
 function wants(direction: CaptureDirection): boolean {
+  if (performance.now() - lastStepAt < STEP_COOLDOWN_MS) return true
   return direction === 1 ? stepIndex.value < STEPS : stepIndex.value > 0
 }
 
 function feed(rawDelta: number) {
-  wheelAcc += rawDelta
-  while (Math.abs(wheelAcc) >= STEP_THRESHOLD) {
-    const direction: CaptureDirection = wheelAcc > 0 ? 1 : -1
-    if (!applyStep(direction)) {
-      wheelAcc = 0
-      break
-    }
-    wheelAcc -= direction * STEP_THRESHOLD
-  }
+  if (Math.abs(rawDelta) < STEP_MIN_DELTA) return
+  const now = performance.now()
+  if (now - lastStepAt < STEP_COOLDOWN_MS) return
+  lastStepAt = now
+  applyStep(rawDelta > 0 ? 1 : -1)
 }
 
 function step(direction: CaptureDirection) {
   applyStep(direction)
-  wheelAcc = 0
+  lastStepAt = performance.now()
 }
 
 // `from` vient de SlideContainer.goTo (EXE-52) : 1 depuis Start (section
@@ -129,7 +140,7 @@ function step(direction: CaptureDirection) {
 // suivante) la pose à la fin, 0 pour un saut direct (menu) revient au début —
 // aucune continuité de défilement à porter pour un saut.
 function onEnter(from: CaptureDirection | 0) {
-  wheelAcc = 0
+  lastStepAt = 0
   stepIndex.value = from === -1 ? STEPS : 0
   measure()
   render(false)
@@ -209,25 +220,22 @@ useSplitReveal(rootRef, {
   flex: 0 0 clamp(13rem, 60vw, 19rem);
   height: 100%;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.25rem;
   padding: 0 1rem;
 }
 
-.par__stop--above .par__marker {
-  order: 2;
-}
+/*
+ * Le marqueur reste sur le tracé, au centre vertical de la scène ; le
+ * cartouche est ancré dans le quart haut ou le quart bas de la fenêtre
+ * (EXE-71, TCK-237) — les deux ne forment plus un bloc centré comme avant
+ * ce tour. Proportions de l'espace disponible, pas de valeur fixe : `top`
+ * et `bottom` restent proches du bord pour tenir dans le quart, avec assez
+ * de marge pour que la hauteur du cartouche ne déborde jamais la fenêtre.
+ */
 .par__stop--above .par__cartouche {
-  order: 1;
-}
-.par__stop--below .par__marker {
-  order: 1;
+  top: 8%;
 }
 .par__stop--below .par__cartouche {
-  order: 2;
+  bottom: 8%;
 }
 
 .par__seg {
@@ -235,7 +243,7 @@ useSplitReveal(rootRef, {
   left: -50%;
   top: 50%;
   width: 100%;
-  height: 6rem;
+  height: 70%;
   transform: translateY(-50%);
   pointer-events: none;
   z-index: 0;
@@ -261,7 +269,10 @@ useSplitReveal(rootRef, {
 }
 
 .par__marker {
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 1;
   flex-shrink: 0;
   width: 0.65rem;
@@ -280,7 +291,9 @@ useSplitReveal(rootRef, {
 }
 
 .par__cartouche {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1;
   width: 90%;
   max-width: 19rem;

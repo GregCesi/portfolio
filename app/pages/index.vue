@@ -6,6 +6,7 @@
     :depth-motion="!prefersReducedMotion"
     :locked="!entryGate.opened.value"
     :capture="captureFor"
+    :axis-locked="axisLockedFor"
     @section-change="onSectionChange"
     @subscreen-next="onSubscreenNext"
     @subscreen-prev="onSubscreenPrev"
@@ -62,6 +63,17 @@ const entryGate = useEntryGate()
 // registre (même pont que subscreenNav ci-dessous).
 function captureFor(index: number) {
   return scrollCapture.get(SECTION_ORDER[index])
+}
+
+// Parcours (EXE-71) : seule section sans sous-écran dont la molette doit
+// ignorer tout deltaX de bruit plutôt que de le perdre vers un sous-écran
+// qui n'existe pas (voir SlideContainer.axisLocked). Volontairement limité à
+// Parcours : Projets a la même absence de sous-écran aujourd'hui mais son
+// comportement molette n'est pas du périmètre de ce tour.
+const AXIS_LOCKED_SECTIONS: SectionId[] = ['about']
+function axisLockedFor(index: number) {
+  const id = SECTION_ORDER[index]
+  return id !== undefined && AXIS_LOCKED_SECTIONS.includes(id)
 }
 
 const slideRef = ref<SlideContainerExposed | null>(null)
