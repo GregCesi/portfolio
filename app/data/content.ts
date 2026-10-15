@@ -102,7 +102,8 @@ export const siteContent: SiteContent = {
   method: {
     kicker: 'Méthode',
     title: 'De la friction au système qui tient',
-    subtitle: 'Six étapes que je suis sur chaque projet, du premier constat à la surveillance après livraison.',
+    subtitle:
+      'Six étapes que je suis sur chaque projet, du premier constat à la surveillance après livraison.',
     // Les textures vont du rouge-brun (étape 1) au vert (étapes 5 et 6) : il n'y a que
     // quatre textures bakées, deux étapes voisines en partagent une.
     steps: [
@@ -161,12 +162,14 @@ export const siteContent: SiteContent = {
 
   projects: {
     title: 'Projets',
-    intro: "Des systèmes construits pour mes propres besoins, et mesurés pour savoir s'ils tiennent.",
+    intro:
+      "Des systèmes construits pour mes propres besoins, et mesurés pour savoir s'ils tiennent.",
     cards: [
       {
         id: 'job-search',
         title: 'job-search',
-        tagline: "Un outil qui trie les offres d'emploi à ma place, pour ne lire que celles qui valent la peine.",
+        tagline:
+          "Un outil qui trie les offres d'emploi à ma place, pour ne lire que celles qui valent la peine.",
         text: "Un LLM local lit chaque offre une seule fois et répond dans un vocabulaire fermé. Des règles Python classent ensuite les offres sur deux axes, ce qui m'attire et ce qui m'est accessible. Le système classe, je décide. Chaque appel au modèle est tracé, et c'est en lisant ces traces que je l'ai refondu plusieurs fois.",
         tags: ['Python', 'FastAPI', 'SQLite', 'Ollama', 'Nuxt'],
         href: 'https://github.com/GregCesi/job-search',
@@ -184,7 +187,8 @@ export const siteContent: SiteContent = {
       {
         id: 'cockpit',
         title: 'Cockpit',
-        tagline: "Un poste de pilotage pour travailler avec l'IA sans jamais réexpliquer le contexte.",
+        tagline:
+          "Un poste de pilotage pour travailler avec l'IA sans jamais réexpliquer le contexte.",
         text: "Plusieurs projets menés de front avec des agents. Dans Notion, un modèle de chat et moi tenons le backlog, un journal daté et les règles du jeu, relues à chaque session. Les tickets partent ensuite dans une boucle où Claude Code les exécute seul, dans un espace isolé, contre des critères qu'il ne peut pas réécrire. Je relis le résultat avant de l'intégrer. L'orchestration des agents repose sur une boîte à outils open source écrite par un tiers. Le site que vous parcourez est passé par cette boucle.",
         tags: ['Claude Code', 'MCP Notion', 'git worktrees'],
         href: null,
