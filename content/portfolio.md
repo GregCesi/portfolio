@@ -165,6 +165,26 @@ Liens :
 
 ---
 
+## Mode WIP
+
+Seule page du site quand le mode WIP est actif, sous le header, avec le titre de Start dessous :
+> Work in progress
+
+---
+
+## Page 404
+
+Code :
+> 404
+
+Texte :
+> Cette page n'existe pas.
+
+Lien :
+> Retour à l'accueil
+
+---
+
 ## Libellés d'interface autorisés
 
 Seuls textes visibles autorisés en dehors de ce qui précède : repères de section « 01 / 05 » et numéros du menu, indicateurs de sous-écran « 2 / 6 », « Étape N » dans la frise, flèches ou libellés « Précédent » / « Suivant », « Voir la méthode », « Voir le code », « Télécharger mon CV », « E-mail », « GitHub », « LinkedIn », « OK », « % », attributs aria et textes alternatifs descriptifs.

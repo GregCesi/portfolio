@@ -1,5 +1,3 @@
-import type ReadingZones from './ReadingZones'
-
 interface Star {
   x: number
   y: number
@@ -7,27 +5,7 @@ interface Star {
   prevZ: number
   speed: number
   color: string
-  rgb: [number, number, number]
 }
-
-function hexToRgb(hex: string): [number, number, number] {
-  const n = parseInt(hex.slice(1), 16)
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
-}
-
-/** Couleur d'étoile à la luminosité `light` (1 = couleur d'origine). */
-function shade(star: Star, light: number): string {
-  if (light >= 0.999) return star.color
-  return `rgb(${Math.round(star.rgb[0] * light)} ${Math.round(star.rgb[1] * light)} ${Math.round(star.rgb[2] * light)})`
-}
-
-/**
- * Longueur (px) d'un tronçon de traînée : chaque tronçon a sa propre luminosité,
- * celle de son extrémité la plus proche du texte (un tronçon ne peut donc pas
- * mordre sur une zone de lecture tout en restant lumineux).
- */
-const STREAK_PIECE = 24
-const STREAK_MAX_PIECES = 16
 
 // Configuration exacte de l'original
 const CONFIG = {
@@ -47,12 +25,6 @@ const CONFIG = {
 export default class StarsField {
   private stars: Star[] = []
   private time = 0
-  private zones: ReadingZones | null = null
-
-  /** Zones de lecture : les étoiles s'éteignent derrière le texte (voir ReadingZones). */
-  setZones(zones: ReadingZones | null) {
-    this.zones = zones
-  }
 
   constructor() {
     this.initStars()
@@ -74,15 +46,13 @@ export default class StarsField {
     const newStars = []
     for (let i = 0; i < CONFIG.starCount; i++) {
       const z = Math.random() * 2000
-      const color = this.getRandomColor()
       newStars.push({
         x: (Math.random() - 0.5) * 5000,
         y: (Math.random() - 0.5) * 5000,
         z,
         prevZ: z,
         speed: 0.1 + Math.random() * 0.5,
-        color,
-        rgb: hexToRgb(color),
+        color: this.getRandomColor(),
       })
     }
     this.stars = newStars
@@ -118,9 +88,6 @@ export default class StarsField {
       }
     }
 
-    const zones = this.zones
-    zones?.tick(performance.now())
-
     // Tri des étoiles par profondeur (identique à l'original)
     const sortedStars = [...this.stars].sort((a, b) => b.z - a.z)
 
@@ -135,28 +102,17 @@ export default class StarsField {
 
       // Dessiner la ligne de vitesse (avec vérification des limites comme l'original)
       if (Math.abs(x - prevX) < width / 2 && Math.abs(y - prevY) < height / 2) {
+        ctx.beginPath()
+        ctx.strokeStyle = star.color
         ctx.lineWidth = scale * CONFIG.starSize * 0.5
-        const length = Math.hypot(x - prevX, y - prevY)
-        const pieces = zones ? Math.min(STREAK_MAX_PIECES, Math.max(1, Math.ceil(length / STREAK_PIECE))) : 1
-        let lightA = zones ? zones.light(prevX, prevY) : 1
-        for (let p = 0; p < pieces; p++) {
-          const x0 = prevX + ((x - prevX) * p) / pieces
-          const y0 = prevY + ((y - prevY) * p) / pieces
-          const x1 = prevX + ((x - prevX) * (p + 1)) / pieces
-          const y1 = prevY + ((y - prevY) * (p + 1)) / pieces
-          const lightB = zones ? zones.light(x1, y1) : 1
-          ctx.beginPath()
-          ctx.strokeStyle = shade(star, Math.min(lightA, lightB))
-          ctx.moveTo(x0, y0)
-          ctx.lineTo(x1, y1)
-          ctx.stroke()
-          lightA = lightB
-        }
+        ctx.moveTo(prevX, prevY)
+        ctx.lineTo(x, y)
+        ctx.stroke()
       }
 
       // Dessiner l'étoile
       ctx.beginPath()
-      ctx.fillStyle = shade(star, zones ? zones.light(x, y) : 1)
+      ctx.fillStyle = star.color
       ctx.arc(x, y, scale * CONFIG.starSize, 0, Math.PI * 2)
       ctx.fill()
     }

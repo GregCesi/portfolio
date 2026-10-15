@@ -214,4 +214,14 @@ export const siteContent: SiteContent = {
     copyLabel: 'Copier',
     copiedLabel: 'Copié',
   },
+
+  wip: {
+    title: 'Work in progress',
+  },
+
+  notFound: {
+    code: '404',
+    text: "Cette page n'existe pas.",
+    backLabel: "Retour à l'accueil",
+  },
 }

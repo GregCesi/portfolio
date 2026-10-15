@@ -85,4 +85,14 @@ export interface SiteContent {
     cards: ProjectCard[]
   }
   contact: ContactBlock
+  /** Page unique du mode WIP (voir `appConfig.wip`). */
+  wip: {
+    title: string
+  }
+  /** Page d'erreur d'une adresse inconnue, dans les deux modes. */
+  notFound: {
+    code: string
+    text: string
+    backLabel: string
+  }
 }
